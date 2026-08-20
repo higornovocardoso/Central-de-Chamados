@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSessionUser } from "@/hooks/useSession";
 import { useRoles } from "@/hooks/useRoles";
+import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
 import {
   CATEGORIES,
@@ -56,6 +57,7 @@ function DetalheChamado() {
   const queryClient = useQueryClient();
   const { user } = useSessionUser();
   const { isStaff } = useRoles();
+  const techniciansQuery = useTechnicians();
 
   const [comment, setComment] = useState("");
   const [form, setForm] = useState({
@@ -86,14 +88,6 @@ function DetalheChamado() {
     },
   });
 
-  const staffQuery = useQuery({
-    queryKey: ["user_roles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("user_roles").select("user_id,role");
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const lookups = useQuery({
     queryKey: ["lookups"],
@@ -145,9 +139,7 @@ function DetalheChamado() {
     return map;
   }, [profilesQuery.data]);
 
-  const technicians = (staffQuery.data ?? [])
-    .filter((r) => r.role === "admin" || r.role === "tecnico")
-    .map((r) => r.user_id);
+  const technicians = techniciansQuery.data ?? [];
 
   const updateTicket = useMutation({
     mutationFn: async () => {

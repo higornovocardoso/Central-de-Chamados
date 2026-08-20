@@ -1,29 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useSessionUser } from "@/hooks/useSession";
+import { usePermissions } from "@/hooks/usePermissions";
 
-export type RoleRow = { user_id: string; role: "admin" | "tecnico" | "usuario" };
-
+/**
+ * Compatibilidade com as telas escritas antes da fase 2. Os três papéis
+ * antigos agora são derivados da matriz de direitos:
+ *   isAdmin  -> pode administrar perfis
+ *   isStaff  -> pode alterar chamados
+ * Telas novas devem usar usePermissions() direto.
+ */
 export function useRoles() {
-  const { user } = useSessionUser();
-
-  const rolesQuery = useQuery({
-    queryKey: ["user_roles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("user_roles").select("user_id,role");
-      if (error) throw error;
-      return data as RoleRow[];
-    },
-  });
-
-  const roles = rolesQuery.data ?? [];
-  const mine = roles.filter((r) => r.user_id === user?.id).map((r) => r.role);
+  const { user, permissions, loading, can } = usePermissions();
 
   return {
     user,
-    roles,
-    isAdmin: mine.includes("admin"),
-    isStaff: mine.includes("admin") || mine.includes("tecnico"),
-    loading: rolesQuery.isLoading,
+    profiles: permissions.profiles,
+    isAdmin: can("profile", "update"),
+    isStaff: can("ticket", "update"),
+    loading,
   };
 }

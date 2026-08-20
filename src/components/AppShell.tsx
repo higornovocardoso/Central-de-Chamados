@@ -35,7 +35,8 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
-import { useRoles } from "@/hooks/useRoles";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useEntity } from "@/contexts/entity";
 import { breadcrumbFor, NAV_GROUPS, type NavLink } from "@/lib/nav";
 
 /**
@@ -53,6 +54,9 @@ type LooseLinkProps = {
   children?: ReactNode;
 };
 const NavLinkTo = Link as unknown as ComponentType<LooseLinkProps>;
+
+/** Valor do seletor que representa "todas as entidades visíveis". */
+const ROOT_TREE = "__tree__";
 
 const COLLAPSE_KEY = "glpi.sidebar.collapsed";
 const OPEN_GROUPS_KEY = "glpi.sidebar.groups";
@@ -106,7 +110,8 @@ export function AppShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { dark, toggle } = useTheme();
-  const { user, isAdmin, isStaff } = useRoles();
+  const { user, profileName, can } = usePermissions();
+  const { entities, selectedId, setSelectedId } = useEntity();
   const location = useRouterState({ select: (s) => s.location });
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
@@ -164,7 +169,7 @@ export function AppShell({
   }
 
   const crumbs = breadcrumbFor(location.pathname, breadcrumbTail);
-  const perfil = isAdmin ? "Administrador" : isStaff ? "Técnico" : "Colaborador";
+  const perfil = profileName;
 
   const sidebar = (
     <SidebarNav
@@ -173,6 +178,7 @@ export function AppShell({
       onToggleGroup={toggleGroup}
       pathname={location.pathname}
       search={search}
+      canRead={(right) => !right || can(right, "read")}
       onNavigate={() => setMobileOpen(false)}
     />
   );
@@ -230,15 +236,24 @@ export function AppShell({
                 </SheetContent>
               </Sheet>
 
-              <Select defaultValue="raiz">
+              <Select
+                value={selectedId ?? ROOT_TREE}
+                onValueChange={(v) => setSelectedId(v === ROOT_TREE ? null : v)}
+              >
                 <SelectTrigger
-                  className="hidden h-8 w-[200px] text-xs sm:flex"
+                  className="hidden h-8 w-[220px] text-xs sm:flex"
                   aria-label="Entidade"
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="raiz">Entidade raiz (árvore)</SelectItem>
+                  <SelectItem value={ROOT_TREE}>Entidade raiz (árvore)</SelectItem>
+                  {entities.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      {" ".repeat(e.level * 3)}
+                      {e.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -344,6 +359,7 @@ function SidebarNav({
   onToggleGroup,
   pathname,
   search,
+  canRead,
   onNavigate,
 }: {
   collapsed: boolean;
@@ -351,6 +367,7 @@ function SidebarNav({
   onToggleGroup: (id: string) => void;
   pathname: string;
   search: Record<string, unknown>;
+  canRead: (right: string | undefined) => boolean;
   onNavigate: () => void;
 }) {
   return (
@@ -370,11 +387,15 @@ function SidebarNav({
       </NavLinkTo>
 
       {NAV_GROUPS.map((group) => {
+        // Um grupo sem nenhum item legível some do menu, como no GLPI.
+        const links = group.links.filter((l) => canRead(l.right));
+        if (links.length === 0) return null;
+
         const open = openGroups.includes(group.id);
         const Icon = group.icon;
-        const hasActive = group.links.some((l) => isLinkActive(l, pathname, search));
+        const hasActive = links.some((l) => isLinkActive(l, pathname, search));
 
-        const first = group.links[0];
+        const first = links[0];
         if (collapsed && first) {
           return (
             <Tooltip key={group.id}>
@@ -417,7 +438,7 @@ function SidebarNav({
             </button>
             {open && (
               <ul className="mb-1 ml-[1.4rem] space-y-0.5 border-l border-sidebar-border pl-2">
-                {group.links.map((link) => {
+                {links.map((link) => {
                   const active = isLinkActive(link, pathname, search);
                   return (
                     <li key={`${link.to}-${link.label}`}>

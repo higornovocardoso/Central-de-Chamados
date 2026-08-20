@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/useRoles";
+import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
 import {
   PRIORITY_DOT,
@@ -145,6 +146,7 @@ function ListaChamados() {
   const queryClient = useQueryClient();
   const searchParams = Route.useSearch();
   const { user, isStaff } = useRoles();
+  const techniciansQuery = useTechnicians();
 
   const [criteria, setCriteria] = useState<Criterion[]>([]);
   const [showCriteria, setShowCriteria] = useState(false);
@@ -191,14 +193,6 @@ function ListaChamados() {
     },
   });
 
-  const staffQuery = useQuery({
-    queryKey: ["user_roles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("user_roles").select("user_id,role");
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const nameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -206,13 +200,7 @@ function ListaChamados() {
     return map;
   }, [profilesQuery.data]);
 
-  const technicians = useMemo(
-    () =>
-      (staffQuery.data ?? [])
-        .filter((r) => r.role === "admin" || r.role === "tecnico")
-        .map((r) => r.user_id),
-    [staffQuery.data],
-  );
+  const technicians = techniciansQuery.data ?? [];
 
   const tickets = useMemo(() => ticketsQuery.data ?? [], [ticketsQuery.data]);
 

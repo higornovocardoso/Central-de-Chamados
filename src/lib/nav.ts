@@ -21,6 +21,8 @@ export type NavLink = {
   search?: Record<string, string> | undefined;
   /** Marca telas que ainda não existem, para exibir o selo "em breve". */
   soon?: boolean | undefined;
+  /** Objeto da matriz de direitos; sem leitura, o item some do menu. */
+  right?: string | undefined;
 };
 
 export type NavGroup = {
@@ -30,11 +32,12 @@ export type NavGroup = {
   links: NavLink[];
 };
 
-const soon = (label: string, slug: string): NavLink => ({
+const soon = (label: string, slug: string, right?: string): NavLink => ({
   label,
   to: "/modulo/$slug",
   params: { slug },
   soon: true,
+  right,
 });
 
 export const NAV_HOME: NavLink = { label: "Painel", to: "/painel" };
@@ -45,14 +48,14 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Ativos",
     icon: HardDrive,
     links: [
-      { label: "Computadores", to: "/inventario", search: { tipo: "computador" } },
-      { label: "Notebooks", to: "/inventario", search: { tipo: "notebook" } },
-      { label: "Monitores", to: "/inventario", search: { tipo: "monitor" } },
-      { label: "Impressoras", to: "/inventario", search: { tipo: "impressora" } },
-      { label: "Equipamentos de rede", to: "/inventario", search: { tipo: "rede" } },
-      { label: "Telefonia", to: "/inventario", search: { tipo: "telefonia" } },
-      { label: "Softwares e licenças", to: "/inventario", search: { tipo: "licenca" } },
-      { label: "Todos os ativos", to: "/inventario", search: { tipo: "todos" } },
+      { label: "Computadores", to: "/inventario", search: { tipo: "computador" }, right: "computer" },
+      { label: "Notebooks", to: "/inventario", search: { tipo: "notebook" }, right: "computer" },
+      { label: "Monitores", to: "/inventario", search: { tipo: "monitor" }, right: "monitor" },
+      { label: "Impressoras", to: "/inventario", search: { tipo: "impressora" }, right: "printer" },
+      { label: "Equipamentos de rede", to: "/inventario", search: { tipo: "rede" }, right: "networkequipment" },
+      { label: "Telefonia", to: "/inventario", search: { tipo: "telefonia" }, right: "phone" },
+      { label: "Softwares e licenças", to: "/inventario", search: { tipo: "licenca" }, right: "software" },
+      { label: "Todos os ativos", to: "/inventario", search: { tipo: "todos" }, right: "computer" },
     ],
   },
   {
@@ -60,10 +63,10 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Assistência",
     icon: LifeBuoy,
     links: [
-      { label: "Chamados", to: "/chamados" },
-      { label: "Criar chamado", to: "/chamados/novo" },
-      { label: "Base de conhecimento", to: "/base-conhecimento" },
-      { label: "Estatísticas", to: "/painel" },
+      { label: "Chamados", to: "/chamados", right: "ticket" },
+      { label: "Criar chamado", to: "/chamados/novo", right: "ticket" },
+      { label: "Base de conhecimento", to: "/base-conhecimento", right: "knowledgebase" },
+      { label: "Estatísticas", to: "/painel", right: "statistics" },
     ],
   },
   {
@@ -71,29 +74,32 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Gestão",
     icon: Building2,
     links: [
-      { label: "Fornecedores", to: "/cadastros", search: { aba: "suppliers" } },
-      soon("Contratos", "contratos"),
-      soon("Contatos", "contatos"),
-      soon("Documentos", "documentos"),
+      { label: "Fornecedores", to: "/cadastros", search: { aba: "suppliers" }, right: "supplier" },
+      soon("Contratos", "contratos", "contract"),
+      soon("Contatos", "contatos", "contact"),
+      soon("Documentos", "documentos", "document"),
     ],
   },
   {
     id: "ferramentas",
     label: "Ferramentas",
     icon: Wrench,
-    links: [soon("Notas", "notas"), soon("Relatórios", "relatorios")],
+    links: [soon("Notas", "notas", "reminder"), soon("Relatórios", "relatorios", "report")],
   },
   {
     id: "administracao",
     label: "Administração",
     icon: Users,
     links: [
-      soon("Usuários", "usuarios"),
-      soon("Grupos", "grupos"),
-      soon("Entidades", "entidades"),
-      soon("Perfis", "perfis"),
-      { label: "Locais", to: "/cadastros", search: { aba: "locations" } },
-      { label: "Setores", to: "/cadastros", search: { aba: "sectors" } },
+      { label: "Usuários", to: "/administracao/usuarios", right: "user" },
+      { label: "Grupos", to: "/administracao/grupos", right: "group" },
+      { label: "Entidades", to: "/administracao/entidades", right: "entity" },
+      { label: "Perfis", to: "/administracao/perfis", right: "profile" },
+      soon("Regras", "regras", "rule"),
+      soon("Dicionários", "dicionarios", "dictionary"),
+      soon("Fila de e-mails", "fila-de-emails", "mailqueue"),
+      soon("Logs", "logs", "log"),
+      soon("Formulários", "formularios", "form"),
     ],
   },
   {
@@ -101,10 +107,13 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Configurar",
     icon: Settings,
     links: [
-      soon("Categorias de chamado", "categorias"),
-      soon("SLAs", "slas"),
-      soon("Status", "status"),
-      soon("Configurações gerais", "configuracoes"),
+      { label: "Locais", to: "/cadastros", search: { aba: "locations" }, right: "dropdown" },
+      { label: "Setores", to: "/cadastros", search: { aba: "sectors" }, right: "dropdown" },
+      soon("Categorias de chamado", "categorias", "dropdown"),
+      soon("Níveis de serviço", "slas", "sla"),
+      soon("Calendários", "calendarios", "calendar"),
+      soon("Notificações", "notificacoes", "notification"),
+      soon("Configurações gerais", "configuracoes", "config"),
     ],
   },
 ];
@@ -118,6 +127,11 @@ const CRUMB_LABEL: Record<string, string> = {
   "base-conhecimento": "Base de conhecimento",
   cadastros: "Cadastros",
   modulo: "Módulo",
+  administracao: "Administração",
+  entidades: "Entidades",
+  perfis: "Perfis",
+  grupos: "Grupos",
+  usuarios: "Usuários",
 };
 
 const GROUP_OF_SEGMENT: Record<string, string> = {
@@ -125,10 +139,14 @@ const GROUP_OF_SEGMENT: Record<string, string> = {
   chamados: "Assistência",
   inventario: "Ativos",
   "base-conhecimento": "Assistência",
-  cadastros: "Administração",
+  cadastros: "Configurar",
+  administracao: "Administração",
 };
 
 export type Crumb = { label: string; to?: string | undefined };
+
+/** Segmentos que agrupam telas mas não têm página própria. */
+const NO_INDEX_ROUTE = new Set(["administracao", "modulo"]);
 
 /**
  * Caminho no formato do GLPI: Início > Grupo > Tela.
@@ -143,10 +161,13 @@ export function breadcrumbFor(pathname: string, tail?: string | undefined): Crum
   const crumbs: Crumb[] = [{ label: "Início", to: "/painel" }];
 
   const group = GROUP_OF_SEGMENT[first];
-  if (group) crumbs.push({ label: group });
+  const firstLabel = CRUMB_LABEL[first] ?? first;
+  if (group && group !== firstLabel) crumbs.push({ label: group });
 
   crumbs.push(
-    second ? { label: CRUMB_LABEL[first] ?? first, to: `/${first}` } : { label: CRUMB_LABEL[first] ?? first },
+    second && !NO_INDEX_ROUTE.has(first)
+      ? { label: firstLabel, to: `/${first}` }
+      : { label: firstLabel },
   );
 
   if (second) {

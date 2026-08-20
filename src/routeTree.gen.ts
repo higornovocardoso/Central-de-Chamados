@@ -17,6 +17,10 @@ import { Route as AuthenticatedBaseConhecimentoRouteImport } from './routes/_aut
 import { Route as AuthenticatedCadastrosRouteImport } from './routes/_authenticated/cadastros'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedAdministracaoEntidadesRouteImport } from './routes/_authenticated/administracao.entidades'
+import { Route as AuthenticatedAdministracaoGruposRouteImport } from './routes/_authenticated/administracao.grupos'
+import { Route as AuthenticatedAdministracaoPerfisRouteImport } from './routes/_authenticated/administracao.perfis'
+import { Route as AuthenticatedAdministracaoUsuariosRouteImport } from './routes/_authenticated/administracao.usuarios'
 import { Route as AuthenticatedChamadosIndexRouteImport } from './routes/_authenticated/chamados.index'
 import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authenticated/chamados.$id'
 import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authenticated/chamados.novo'
@@ -62,6 +66,30 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdministracaoEntidadesRoute =
+  AuthenticatedAdministracaoEntidadesRouteImport.update({
+    id: '/administracao/entidades',
+    path: '/administracao/entidades',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdministracaoGruposRoute =
+  AuthenticatedAdministracaoGruposRouteImport.update({
+    id: '/administracao/grupos',
+    path: '/administracao/grupos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdministracaoPerfisRoute =
+  AuthenticatedAdministracaoPerfisRouteImport.update({
+    id: '/administracao/perfis',
+    path: '/administracao/perfis',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdministracaoUsuariosRoute =
+  AuthenticatedAdministracaoUsuariosRouteImport.update({
+    id: '/administracao/usuarios',
+    path: '/administracao/usuarios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChamadosIndexRoute =
   AuthenticatedChamadosIndexRouteImport.update({
     id: '/chamados/',
@@ -93,6 +121,10 @@ export interface FileRoutesByFullPath {
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
+  '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
+  '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
+  '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
@@ -106,6 +138,10 @@ export interface FileRoutesByTo {
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
+  '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
+  '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
+  '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
@@ -121,6 +157,10 @@ export interface FileRoutesById {
   '/_authenticated/cadastros': typeof AuthenticatedCadastrosRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
+  '/_authenticated/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
+  '/_authenticated/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
+  '/_authenticated/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/_authenticated/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/_authenticated/modulo/$slug': typeof AuthenticatedModuloSlugRoute
@@ -136,6 +176,10 @@ export interface FileRouteTypes {
     | '/cadastros'
     | '/inventario'
     | '/painel'
+    | '/administracao/entidades'
+    | '/administracao/grupos'
+    | '/administracao/perfis'
+    | '/administracao/usuarios'
     | '/chamados/$id'
     | '/chamados/novo'
     | '/modulo/$slug'
@@ -149,6 +193,10 @@ export interface FileRouteTypes {
     | '/cadastros'
     | '/inventario'
     | '/painel'
+    | '/administracao/entidades'
+    | '/administracao/grupos'
+    | '/administracao/perfis'
+    | '/administracao/usuarios'
     | '/chamados/$id'
     | '/chamados/novo'
     | '/modulo/$slug'
@@ -163,6 +211,10 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros'
     | '/_authenticated/inventario'
     | '/_authenticated/painel'
+    | '/_authenticated/administracao/entidades'
+    | '/_authenticated/administracao/grupos'
+    | '/_authenticated/administracao/perfis'
+    | '/_authenticated/administracao/usuarios'
     | '/_authenticated/chamados/$id'
     | '/_authenticated/chamados/novo'
     | '/_authenticated/modulo/$slug'
@@ -234,6 +286,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/administracao/entidades': {
+      id: '/_authenticated/administracao/entidades'
+      path: '/administracao/entidades'
+      fullPath: '/administracao/entidades'
+      preLoaderRoute: typeof AuthenticatedAdministracaoEntidadesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/administracao/grupos': {
+      id: '/_authenticated/administracao/grupos'
+      path: '/administracao/grupos'
+      fullPath: '/administracao/grupos'
+      preLoaderRoute: typeof AuthenticatedAdministracaoGruposRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/administracao/perfis': {
+      id: '/_authenticated/administracao/perfis'
+      path: '/administracao/perfis'
+      fullPath: '/administracao/perfis'
+      preLoaderRoute: typeof AuthenticatedAdministracaoPerfisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/administracao/usuarios': {
+      id: '/_authenticated/administracao/usuarios'
+      path: '/administracao/usuarios'
+      fullPath: '/administracao/usuarios'
+      preLoaderRoute: typeof AuthenticatedAdministracaoUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chamados/': {
       id: '/_authenticated/chamados/'
       path: '/chamados'
@@ -270,6 +350,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCadastrosRoute: typeof AuthenticatedCadastrosRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedAdministracaoEntidadesRoute: typeof AuthenticatedAdministracaoEntidadesRoute
+  AuthenticatedAdministracaoGruposRoute: typeof AuthenticatedAdministracaoGruposRoute
+  AuthenticatedAdministracaoPerfisRoute: typeof AuthenticatedAdministracaoPerfisRoute
+  AuthenticatedAdministracaoUsuariosRoute: typeof AuthenticatedAdministracaoUsuariosRoute
   AuthenticatedChamadosIdRoute: typeof AuthenticatedChamadosIdRoute
   AuthenticatedChamadosNovoRoute: typeof AuthenticatedChamadosNovoRoute
   AuthenticatedModuloSlugRoute: typeof AuthenticatedModuloSlugRoute
@@ -281,6 +365,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCadastrosRoute: AuthenticatedCadastrosRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedAdministracaoEntidadesRoute:
+    AuthenticatedAdministracaoEntidadesRoute,
+  AuthenticatedAdministracaoGruposRoute: AuthenticatedAdministracaoGruposRoute,
+  AuthenticatedAdministracaoPerfisRoute: AuthenticatedAdministracaoPerfisRoute,
+  AuthenticatedAdministracaoUsuariosRoute:
+    AuthenticatedAdministracaoUsuariosRoute,
   AuthenticatedChamadosIdRoute: AuthenticatedChamadosIdRoute,
   AuthenticatedChamadosNovoRoute: AuthenticatedChamadosNovoRoute,
   AuthenticatedModuloSlugRoute: AuthenticatedModuloSlugRoute,
