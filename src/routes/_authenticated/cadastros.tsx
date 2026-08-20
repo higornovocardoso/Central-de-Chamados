@@ -129,7 +129,9 @@ function EntityManager({ config }: { config: EntityConfig }) {
         const { error } = await supabase.from(config.table).update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from(config.table).insert(payload as never);
+        const { error } = await (supabase.from(config.table) as never as {
+          insert: (v: Record<string, string>) => Promise<{ error: Error | null }>;
+        }).insert(payload);
         if (error) throw error;
       }
     },
