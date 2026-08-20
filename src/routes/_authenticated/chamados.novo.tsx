@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/chamados/novo")({
       },
     ],
   }),
-  component: NovoChamado;
+  component: NovoChamado,
 });
 
 function NovoChamado() {
