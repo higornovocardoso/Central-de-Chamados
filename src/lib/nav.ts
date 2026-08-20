@@ -54,8 +54,14 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Impressoras", to: "/inventario", search: { tipo: "impressora" }, right: "printer" },
       { label: "Equipamentos de rede", to: "/inventario", search: { tipo: "rede" }, right: "networkequipment" },
       { label: "Telefonia", to: "/inventario", search: { tipo: "telefonia" }, right: "phone" },
-      { label: "Softwares e licenças", to: "/inventario", search: { tipo: "licenca" }, right: "software" },
+      { label: "Periféricos", to: "/inventario", search: { tipo: "periferico" }, right: "peripheral" },
+      { label: "Racks", to: "/inventario", search: { tipo: "rack" }, right: "rack" },
+      { label: "Cabos", to: "/inventario", search: { tipo: "cabo" }, right: "cable" },
+      { label: "Cartões SIM", to: "/inventario", search: { tipo: "sim_card" }, right: "sim" },
       { label: "Todos os ativos", to: "/inventario", search: { tipo: "todos" }, right: "computer" },
+      { label: "Softwares e licenças", to: "/inventario/softwares", right: "software" },
+      { label: "Cartuchos e consumíveis", to: "/inventario/estoque", right: "cartridge" },
+      { label: "Importar CSV", to: "/inventario/importar", right: "import" },
     ],
   },
   {
@@ -110,6 +116,7 @@ export const NAV_GROUPS: NavGroup[] = [
     links: [
       { label: "Locais", to: "/cadastros", search: { aba: "locations" }, right: "dropdown" },
       { label: "Setores", to: "/cadastros", search: { aba: "sectors" }, right: "dropdown" },
+      { label: "Listas suspensas", to: "/configuracao/listas", right: "dropdown" },
       soon("Categorias de chamado", "categorias", "dropdown"),
       { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
       { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
@@ -147,6 +154,10 @@ const CRUMB_LABEL: Record<string, string> = {
   coletores: "Coletores de e-mail",
   "acoes-automaticas": "Ações automáticas",
   recorrentes: "Chamados recorrentes",
+  listas: "Listas suspensas",
+  softwares: "Softwares",
+  estoque: "Cartuchos e consumíveis",
+  importar: "Importar CSV",
 };
 
 const GROUP_OF_SEGMENT: Record<string, string> = {

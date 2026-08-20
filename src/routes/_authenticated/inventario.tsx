@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Monitor, Pencil, Plus, Trash2 } from "lucide-react";
@@ -155,11 +155,15 @@ function Inventario() {
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Informe o nome do ativo.");
       const payload = { ...form, name: form.name.trim() };
+      // O types.ts gerado ainda tem os 8 tipos antigos; a fase 5 traz 19.
       if (editing) {
-        const { error } = await supabase.from("assets").update(payload).eq("id", editing.id);
+        const { error } = await supabase
+          .from("assets")
+          .update(payload as never)
+          .eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("assets").insert(payload);
+        const { error } = await supabase.from("assets").insert(payload as never);
         if (error) throw error;
       }
     },
@@ -218,9 +222,14 @@ function Inventario() {
       breadcrumbTail={kind === "todos" ? undefined : ASSET_KIND_LABEL[kind as AssetKind]}
       actions={
         isStaff ? (
-          <Button size="sm" className="h-8" onClick={openNew}>
-            <Plus className="size-4" /> Adicionar
-          </Button>
+          <>
+            <Button size="sm" variant="outline" className="h-8" asChild>
+              <Link to="/inventario/importar">Importar CSV</Link>
+            </Button>
+            <Button size="sm" className="h-8" onClick={openNew}>
+              <Plus className="size-4" /> Adicionar
+            </Button>
+          </>
         ) : null
       }
     >
@@ -274,7 +283,13 @@ function Inventario() {
               <li key={a.id} className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{a.name}</span>
+                    <Link
+                      to="/inventario/$id"
+                      params={{ id: a.id }}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {a.name}
+                    </Link>
                     <span className="font-mono text-xs text-muted-foreground">
                       {a.asset_tag || "sem patrimônio"}
                     </span>

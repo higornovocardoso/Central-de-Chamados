@@ -6,7 +6,18 @@ export type AssetKind =
   | "rede"
   | "telefonia"
   | "licenca"
-  | "outro";
+  | "outro"
+  | "periferico"
+  | "cartucho"
+  | "consumivel"
+  | "rack"
+  | "gabinete"
+  | "pdu"
+  | "passivo"
+  | "nao_gerenciado"
+  | "cabo"
+  | "sim_card"
+  | "software";
 
 export type AssetStatus = "em_uso" | "estoque" | "manutencao" | "descartado";
 
@@ -14,9 +25,20 @@ export const ASSET_KIND_LABEL: Record<AssetKind, string> = {
   computador: "Computador",
   notebook: "Notebook",
   monitor: "Monitor",
+  software: "Software",
+  rede: "Equipamento de rede",
+  periferico: "Periférico",
   impressora: "Impressora",
-  rede: "Rede",
-  telefonia: "Telefonia",
+  cartucho: "Cartucho",
+  consumivel: "Consumível",
+  telefonia: "Telefone",
+  rack: "Rack",
+  gabinete: "Gabinete",
+  pdu: "PDU",
+  passivo: "Dispositivo passivo",
+  nao_gerenciado: "Ativo não gerenciado",
+  cabo: "Cabo",
+  sim_card: "Cartão SIM",
   licenca: "Licença",
   outro: "Outro",
 };
