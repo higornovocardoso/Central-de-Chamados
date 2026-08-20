@@ -65,6 +65,7 @@ export const NAV_GROUPS: NavGroup[] = [
     links: [
       { label: "Chamados", to: "/chamados", right: "ticket" },
       { label: "Criar chamado", to: "/chamados/novo", right: "ticket" },
+      { label: "Chamados recorrentes", to: "/chamados/recorrentes", right: "recurrent" },
       { label: "Base de conhecimento", to: "/base-conhecimento", right: "knowledgebase" },
       { label: "Estatísticas", to: "/painel", right: "statistics" },
     ],
@@ -95,7 +96,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Grupos", to: "/administracao/grupos", right: "group" },
       { label: "Entidades", to: "/administracao/entidades", right: "entity" },
       { label: "Perfis", to: "/administracao/perfis", right: "profile" },
-      soon("Regras", "regras", "rule"),
+      { label: "Regras de negócio", to: "/administracao/regras", right: "business_rule" },
       soon("Dicionários", "dicionarios", "dictionary"),
       soon("Fila de e-mails", "fila-de-emails", "mailqueue"),
       soon("Logs", "logs", "log"),
@@ -110,9 +111,15 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Locais", to: "/cadastros", search: { aba: "locations" }, right: "dropdown" },
       { label: "Setores", to: "/cadastros", search: { aba: "sectors" }, right: "dropdown" },
       soon("Categorias de chamado", "categorias", "dropdown"),
-      soon("Níveis de serviço", "slas", "sla"),
-      soon("Calendários", "calendarios", "calendar"),
-      soon("Notificações", "notificacoes", "notification"),
+      { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
+      { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
+      { label: "Notificações", to: "/configuracao/notificacoes", right: "notification" },
+      { label: "Coletores de e-mail", to: "/configuracao/coletores", right: "collector" },
+      {
+        label: "Ações automáticas",
+        to: "/configuracao/acoes-automaticas",
+        right: "automatic_action",
+      },
       soon("Configurações gerais", "configuracoes", "config"),
     ],
   },
@@ -128,10 +135,18 @@ const CRUMB_LABEL: Record<string, string> = {
   cadastros: "Cadastros",
   modulo: "Módulo",
   administracao: "Administração",
+  configuracao: "Configurar",
   entidades: "Entidades",
   perfis: "Perfis",
   grupos: "Grupos",
   usuarios: "Usuários",
+  regras: "Regras de negócio",
+  calendarios: "Calendários",
+  slas: "Níveis de serviço",
+  notificacoes: "Notificações",
+  coletores: "Coletores de e-mail",
+  "acoes-automaticas": "Ações automáticas",
+  recorrentes: "Chamados recorrentes",
 };
 
 const GROUP_OF_SEGMENT: Record<string, string> = {
@@ -141,12 +156,13 @@ const GROUP_OF_SEGMENT: Record<string, string> = {
   "base-conhecimento": "Assistência",
   cadastros: "Configurar",
   administracao: "Administração",
+  configuracao: "Configurar",
 };
 
 export type Crumb = { label: string; to?: string | undefined };
 
 /** Segmentos que agrupam telas mas não têm página própria. */
-const NO_INDEX_ROUTE = new Set(["administracao", "modulo"]);
+const NO_INDEX_ROUTE = new Set(["administracao", "modulo", "configuracao"]);
 
 /**
  * Caminho no formato do GLPI: Início > Grupo > Tela.

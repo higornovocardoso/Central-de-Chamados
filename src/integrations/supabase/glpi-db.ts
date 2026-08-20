@@ -333,3 +333,31 @@ export type GlpiDatabase = {
 
 /** Mesmo cliente do resto do app, com o esquema da fase 2 declarado. */
 export const db = supabase as unknown as SupabaseClient<GlpiDatabase>;
+
+/**
+ * Acesso por nome de tabela em tempo de execução, para telas de cadastro
+ * genéricas. O cliente é o mesmo; só o tipo é afrouxado onde a tabela é
+ * escolhida em uma variável.
+ */
+export type LooseRow = Record<string, unknown> & { id: string };
+
+type LooseError = { message: string } | null;
+type LooseResult = Promise<{ data: LooseRow[] | null; error: LooseError }>;
+
+export type LooseTable = {
+  select: (columns: string) => {
+    order: (column: string, options?: { ascending?: boolean }) => LooseResult;
+    eq: (column: string, value: string) => {
+      order: (column: string, options?: { ascending?: boolean }) => LooseResult;
+    };
+  };
+  insert: (values: Record<string, unknown>) => Promise<{ error: LooseError }>;
+  update: (values: Record<string, unknown>) => {
+    eq: (column: string, value: string) => Promise<{ error: LooseError }>;
+  };
+  delete: () => {
+    eq: (column: string, value: string) => Promise<{ error: LooseError }>;
+  };
+};
+
+export const looseDb = db as unknown as { from: (table: string) => LooseTable };

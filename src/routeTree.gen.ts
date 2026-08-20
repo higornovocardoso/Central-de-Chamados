@@ -20,10 +20,17 @@ import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdministracaoEntidadesRouteImport } from './routes/_authenticated/administracao.entidades'
 import { Route as AuthenticatedAdministracaoGruposRouteImport } from './routes/_authenticated/administracao.grupos'
 import { Route as AuthenticatedAdministracaoPerfisRouteImport } from './routes/_authenticated/administracao.perfis'
+import { Route as AuthenticatedAdministracaoRegrasRouteImport } from './routes/_authenticated/administracao.regras'
 import { Route as AuthenticatedAdministracaoUsuariosRouteImport } from './routes/_authenticated/administracao.usuarios'
 import { Route as AuthenticatedChamadosIndexRouteImport } from './routes/_authenticated/chamados.index'
 import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authenticated/chamados.$id'
 import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authenticated/chamados.novo'
+import { Route as AuthenticatedChamadosRecorrentesRouteImport } from './routes/_authenticated/chamados.recorrentes'
+import { Route as AuthenticatedConfiguracaoAcoesAutomaticasRouteImport } from './routes/_authenticated/configuracao.acoes-automaticas'
+import { Route as AuthenticatedConfiguracaoCalendariosRouteImport } from './routes/_authenticated/configuracao.calendarios'
+import { Route as AuthenticatedConfiguracaoColetoresRouteImport } from './routes/_authenticated/configuracao.coletores'
+import { Route as AuthenticatedConfiguracaoNotificacoesRouteImport } from './routes/_authenticated/configuracao.notificacoes'
+import { Route as AuthenticatedConfiguracaoSlasRouteImport } from './routes/_authenticated/configuracao.slas'
 import { Route as AuthenticatedModuloSlugRouteImport } from './routes/_authenticated/modulo.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -84,6 +91,12 @@ const AuthenticatedAdministracaoPerfisRoute =
     path: '/administracao/perfis',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdministracaoRegrasRoute =
+  AuthenticatedAdministracaoRegrasRouteImport.update({
+    id: '/administracao/regras',
+    path: '/administracao/regras',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdministracaoUsuariosRoute =
   AuthenticatedAdministracaoUsuariosRouteImport.update({
     id: '/administracao/usuarios',
@@ -107,6 +120,42 @@ const AuthenticatedChamadosNovoRoute =
     path: '/chamados/novo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedChamadosRecorrentesRoute =
+  AuthenticatedChamadosRecorrentesRouteImport.update({
+    id: '/chamados/recorrentes',
+    path: '/chamados/recorrentes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracaoAcoesAutomaticasRoute =
+  AuthenticatedConfiguracaoAcoesAutomaticasRouteImport.update({
+    id: '/configuracao/acoes-automaticas',
+    path: '/configuracao/acoes-automaticas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracaoCalendariosRoute =
+  AuthenticatedConfiguracaoCalendariosRouteImport.update({
+    id: '/configuracao/calendarios',
+    path: '/configuracao/calendarios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracaoColetoresRoute =
+  AuthenticatedConfiguracaoColetoresRouteImport.update({
+    id: '/configuracao/coletores',
+    path: '/configuracao/coletores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracaoNotificacoesRoute =
+  AuthenticatedConfiguracaoNotificacoesRouteImport.update({
+    id: '/configuracao/notificacoes',
+    path: '/configuracao/notificacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracaoSlasRoute =
+  AuthenticatedConfiguracaoSlasRouteImport.update({
+    id: '/configuracao/slas',
+    path: '/configuracao/slas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedModuloSlugRoute = AuthenticatedModuloSlugRouteImport.update({
   id: '/modulo/$slug',
   path: '/modulo/$slug',
@@ -124,9 +173,16 @@ export interface FileRoutesByFullPath {
   '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
   '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
+  '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
+  '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
+  '/configuracao/acoes-automaticas': typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
+  '/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
+  '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
+  '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
   '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
   '/chamados/': typeof AuthenticatedChamadosIndexRoute
 }
@@ -141,9 +197,16 @@ export interface FileRoutesByTo {
   '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
   '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
+  '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
+  '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
+  '/configuracao/acoes-automaticas': typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
+  '/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
+  '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
+  '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
   '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
   '/chamados': typeof AuthenticatedChamadosIndexRoute
 }
@@ -160,9 +223,16 @@ export interface FileRoutesById {
   '/_authenticated/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
   '/_authenticated/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
   '/_authenticated/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
+  '/_authenticated/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/_authenticated/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/_authenticated/chamados/novo': typeof AuthenticatedChamadosNovoRoute
+  '/_authenticated/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
+  '/_authenticated/configuracao/acoes-automaticas': typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  '/_authenticated/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
+  '/_authenticated/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
+  '/_authenticated/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
+  '/_authenticated/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
   '/_authenticated/modulo/$slug': typeof AuthenticatedModuloSlugRoute
   '/_authenticated/chamados/': typeof AuthenticatedChamadosIndexRoute
 }
@@ -179,9 +249,16 @@ export interface FileRouteTypes {
     | '/administracao/entidades'
     | '/administracao/grupos'
     | '/administracao/perfis'
+    | '/administracao/regras'
     | '/administracao/usuarios'
     | '/chamados/$id'
     | '/chamados/novo'
+    | '/chamados/recorrentes'
+    | '/configuracao/acoes-automaticas'
+    | '/configuracao/calendarios'
+    | '/configuracao/coletores'
+    | '/configuracao/notificacoes'
+    | '/configuracao/slas'
     | '/modulo/$slug'
     | '/chamados/'
   fileRoutesByTo: FileRoutesByTo
@@ -196,9 +273,16 @@ export interface FileRouteTypes {
     | '/administracao/entidades'
     | '/administracao/grupos'
     | '/administracao/perfis'
+    | '/administracao/regras'
     | '/administracao/usuarios'
     | '/chamados/$id'
     | '/chamados/novo'
+    | '/chamados/recorrentes'
+    | '/configuracao/acoes-automaticas'
+    | '/configuracao/calendarios'
+    | '/configuracao/coletores'
+    | '/configuracao/notificacoes'
+    | '/configuracao/slas'
     | '/modulo/$slug'
     | '/chamados'
   id:
@@ -214,9 +298,16 @@ export interface FileRouteTypes {
     | '/_authenticated/administracao/entidades'
     | '/_authenticated/administracao/grupos'
     | '/_authenticated/administracao/perfis'
+    | '/_authenticated/administracao/regras'
     | '/_authenticated/administracao/usuarios'
     | '/_authenticated/chamados/$id'
     | '/_authenticated/chamados/novo'
+    | '/_authenticated/chamados/recorrentes'
+    | '/_authenticated/configuracao/acoes-automaticas'
+    | '/_authenticated/configuracao/calendarios'
+    | '/_authenticated/configuracao/coletores'
+    | '/_authenticated/configuracao/notificacoes'
+    | '/_authenticated/configuracao/slas'
     | '/_authenticated/modulo/$slug'
     | '/_authenticated/chamados/'
   fileRoutesById: FileRoutesById
@@ -307,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministracaoPerfisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/administracao/regras': {
+      id: '/_authenticated/administracao/regras'
+      path: '/administracao/regras'
+      fullPath: '/administracao/regras'
+      preLoaderRoute: typeof AuthenticatedAdministracaoRegrasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/administracao/usuarios': {
       id: '/_authenticated/administracao/usuarios'
       path: '/administracao/usuarios'
@@ -335,6 +433,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChamadosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chamados/recorrentes': {
+      id: '/_authenticated/chamados/recorrentes'
+      path: '/chamados/recorrentes'
+      fullPath: '/chamados/recorrentes'
+      preLoaderRoute: typeof AuthenticatedChamadosRecorrentesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracao/acoes-automaticas': {
+      id: '/_authenticated/configuracao/acoes-automaticas'
+      path: '/configuracao/acoes-automaticas'
+      fullPath: '/configuracao/acoes-automaticas'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoAcoesAutomaticasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracao/calendarios': {
+      id: '/_authenticated/configuracao/calendarios'
+      path: '/configuracao/calendarios'
+      fullPath: '/configuracao/calendarios'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoCalendariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracao/coletores': {
+      id: '/_authenticated/configuracao/coletores'
+      path: '/configuracao/coletores'
+      fullPath: '/configuracao/coletores'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoColetoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracao/notificacoes': {
+      id: '/_authenticated/configuracao/notificacoes'
+      path: '/configuracao/notificacoes'
+      fullPath: '/configuracao/notificacoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracao/slas': {
+      id: '/_authenticated/configuracao/slas'
+      path: '/configuracao/slas'
+      fullPath: '/configuracao/slas'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoSlasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/modulo/$slug': {
       id: '/_authenticated/modulo/$slug'
       path: '/modulo/$slug'
@@ -353,9 +493,16 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdministracaoEntidadesRoute: typeof AuthenticatedAdministracaoEntidadesRoute
   AuthenticatedAdministracaoGruposRoute: typeof AuthenticatedAdministracaoGruposRoute
   AuthenticatedAdministracaoPerfisRoute: typeof AuthenticatedAdministracaoPerfisRoute
+  AuthenticatedAdministracaoRegrasRoute: typeof AuthenticatedAdministracaoRegrasRoute
   AuthenticatedAdministracaoUsuariosRoute: typeof AuthenticatedAdministracaoUsuariosRoute
   AuthenticatedChamadosIdRoute: typeof AuthenticatedChamadosIdRoute
   AuthenticatedChamadosNovoRoute: typeof AuthenticatedChamadosNovoRoute
+  AuthenticatedChamadosRecorrentesRoute: typeof AuthenticatedChamadosRecorrentesRoute
+  AuthenticatedConfiguracaoAcoesAutomaticasRoute: typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  AuthenticatedConfiguracaoCalendariosRoute: typeof AuthenticatedConfiguracaoCalendariosRoute
+  AuthenticatedConfiguracaoColetoresRoute: typeof AuthenticatedConfiguracaoColetoresRoute
+  AuthenticatedConfiguracaoNotificacoesRoute: typeof AuthenticatedConfiguracaoNotificacoesRoute
+  AuthenticatedConfiguracaoSlasRoute: typeof AuthenticatedConfiguracaoSlasRoute
   AuthenticatedModuloSlugRoute: typeof AuthenticatedModuloSlugRoute
   AuthenticatedChamadosIndexRoute: typeof AuthenticatedChamadosIndexRoute
 }
@@ -369,10 +516,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdministracaoEntidadesRoute,
   AuthenticatedAdministracaoGruposRoute: AuthenticatedAdministracaoGruposRoute,
   AuthenticatedAdministracaoPerfisRoute: AuthenticatedAdministracaoPerfisRoute,
+  AuthenticatedAdministracaoRegrasRoute: AuthenticatedAdministracaoRegrasRoute,
   AuthenticatedAdministracaoUsuariosRoute:
     AuthenticatedAdministracaoUsuariosRoute,
   AuthenticatedChamadosIdRoute: AuthenticatedChamadosIdRoute,
   AuthenticatedChamadosNovoRoute: AuthenticatedChamadosNovoRoute,
+  AuthenticatedChamadosRecorrentesRoute: AuthenticatedChamadosRecorrentesRoute,
+  AuthenticatedConfiguracaoAcoesAutomaticasRoute:
+    AuthenticatedConfiguracaoAcoesAutomaticasRoute,
+  AuthenticatedConfiguracaoCalendariosRoute:
+    AuthenticatedConfiguracaoCalendariosRoute,
+  AuthenticatedConfiguracaoColetoresRoute:
+    AuthenticatedConfiguracaoColetoresRoute,
+  AuthenticatedConfiguracaoNotificacoesRoute:
+    AuthenticatedConfiguracaoNotificacoesRoute,
+  AuthenticatedConfiguracaoSlasRoute: AuthenticatedConfiguracaoSlasRoute,
   AuthenticatedModuloSlugRoute: AuthenticatedModuloSlugRoute,
   AuthenticatedChamadosIndexRoute: AuthenticatedChamadosIndexRoute,
 }
