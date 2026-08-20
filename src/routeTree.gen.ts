@@ -32,6 +32,15 @@ import { Route as AuthenticatedConfiguracaoColetoresRouteImport } from './routes
 import { Route as AuthenticatedConfiguracaoListasRouteImport } from './routes/_authenticated/configuracao.listas'
 import { Route as AuthenticatedConfiguracaoNotificacoesRouteImport } from './routes/_authenticated/configuracao.notificacoes'
 import { Route as AuthenticatedConfiguracaoSlasRouteImport } from './routes/_authenticated/configuracao.slas'
+import { Route as AuthenticatedGestaoCertificadosRouteImport } from './routes/_authenticated/gestao.certificados'
+import { Route as AuthenticatedGestaoContatosRouteImport } from './routes/_authenticated/gestao.contatos'
+import { Route as AuthenticatedGestaoContratosRouteImport } from './routes/_authenticated/gestao.contratos'
+import { Route as AuthenticatedGestaoDocumentosRouteImport } from './routes/_authenticated/gestao.documentos'
+import { Route as AuthenticatedGestaoDominiosRouteImport } from './routes/_authenticated/gestao.dominios'
+import { Route as AuthenticatedGestaoFornecedoresRouteImport } from './routes/_authenticated/gestao.fornecedores'
+import { Route as AuthenticatedGestaoInfraRouteImport } from './routes/_authenticated/gestao.infra'
+import { Route as AuthenticatedGestaoLinhasRouteImport } from './routes/_authenticated/gestao.linhas'
+import { Route as AuthenticatedGestaoOrcamentosRouteImport } from './routes/_authenticated/gestao.orcamentos'
 import { Route as AuthenticatedInventarioIdRouteImport } from './routes/_authenticated/inventario.$id'
 import { Route as AuthenticatedInventarioEstoqueRouteImport } from './routes/_authenticated/inventario.estoque'
 import { Route as AuthenticatedInventarioImportarRouteImport } from './routes/_authenticated/inventario.importar'
@@ -167,6 +176,60 @@ const AuthenticatedConfiguracaoSlasRoute =
     path: '/configuracao/slas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGestaoCertificadosRoute =
+  AuthenticatedGestaoCertificadosRouteImport.update({
+    id: '/gestao/certificados',
+    path: '/gestao/certificados',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoContatosRoute =
+  AuthenticatedGestaoContatosRouteImport.update({
+    id: '/gestao/contatos',
+    path: '/gestao/contatos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoContratosRoute =
+  AuthenticatedGestaoContratosRouteImport.update({
+    id: '/gestao/contratos',
+    path: '/gestao/contratos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoDocumentosRoute =
+  AuthenticatedGestaoDocumentosRouteImport.update({
+    id: '/gestao/documentos',
+    path: '/gestao/documentos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoDominiosRoute =
+  AuthenticatedGestaoDominiosRouteImport.update({
+    id: '/gestao/dominios',
+    path: '/gestao/dominios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoFornecedoresRoute =
+  AuthenticatedGestaoFornecedoresRouteImport.update({
+    id: '/gestao/fornecedores',
+    path: '/gestao/fornecedores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoInfraRoute =
+  AuthenticatedGestaoInfraRouteImport.update({
+    id: '/gestao/infra',
+    path: '/gestao/infra',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoLinhasRoute =
+  AuthenticatedGestaoLinhasRouteImport.update({
+    id: '/gestao/linhas',
+    path: '/gestao/linhas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGestaoOrcamentosRoute =
+  AuthenticatedGestaoOrcamentosRouteImport.update({
+    id: '/gestao/orcamentos',
+    path: '/gestao/orcamentos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInventarioIdRoute =
   AuthenticatedInventarioIdRouteImport.update({
     id: '/$id',
@@ -219,6 +282,15 @@ export interface FileRoutesByFullPath {
   '/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/gestao/certificados': typeof AuthenticatedGestaoCertificadosRoute
+  '/gestao/contatos': typeof AuthenticatedGestaoContatosRoute
+  '/gestao/contratos': typeof AuthenticatedGestaoContratosRoute
+  '/gestao/documentos': typeof AuthenticatedGestaoDocumentosRoute
+  '/gestao/dominios': typeof AuthenticatedGestaoDominiosRoute
+  '/gestao/fornecedores': typeof AuthenticatedGestaoFornecedoresRoute
+  '/gestao/infra': typeof AuthenticatedGestaoInfraRoute
+  '/gestao/linhas': typeof AuthenticatedGestaoLinhasRoute
+  '/gestao/orcamentos': typeof AuthenticatedGestaoOrcamentosRoute
   '/inventario/$id': typeof AuthenticatedInventarioIdRoute
   '/inventario/estoque': typeof AuthenticatedInventarioEstoqueRoute
   '/inventario/importar': typeof AuthenticatedInventarioImportarRoute
@@ -248,6 +320,15 @@ export interface FileRoutesByTo {
   '/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/gestao/certificados': typeof AuthenticatedGestaoCertificadosRoute
+  '/gestao/contatos': typeof AuthenticatedGestaoContatosRoute
+  '/gestao/contratos': typeof AuthenticatedGestaoContratosRoute
+  '/gestao/documentos': typeof AuthenticatedGestaoDocumentosRoute
+  '/gestao/dominios': typeof AuthenticatedGestaoDominiosRoute
+  '/gestao/fornecedores': typeof AuthenticatedGestaoFornecedoresRoute
+  '/gestao/infra': typeof AuthenticatedGestaoInfraRoute
+  '/gestao/linhas': typeof AuthenticatedGestaoLinhasRoute
+  '/gestao/orcamentos': typeof AuthenticatedGestaoOrcamentosRoute
   '/inventario/$id': typeof AuthenticatedInventarioIdRoute
   '/inventario/estoque': typeof AuthenticatedInventarioEstoqueRoute
   '/inventario/importar': typeof AuthenticatedInventarioImportarRoute
@@ -279,6 +360,15 @@ export interface FileRoutesById {
   '/_authenticated/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/_authenticated/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/_authenticated/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/_authenticated/gestao/certificados': typeof AuthenticatedGestaoCertificadosRoute
+  '/_authenticated/gestao/contatos': typeof AuthenticatedGestaoContatosRoute
+  '/_authenticated/gestao/contratos': typeof AuthenticatedGestaoContratosRoute
+  '/_authenticated/gestao/documentos': typeof AuthenticatedGestaoDocumentosRoute
+  '/_authenticated/gestao/dominios': typeof AuthenticatedGestaoDominiosRoute
+  '/_authenticated/gestao/fornecedores': typeof AuthenticatedGestaoFornecedoresRoute
+  '/_authenticated/gestao/infra': typeof AuthenticatedGestaoInfraRoute
+  '/_authenticated/gestao/linhas': typeof AuthenticatedGestaoLinhasRoute
+  '/_authenticated/gestao/orcamentos': typeof AuthenticatedGestaoOrcamentosRoute
   '/_authenticated/inventario/$id': typeof AuthenticatedInventarioIdRoute
   '/_authenticated/inventario/estoque': typeof AuthenticatedInventarioEstoqueRoute
   '/_authenticated/inventario/importar': typeof AuthenticatedInventarioImportarRoute
@@ -310,6 +400,15 @@ export interface FileRouteTypes {
     | '/configuracao/listas'
     | '/configuracao/notificacoes'
     | '/configuracao/slas'
+    | '/gestao/certificados'
+    | '/gestao/contatos'
+    | '/gestao/contratos'
+    | '/gestao/documentos'
+    | '/gestao/dominios'
+    | '/gestao/fornecedores'
+    | '/gestao/infra'
+    | '/gestao/linhas'
+    | '/gestao/orcamentos'
     | '/inventario/$id'
     | '/inventario/estoque'
     | '/inventario/importar'
@@ -339,6 +438,15 @@ export interface FileRouteTypes {
     | '/configuracao/listas'
     | '/configuracao/notificacoes'
     | '/configuracao/slas'
+    | '/gestao/certificados'
+    | '/gestao/contatos'
+    | '/gestao/contratos'
+    | '/gestao/documentos'
+    | '/gestao/dominios'
+    | '/gestao/fornecedores'
+    | '/gestao/infra'
+    | '/gestao/linhas'
+    | '/gestao/orcamentos'
     | '/inventario/$id'
     | '/inventario/estoque'
     | '/inventario/importar'
@@ -369,6 +477,15 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracao/listas'
     | '/_authenticated/configuracao/notificacoes'
     | '/_authenticated/configuracao/slas'
+    | '/_authenticated/gestao/certificados'
+    | '/_authenticated/gestao/contatos'
+    | '/_authenticated/gestao/contratos'
+    | '/_authenticated/gestao/documentos'
+    | '/_authenticated/gestao/dominios'
+    | '/_authenticated/gestao/fornecedores'
+    | '/_authenticated/gestao/infra'
+    | '/_authenticated/gestao/linhas'
+    | '/_authenticated/gestao/orcamentos'
     | '/_authenticated/inventario/$id'
     | '/_authenticated/inventario/estoque'
     | '/_authenticated/inventario/importar'
@@ -547,6 +664,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracaoSlasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/gestao/certificados': {
+      id: '/_authenticated/gestao/certificados'
+      path: '/gestao/certificados'
+      fullPath: '/gestao/certificados'
+      preLoaderRoute: typeof AuthenticatedGestaoCertificadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/contatos': {
+      id: '/_authenticated/gestao/contatos'
+      path: '/gestao/contatos'
+      fullPath: '/gestao/contatos'
+      preLoaderRoute: typeof AuthenticatedGestaoContatosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/contratos': {
+      id: '/_authenticated/gestao/contratos'
+      path: '/gestao/contratos'
+      fullPath: '/gestao/contratos'
+      preLoaderRoute: typeof AuthenticatedGestaoContratosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/documentos': {
+      id: '/_authenticated/gestao/documentos'
+      path: '/gestao/documentos'
+      fullPath: '/gestao/documentos'
+      preLoaderRoute: typeof AuthenticatedGestaoDocumentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/dominios': {
+      id: '/_authenticated/gestao/dominios'
+      path: '/gestao/dominios'
+      fullPath: '/gestao/dominios'
+      preLoaderRoute: typeof AuthenticatedGestaoDominiosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/fornecedores': {
+      id: '/_authenticated/gestao/fornecedores'
+      path: '/gestao/fornecedores'
+      fullPath: '/gestao/fornecedores'
+      preLoaderRoute: typeof AuthenticatedGestaoFornecedoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/infra': {
+      id: '/_authenticated/gestao/infra'
+      path: '/gestao/infra'
+      fullPath: '/gestao/infra'
+      preLoaderRoute: typeof AuthenticatedGestaoInfraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/linhas': {
+      id: '/_authenticated/gestao/linhas'
+      path: '/gestao/linhas'
+      fullPath: '/gestao/linhas'
+      preLoaderRoute: typeof AuthenticatedGestaoLinhasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gestao/orcamentos': {
+      id: '/_authenticated/gestao/orcamentos'
+      path: '/gestao/orcamentos'
+      fullPath: '/gestao/orcamentos'
+      preLoaderRoute: typeof AuthenticatedGestaoOrcamentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inventario/$id': {
       id: '/_authenticated/inventario/$id'
       path: '/$id'
@@ -625,6 +805,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracaoListasRoute: typeof AuthenticatedConfiguracaoListasRoute
   AuthenticatedConfiguracaoNotificacoesRoute: typeof AuthenticatedConfiguracaoNotificacoesRoute
   AuthenticatedConfiguracaoSlasRoute: typeof AuthenticatedConfiguracaoSlasRoute
+  AuthenticatedGestaoCertificadosRoute: typeof AuthenticatedGestaoCertificadosRoute
+  AuthenticatedGestaoContatosRoute: typeof AuthenticatedGestaoContatosRoute
+  AuthenticatedGestaoContratosRoute: typeof AuthenticatedGestaoContratosRoute
+  AuthenticatedGestaoDocumentosRoute: typeof AuthenticatedGestaoDocumentosRoute
+  AuthenticatedGestaoDominiosRoute: typeof AuthenticatedGestaoDominiosRoute
+  AuthenticatedGestaoFornecedoresRoute: typeof AuthenticatedGestaoFornecedoresRoute
+  AuthenticatedGestaoInfraRoute: typeof AuthenticatedGestaoInfraRoute
+  AuthenticatedGestaoLinhasRoute: typeof AuthenticatedGestaoLinhasRoute
+  AuthenticatedGestaoOrcamentosRoute: typeof AuthenticatedGestaoOrcamentosRoute
   AuthenticatedModuloSlugRoute: typeof AuthenticatedModuloSlugRoute
   AuthenticatedChamadosIndexRoute: typeof AuthenticatedChamadosIndexRoute
 }
@@ -654,6 +843,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracaoNotificacoesRoute:
     AuthenticatedConfiguracaoNotificacoesRoute,
   AuthenticatedConfiguracaoSlasRoute: AuthenticatedConfiguracaoSlasRoute,
+  AuthenticatedGestaoCertificadosRoute: AuthenticatedGestaoCertificadosRoute,
+  AuthenticatedGestaoContatosRoute: AuthenticatedGestaoContatosRoute,
+  AuthenticatedGestaoContratosRoute: AuthenticatedGestaoContratosRoute,
+  AuthenticatedGestaoDocumentosRoute: AuthenticatedGestaoDocumentosRoute,
+  AuthenticatedGestaoDominiosRoute: AuthenticatedGestaoDominiosRoute,
+  AuthenticatedGestaoFornecedoresRoute: AuthenticatedGestaoFornecedoresRoute,
+  AuthenticatedGestaoInfraRoute: AuthenticatedGestaoInfraRoute,
+  AuthenticatedGestaoLinhasRoute: AuthenticatedGestaoLinhasRoute,
+  AuthenticatedGestaoOrcamentosRoute: AuthenticatedGestaoOrcamentosRoute,
   AuthenticatedModuloSlugRoute: AuthenticatedModuloSlugRoute,
   AuthenticatedChamadosIndexRoute: AuthenticatedChamadosIndexRoute,
 }

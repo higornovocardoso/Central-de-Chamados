@@ -81,10 +81,15 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Gestão",
     icon: Building2,
     links: [
-      { label: "Fornecedores", to: "/cadastros", search: { aba: "suppliers" }, right: "supplier" },
-      soon("Contratos", "contratos", "contract"),
-      soon("Contatos", "contatos", "contact"),
-      soon("Documentos", "documentos", "document"),
+      { label: "Contratos", to: "/gestao/contratos", right: "contract" },
+      { label: "Fornecedores", to: "/gestao/fornecedores", right: "supplier" },
+      { label: "Contatos", to: "/gestao/contatos", right: "contact" },
+      { label: "Orçamentos", to: "/gestao/orcamentos", right: "budget" },
+      { label: "Certificados", to: "/gestao/certificados", right: "certificate" },
+      { label: "Linhas telefônicas", to: "/gestao/linhas", right: "line" },
+      { label: "Domínios", to: "/gestao/dominios", right: "domain" },
+      { label: "Infraestrutura", to: "/gestao/infra", right: "datacenter" },
+      { label: "Documentos", to: "/gestao/documentos", right: "document" },
     ],
   },
   {
@@ -158,6 +163,16 @@ const CRUMB_LABEL: Record<string, string> = {
   softwares: "Softwares",
   estoque: "Cartuchos e consumíveis",
   importar: "Importar CSV",
+  gestao: "Gestão",
+  contratos: "Contratos",
+  fornecedores: "Fornecedores",
+  contatos: "Contatos",
+  orcamentos: "Orçamentos",
+  certificados: "Certificados",
+  linhas: "Linhas telefônicas",
+  dominios: "Domínios",
+  infra: "Infraestrutura",
+  documentos: "Documentos",
 };
 
 const GROUP_OF_SEGMENT: Record<string, string> = {
@@ -168,12 +183,13 @@ const GROUP_OF_SEGMENT: Record<string, string> = {
   cadastros: "Configurar",
   administracao: "Administração",
   configuracao: "Configurar",
+  gestao: "Gestão",
 };
 
 export type Crumb = { label: string; to?: string | undefined };
 
 /** Segmentos que agrupam telas mas não têm página própria. */
-const NO_INDEX_ROUTE = new Set(["administracao", "modulo", "configuracao"]);
+const NO_INDEX_ROUTE = new Set(["administracao", "modulo", "configuracao", "gestao"]);
 
 /**
  * Caminho no formato do GLPI: Início > Grupo > Tela.
