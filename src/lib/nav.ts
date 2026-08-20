@@ -72,6 +72,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Chamados", to: "/chamados", right: "ticket" },
       { label: "Criar chamado", to: "/chamados/novo", right: "ticket" },
       { label: "Chamados recorrentes", to: "/chamados/recorrentes", right: "recurrent" },
+      { label: "Kanban", to: "/assistencia/kanban", right: "ticket" },
       { label: "Problemas", to: "/assistencia/problemas", right: "problem" },
       { label: "Mudanças", to: "/assistencia/mudancas", right: "change" },
       { label: "Base de conhecimento", to: "/base-conhecimento", right: "knowledgebase" },
@@ -115,9 +116,9 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Entidades", to: "/administracao/entidades", right: "entity" },
       { label: "Perfis", to: "/administracao/perfis", right: "profile" },
       { label: "Regras de negócio", to: "/administracao/regras", right: "business_rule" },
-      soon("Dicionários", "dicionarios", "dictionary"),
+      { label: "Dicionários e unicidade", to: "/configuracao/dicionarios", right: "dictionary" },
+      { label: "Logs", to: "/administracao/logs", right: "log" },
       soon("Fila de e-mails", "fila-de-emails", "mailqueue"),
-      soon("Logs", "logs", "log"),
       soon("Formulários", "formularios", "form"),
     ],
   },
@@ -139,6 +140,7 @@ export const NAV_GROUPS: NavGroup[] = [
         to: "/configuracao/acoes-automaticas",
         right: "automatic_action",
       },
+      { label: "API", to: "/configuracao/api", right: "config" },
       soon("Configurações gerais", "configuracoes", "config"),
     ],
   },
@@ -188,6 +190,10 @@ const CRUMB_LABEL: Record<string, string> = {
   reservas: "Reservas",
   lembretes: "Lembretes e feeds",
   relatorios: "Relatórios",
+  kanban: "Kanban",
+  dicionarios: "Dicionários e unicidade",
+  logs: "Logs",
+  api: "API",
 };
 
 const GROUP_OF_SEGMENT: Record<string, string> = {

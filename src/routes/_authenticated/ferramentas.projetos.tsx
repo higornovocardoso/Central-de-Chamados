@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { CrudTable } from "@/components/CrudTable";
+import { Gantt, type GanttTask } from "@/components/Gantt";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +61,19 @@ function Projetos() {
     queryKey: ["profiles"],
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("id,full_name,email").order("full_name");
+      return data ?? [];
+    },
+  });
+
+  const tasksQuery = useQuery({
+    queryKey: ["project_tasks_gantt", selected?.id],
+    enabled: Boolean(selected),
+    queryFn: async () => {
+      const { data } = await looseDb
+        .from("project_tasks")
+        .select("*")
+        .eq("project_id", String(selected?.id))
+        .order("planned_start");
       return data ?? [];
     },
   });
@@ -215,6 +229,9 @@ function Projetos() {
                 <TabsTrigger value="equipe" className="text-xs">
                   Equipe ({teamQuery.data?.length ?? 0})
                 </TabsTrigger>
+                <TabsTrigger value="cronograma" className="text-xs">
+                  Cronograma
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="tarefas" className="mt-3">
@@ -263,6 +280,24 @@ function Projetos() {
                     { key: "description", label: "Descrição", type: "textarea", formOnly: true },
                   ]}
                 />
+              </TabsContent>
+
+              <TabsContent value="cronograma" className="mt-3">
+                <section className="panel overflow-hidden">
+                  <header className="panel-header">Cronograma do projeto</header>
+                  <Gantt
+                    tasks={(tasksQuery.data ?? []).map<GanttTask>((t) => ({
+                      id: t.id,
+                      name: String(t["name"]),
+                      start: t["planned_start"] ? String(t["planned_start"]) : null,
+                      end: t["planned_end"] ? String(t["planned_end"]) : null,
+                      percent: Number(t["percent_done"] ?? 0),
+                    }))}
+                  />
+                </section>
+                <p className="mt-2 text-[0.7rem] text-muted-foreground">
+                  A barra fica vermelha quando o prazo passou e a tarefa não chegou a 100%.
+                </p>
               </TabsContent>
 
               <TabsContent value="equipe" className="mt-3">

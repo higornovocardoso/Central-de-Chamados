@@ -35,6 +35,8 @@ import {
   type AssetStatus,
 } from "@/lib/glpi";
 import { Tag } from "@/components/Tag";
+import { DataToolbar } from "@/components/DataToolbar";
+import { applySearch, type MatchMode, type SearchCriterion } from "@/lib/search";
 
 type InventarioSearch = { tipo?: string | undefined };
 
@@ -110,6 +112,8 @@ function Inventario() {
   const navigate = useNavigate();
   const kind = tipo ?? "todos";
   const [status, setStatus] = useState("todos");
+  const [criteria, setCriteria] = useState<SearchCriterion[]>([]);
+  const [mode, setMode] = useState<MatchMode>("and");
 
   // O tipo vive na URL para que o submenu "Ativos" da lateral aponte direto para ele.
   const setKind = (value: string) =>
@@ -200,20 +204,49 @@ function Inventario() {
     setOpen(true);
   }
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return (assetsQuery.data ?? []).filter((a) => {
-      const matchTerm =
-        !term ||
-        [a.name, a.asset_tag, a.serial_number, a.brand, a.model, a.assigned_name]
-          .join(" ")
-          .toLowerCase()
-          .includes(term);
-      return (
-        matchTerm && (kind === "todos" || a.kind === kind) && (status === "todos" || a.status === status)
-      );
-    });
-  }, [assetsQuery.data, search, kind, status]);
+  /** Campos que a barra de pesquisa oferece, no formato do GLPI. */
+  const searchFields = useMemo(
+    () => [
+      { key: "name", label: "Nome" },
+      { key: "asset_tag", label: "Patrimônio" },
+      { key: "serial_number", label: "Número de série" },
+      { key: "brand", label: "Marca" },
+      { key: "model", label: "Modelo" },
+      { key: "assigned_name", label: "Responsável" },
+      {
+        key: "kind",
+        label: "Tipo",
+        options: ASSET_KINDS.map((k) => ({ value: k, label: ASSET_KIND_LABEL[k] })),
+      },
+      {
+        key: "status",
+        label: "Situação",
+        options: ASSET_STATUSES.map((s) => ({ value: s, label: ASSET_STATUS_LABEL[s] })),
+      },
+      { key: "notes", label: "Observações" },
+    ],
+    [],
+  );
+
+  const byKindAndStatus = useMemo(
+    () =>
+      (assetsQuery.data ?? []).filter(
+        (a) => (kind === "todos" || a.kind === kind) && (status === "todos" || a.status === status),
+      ),
+    [assetsQuery.data, kind, status],
+  );
+
+  const filtered = useMemo(
+    () =>
+      applySearch(
+        byKindAndStatus as unknown as Record<string, unknown>[],
+        criteria,
+        searchFields,
+        mode,
+        search,
+      ) as unknown as AssetRow[],
+    [byKindAndStatus, criteria, searchFields, mode, search],
+  );
 
   return (
     <AppShell
@@ -234,13 +267,34 @@ function Inventario() {
       }
     >
 
+      <DataToolbar
+        itemType="asset"
+        title="Inventário de ativos"
+        fields={searchFields}
+        criteria={criteria}
+        onCriteriaChange={setCriteria}
+        mode={mode}
+        onModeChange={setMode}
+        freeText={search}
+        onFreeTextChange={setSearch}
+        rows={filtered as unknown as Record<string, unknown>[]}
+        columns={[
+          { key: "name", label: "Nome" },
+          { key: "asset_tag", label: "Patrimônio" },
+          { key: "kind", label: "Tipo" },
+          { key: "brand", label: "Marca" },
+          { key: "model", label: "Modelo" },
+          { key: "serial_number", label: "Série" },
+          { key: "assigned_name", label: "Responsável" },
+        ]}
+        accessor={(row, key) =>
+          key === "kind" ? ASSET_KIND_LABEL[String(row["kind"]) as AssetKind] : row[key]
+        }
+        total={(assetsQuery.data ?? []).length}
+        shown={filtered.length}
+      />
+
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nome, patrimônio, série, responsável..."
-          className="sm:max-w-sm"
-        />
         <Select value={kind} onValueChange={setKind}>
           <SelectTrigger className="sm:w-44">
             <SelectValue />

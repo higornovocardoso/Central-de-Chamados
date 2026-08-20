@@ -19,9 +19,11 @@ import { Route as AuthenticatedInventarioRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedAdministracaoEntidadesRouteImport } from './routes/_authenticated/administracao.entidades'
 import { Route as AuthenticatedAdministracaoGruposRouteImport } from './routes/_authenticated/administracao.grupos'
+import { Route as AuthenticatedAdministracaoLogsRouteImport } from './routes/_authenticated/administracao.logs'
 import { Route as AuthenticatedAdministracaoPerfisRouteImport } from './routes/_authenticated/administracao.perfis'
 import { Route as AuthenticatedAdministracaoRegrasRouteImport } from './routes/_authenticated/administracao.regras'
 import { Route as AuthenticatedAdministracaoUsuariosRouteImport } from './routes/_authenticated/administracao.usuarios'
+import { Route as AuthenticatedAssistenciaKanbanRouteImport } from './routes/_authenticated/assistencia.kanban'
 import { Route as AuthenticatedAssistenciaMudancasRouteImport } from './routes/_authenticated/assistencia.mudancas'
 import { Route as AuthenticatedAssistenciaProblemasRouteImport } from './routes/_authenticated/assistencia.problemas'
 import { Route as AuthenticatedChamadosIndexRouteImport } from './routes/_authenticated/chamados.index'
@@ -29,8 +31,10 @@ import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authenticated/chamados.novo'
 import { Route as AuthenticatedChamadosRecorrentesRouteImport } from './routes/_authenticated/chamados.recorrentes'
 import { Route as AuthenticatedConfiguracaoAcoesAutomaticasRouteImport } from './routes/_authenticated/configuracao.acoes-automaticas'
+import { Route as AuthenticatedConfiguracaoApiRouteImport } from './routes/_authenticated/configuracao.api'
 import { Route as AuthenticatedConfiguracaoCalendariosRouteImport } from './routes/_authenticated/configuracao.calendarios'
 import { Route as AuthenticatedConfiguracaoColetoresRouteImport } from './routes/_authenticated/configuracao.coletores'
+import { Route as AuthenticatedConfiguracaoDicionariosRouteImport } from './routes/_authenticated/configuracao.dicionarios'
 import { Route as AuthenticatedConfiguracaoListasRouteImport } from './routes/_authenticated/configuracao.listas'
 import { Route as AuthenticatedConfiguracaoNotificacoesRouteImport } from './routes/_authenticated/configuracao.notificacoes'
 import { Route as AuthenticatedConfiguracaoSlasRouteImport } from './routes/_authenticated/configuracao.slas'
@@ -105,6 +109,12 @@ const AuthenticatedAdministracaoGruposRoute =
     path: '/administracao/grupos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdministracaoLogsRoute =
+  AuthenticatedAdministracaoLogsRouteImport.update({
+    id: '/administracao/logs',
+    path: '/administracao/logs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdministracaoPerfisRoute =
   AuthenticatedAdministracaoPerfisRouteImport.update({
     id: '/administracao/perfis',
@@ -121,6 +131,12 @@ const AuthenticatedAdministracaoUsuariosRoute =
   AuthenticatedAdministracaoUsuariosRouteImport.update({
     id: '/administracao/usuarios',
     path: '/administracao/usuarios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssistenciaKanbanRoute =
+  AuthenticatedAssistenciaKanbanRouteImport.update({
+    id: '/assistencia/kanban',
+    path: '/assistencia/kanban',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAssistenciaMudancasRoute =
@@ -164,6 +180,12 @@ const AuthenticatedConfiguracaoAcoesAutomaticasRoute =
     path: '/configuracao/acoes-automaticas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedConfiguracaoApiRoute =
+  AuthenticatedConfiguracaoApiRouteImport.update({
+    id: '/configuracao/api',
+    path: '/configuracao/api',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedConfiguracaoCalendariosRoute =
   AuthenticatedConfiguracaoCalendariosRouteImport.update({
     id: '/configuracao/calendarios',
@@ -174,6 +196,12 @@ const AuthenticatedConfiguracaoColetoresRoute =
   AuthenticatedConfiguracaoColetoresRouteImport.update({
     id: '/configuracao/coletores',
     path: '/configuracao/coletores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracaoDicionariosRoute =
+  AuthenticatedConfiguracaoDicionariosRouteImport.update({
+    id: '/configuracao/dicionarios',
+    path: '/configuracao/dicionarios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConfiguracaoListasRoute =
@@ -312,17 +340,21 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
   '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
+  '/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
   '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
+  '/assistencia/kanban': typeof AuthenticatedAssistenciaKanbanRoute
   '/assistencia/mudancas': typeof AuthenticatedAssistenciaMudancasRoute
   '/assistencia/problemas': typeof AuthenticatedAssistenciaProblemasRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
   '/configuracao/acoes-automaticas': typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  '/configuracao/api': typeof AuthenticatedConfiguracaoApiRoute
   '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
   '/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
+  '/configuracao/dicionarios': typeof AuthenticatedConfiguracaoDicionariosRoute
   '/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
@@ -356,17 +388,21 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
   '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
+  '/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
   '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
+  '/assistencia/kanban': typeof AuthenticatedAssistenciaKanbanRoute
   '/assistencia/mudancas': typeof AuthenticatedAssistenciaMudancasRoute
   '/assistencia/problemas': typeof AuthenticatedAssistenciaProblemasRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
   '/configuracao/acoes-automaticas': typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  '/configuracao/api': typeof AuthenticatedConfiguracaoApiRoute
   '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
   '/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
+  '/configuracao/dicionarios': typeof AuthenticatedConfiguracaoDicionariosRoute
   '/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
@@ -402,17 +438,21 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
   '/_authenticated/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
+  '/_authenticated/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
   '/_authenticated/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
   '/_authenticated/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/_authenticated/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
+  '/_authenticated/assistencia/kanban': typeof AuthenticatedAssistenciaKanbanRoute
   '/_authenticated/assistencia/mudancas': typeof AuthenticatedAssistenciaMudancasRoute
   '/_authenticated/assistencia/problemas': typeof AuthenticatedAssistenciaProblemasRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/_authenticated/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/_authenticated/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
   '/_authenticated/configuracao/acoes-automaticas': typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  '/_authenticated/configuracao/api': typeof AuthenticatedConfiguracaoApiRoute
   '/_authenticated/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
   '/_authenticated/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
+  '/_authenticated/configuracao/dicionarios': typeof AuthenticatedConfiguracaoDicionariosRoute
   '/_authenticated/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/_authenticated/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/_authenticated/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
@@ -448,17 +488,21 @@ export interface FileRouteTypes {
     | '/painel'
     | '/administracao/entidades'
     | '/administracao/grupos'
+    | '/administracao/logs'
     | '/administracao/perfis'
     | '/administracao/regras'
     | '/administracao/usuarios'
+    | '/assistencia/kanban'
     | '/assistencia/mudancas'
     | '/assistencia/problemas'
     | '/chamados/$id'
     | '/chamados/novo'
     | '/chamados/recorrentes'
     | '/configuracao/acoes-automaticas'
+    | '/configuracao/api'
     | '/configuracao/calendarios'
     | '/configuracao/coletores'
+    | '/configuracao/dicionarios'
     | '/configuracao/listas'
     | '/configuracao/notificacoes'
     | '/configuracao/slas'
@@ -492,17 +536,21 @@ export interface FileRouteTypes {
     | '/painel'
     | '/administracao/entidades'
     | '/administracao/grupos'
+    | '/administracao/logs'
     | '/administracao/perfis'
     | '/administracao/regras'
     | '/administracao/usuarios'
+    | '/assistencia/kanban'
     | '/assistencia/mudancas'
     | '/assistencia/problemas'
     | '/chamados/$id'
     | '/chamados/novo'
     | '/chamados/recorrentes'
     | '/configuracao/acoes-automaticas'
+    | '/configuracao/api'
     | '/configuracao/calendarios'
     | '/configuracao/coletores'
+    | '/configuracao/dicionarios'
     | '/configuracao/listas'
     | '/configuracao/notificacoes'
     | '/configuracao/slas'
@@ -537,17 +585,21 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/_authenticated/administracao/entidades'
     | '/_authenticated/administracao/grupos'
+    | '/_authenticated/administracao/logs'
     | '/_authenticated/administracao/perfis'
     | '/_authenticated/administracao/regras'
     | '/_authenticated/administracao/usuarios'
+    | '/_authenticated/assistencia/kanban'
     | '/_authenticated/assistencia/mudancas'
     | '/_authenticated/assistencia/problemas'
     | '/_authenticated/chamados/$id'
     | '/_authenticated/chamados/novo'
     | '/_authenticated/chamados/recorrentes'
     | '/_authenticated/configuracao/acoes-automaticas'
+    | '/_authenticated/configuracao/api'
     | '/_authenticated/configuracao/calendarios'
     | '/_authenticated/configuracao/coletores'
+    | '/_authenticated/configuracao/dicionarios'
     | '/_authenticated/configuracao/listas'
     | '/_authenticated/configuracao/notificacoes'
     | '/_authenticated/configuracao/slas'
@@ -651,6 +703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministracaoGruposRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/administracao/logs': {
+      id: '/_authenticated/administracao/logs'
+      path: '/administracao/logs'
+      fullPath: '/administracao/logs'
+      preLoaderRoute: typeof AuthenticatedAdministracaoLogsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/administracao/perfis': {
       id: '/_authenticated/administracao/perfis'
       path: '/administracao/perfis'
@@ -670,6 +729,13 @@ declare module '@tanstack/react-router' {
       path: '/administracao/usuarios'
       fullPath: '/administracao/usuarios'
       preLoaderRoute: typeof AuthenticatedAdministracaoUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assistencia/kanban': {
+      id: '/_authenticated/assistencia/kanban'
+      path: '/assistencia/kanban'
+      fullPath: '/assistencia/kanban'
+      preLoaderRoute: typeof AuthenticatedAssistenciaKanbanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assistencia/mudancas': {
@@ -721,6 +787,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracaoAcoesAutomaticasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/configuracao/api': {
+      id: '/_authenticated/configuracao/api'
+      path: '/configuracao/api'
+      fullPath: '/configuracao/api'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoApiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/configuracao/calendarios': {
       id: '/_authenticated/configuracao/calendarios'
       path: '/configuracao/calendarios'
@@ -733,6 +806,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracao/coletores'
       fullPath: '/configuracao/coletores'
       preLoaderRoute: typeof AuthenticatedConfiguracaoColetoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracao/dicionarios': {
+      id: '/_authenticated/configuracao/dicionarios'
+      path: '/configuracao/dicionarios'
+      fullPath: '/configuracao/dicionarios'
+      preLoaderRoute: typeof AuthenticatedConfiguracaoDicionariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracao/listas': {
@@ -913,17 +993,21 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedAdministracaoEntidadesRoute: typeof AuthenticatedAdministracaoEntidadesRoute
   AuthenticatedAdministracaoGruposRoute: typeof AuthenticatedAdministracaoGruposRoute
+  AuthenticatedAdministracaoLogsRoute: typeof AuthenticatedAdministracaoLogsRoute
   AuthenticatedAdministracaoPerfisRoute: typeof AuthenticatedAdministracaoPerfisRoute
   AuthenticatedAdministracaoRegrasRoute: typeof AuthenticatedAdministracaoRegrasRoute
   AuthenticatedAdministracaoUsuariosRoute: typeof AuthenticatedAdministracaoUsuariosRoute
+  AuthenticatedAssistenciaKanbanRoute: typeof AuthenticatedAssistenciaKanbanRoute
   AuthenticatedAssistenciaMudancasRoute: typeof AuthenticatedAssistenciaMudancasRoute
   AuthenticatedAssistenciaProblemasRoute: typeof AuthenticatedAssistenciaProblemasRoute
   AuthenticatedChamadosIdRoute: typeof AuthenticatedChamadosIdRoute
   AuthenticatedChamadosNovoRoute: typeof AuthenticatedChamadosNovoRoute
   AuthenticatedChamadosRecorrentesRoute: typeof AuthenticatedChamadosRecorrentesRoute
   AuthenticatedConfiguracaoAcoesAutomaticasRoute: typeof AuthenticatedConfiguracaoAcoesAutomaticasRoute
+  AuthenticatedConfiguracaoApiRoute: typeof AuthenticatedConfiguracaoApiRoute
   AuthenticatedConfiguracaoCalendariosRoute: typeof AuthenticatedConfiguracaoCalendariosRoute
   AuthenticatedConfiguracaoColetoresRoute: typeof AuthenticatedConfiguracaoColetoresRoute
+  AuthenticatedConfiguracaoDicionariosRoute: typeof AuthenticatedConfiguracaoDicionariosRoute
   AuthenticatedConfiguracaoListasRoute: typeof AuthenticatedConfiguracaoListasRoute
   AuthenticatedConfiguracaoNotificacoesRoute: typeof AuthenticatedConfiguracaoNotificacoesRoute
   AuthenticatedConfiguracaoSlasRoute: typeof AuthenticatedConfiguracaoSlasRoute
@@ -952,10 +1036,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdministracaoEntidadesRoute:
     AuthenticatedAdministracaoEntidadesRoute,
   AuthenticatedAdministracaoGruposRoute: AuthenticatedAdministracaoGruposRoute,
+  AuthenticatedAdministracaoLogsRoute: AuthenticatedAdministracaoLogsRoute,
   AuthenticatedAdministracaoPerfisRoute: AuthenticatedAdministracaoPerfisRoute,
   AuthenticatedAdministracaoRegrasRoute: AuthenticatedAdministracaoRegrasRoute,
   AuthenticatedAdministracaoUsuariosRoute:
     AuthenticatedAdministracaoUsuariosRoute,
+  AuthenticatedAssistenciaKanbanRoute: AuthenticatedAssistenciaKanbanRoute,
   AuthenticatedAssistenciaMudancasRoute: AuthenticatedAssistenciaMudancasRoute,
   AuthenticatedAssistenciaProblemasRoute:
     AuthenticatedAssistenciaProblemasRoute,
@@ -964,10 +1050,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChamadosRecorrentesRoute: AuthenticatedChamadosRecorrentesRoute,
   AuthenticatedConfiguracaoAcoesAutomaticasRoute:
     AuthenticatedConfiguracaoAcoesAutomaticasRoute,
+  AuthenticatedConfiguracaoApiRoute: AuthenticatedConfiguracaoApiRoute,
   AuthenticatedConfiguracaoCalendariosRoute:
     AuthenticatedConfiguracaoCalendariosRoute,
   AuthenticatedConfiguracaoColetoresRoute:
     AuthenticatedConfiguracaoColetoresRoute,
+  AuthenticatedConfiguracaoDicionariosRoute:
+    AuthenticatedConfiguracaoDicionariosRoute,
   AuthenticatedConfiguracaoListasRoute: AuthenticatedConfiguracaoListasRoute,
   AuthenticatedConfiguracaoNotificacoesRoute:
     AuthenticatedConfiguracaoNotificacoesRoute,
