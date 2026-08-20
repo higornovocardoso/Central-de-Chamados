@@ -14,6 +14,169 @@ export type Database = {
   }
   public: {
     Tables: {
+      assets: {
+        Row: {
+          asset_tag: string
+          assigned_name: string
+          assigned_to: string | null
+          brand: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["asset_kind"]
+          location_id: string | null
+          model: string
+          name: string
+          notes: string
+          purchase_date: string | null
+          sector_id: string | null
+          serial_number: string
+          status: Database["public"]["Enums"]["asset_status"]
+          supplier_id: string | null
+          updated_at: string
+          warranty_end: string | null
+        }
+        Insert: {
+          asset_tag?: string
+          assigned_name?: string
+          assigned_to?: string | null
+          brand?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["asset_kind"]
+          location_id?: string | null
+          model?: string
+          name: string
+          notes?: string
+          purchase_date?: string | null
+          sector_id?: string | null
+          serial_number?: string
+          status?: Database["public"]["Enums"]["asset_status"]
+          supplier_id?: string | null
+          updated_at?: string
+          warranty_end?: string | null
+        }
+        Update: {
+          asset_tag?: string
+          assigned_name?: string
+          assigned_to?: string | null
+          brand?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["asset_kind"]
+          location_id?: string | null
+          model?: string
+          name?: string
+          notes?: string
+          purchase_date?: string | null
+          sector_id?: string | null
+          serial_number?: string
+          status?: Database["public"]["Enums"]["asset_status"]
+          supplier_id?: string | null
+          updated_at?: string
+          warranty_end?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_articles: {
+        Row: {
+          author_id: string | null
+          body: string
+          category: string
+          created_at: string
+          id: string
+          published: boolean
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          summary?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          building: string
+          created_at: string
+          id: string
+          name: string
+          notes: string
+          updated_at: string
+        }
+        Insert: {
+          building?: string
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string
+          updated_at?: string
+        }
+        Update: {
+          building?: string
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -32,6 +195,87 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+        }
+        Relationships: []
+      }
+      sectors: {
+        Row: {
+          created_at: string
+          id: string
+          manager: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manager?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manager?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sla_policies: {
+        Row: {
+          created_at: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_minutes: number
+          response_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_minutes?: number
+          response_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution_minutes?: number
+          response_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          contact_email: string
+          created_at: string
+          id: string
+          name: string
+          notes: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string
+          phone?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string
+          phone?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -69,54 +313,104 @@ export type Database = {
       }
       tickets: {
         Row: {
+          asset_id: string | null
           assignee_id: string | null
           category: string
           created_at: string
           description: string
+          first_response_at: string | null
           id: string
+          kb_article_id: string | null
+          location_id: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
           reporter_email: string
           reporter_name: string
           reporter_sector: string
           requester_id: string | null
+          resolution_due_at: string | null
           resolved_at: string | null
+          response_due_at: string | null
+          sector_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           title: string
           updated_at: string
         }
         Insert: {
+          asset_id?: string | null
           assignee_id?: string | null
           category?: string
           created_at?: string
           description?: string
+          first_response_at?: string | null
           id?: string
+          kb_article_id?: string | null
+          location_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           reporter_email?: string
           reporter_name?: string
           reporter_sector?: string
           requester_id?: string | null
+          resolution_due_at?: string | null
           resolved_at?: string | null
+          response_due_at?: string | null
+          sector_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           title: string
           updated_at?: string
         }
         Update: {
+          asset_id?: string | null
           assignee_id?: string | null
           category?: string
           created_at?: string
           description?: string
+          first_response_at?: string | null
           id?: string
+          kb_article_id?: string | null
+          location_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           reporter_email?: string
           reporter_name?: string
           reporter_sector?: string
           requester_id?: string | null
+          resolution_due_at?: string | null
           resolved_at?: string | null
+          response_due_at?: string | null
+          sector_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tickets_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_kb_article_id_fkey"
+            columns: ["kb_article_id"]
+            isOneToOne: false
+            referencedRelation: "kb_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -152,6 +446,16 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "tecnico" | "usuario"
+      asset_kind:
+        | "computador"
+        | "notebook"
+        | "monitor"
+        | "impressora"
+        | "rede"
+        | "telefonia"
+        | "licenca"
+        | "outro"
+      asset_status: "em_uso" | "estoque" | "manutencao" | "descartado"
       ticket_priority: "baixa" | "media" | "alta" | "critica"
       ticket_status:
         | "aberto"
@@ -287,6 +591,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "tecnico", "usuario"],
+      asset_kind: [
+        "computador",
+        "notebook",
+        "monitor",
+        "impressora",
+        "rede",
+        "telefonia",
+        "licenca",
+        "outro",
+      ],
+      asset_status: ["em_uso", "estoque", "manutencao", "descartado"],
       ticket_priority: ["baixa", "media", "alta", "critica"],
       ticket_status: [
         "aberto",
