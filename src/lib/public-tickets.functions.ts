@@ -19,10 +19,12 @@ export const createPublicTicket = createServerFn({ method: "POST" })
     const supabase = createClient<Database>(
       process.env["SUPABASE_URL"]!,
       process.env["SUPABASE_PUBLISHABLE_KEY"]!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
+      {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: { headers: { Prefer: "return=minimal" } },
+      },
     );
 
-    console.log("PUBKEY", (process.env["SUPABASE_PUBLISHABLE_KEY"]||"none").slice(0,12), "URL", process.env["SUPABASE_URL"]);
     const id = crypto.randomUUID();
     const { error } = await supabase.from("tickets").insert({ ...data, id, status: "aberto" });
 
