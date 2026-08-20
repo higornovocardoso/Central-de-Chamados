@@ -121,6 +121,171 @@ export type UserAuthorizationRow = {
   created_at: string;
 };
 
+
+// --- Fase 3: chamado ITIL -------------------------------------------------
+
+export type ItilCategoryRow = {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  path: string;
+  level: number;
+  entity_id: string;
+  is_recursive: boolean;
+  technician_id: string | null;
+  group_id: string | null;
+  kb_category: string;
+  visible_incident: boolean;
+  visible_request: boolean;
+  visible_problem: boolean;
+  visible_change: boolean;
+  visible_helpdesk: boolean;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TaskCategoryRow = {
+  id: string;
+  name: string;
+  entity_id: string;
+  comment: string;
+  created_at: string;
+};
+
+export type SolutionTypeRow = {
+  id: string;
+  name: string;
+  entity_id: string;
+  created_at: string;
+};
+
+export type RequestSourceRow = {
+  id: string;
+  name: string;
+  is_default: boolean;
+  created_at: string;
+};
+
+export type TicketActorRow = {
+  id: string;
+  ticket_id: string;
+  role: "requerente" | "observador" | "atribuido";
+  user_id: string | null;
+  group_id: string | null;
+  supplier_id: string | null;
+  alternative_email: string;
+  use_notification: boolean;
+  created_at: string;
+};
+
+export type TicketTaskRow = {
+  id: string;
+  ticket_id: string;
+  category_id: string | null;
+  content: string;
+  state: "informacao" | "a_fazer" | "concluida";
+  is_private: boolean;
+  author_id: string | null;
+  assigned_user_id: string | null;
+  assigned_group_id: string | null;
+  planned_start: string | null;
+  planned_end: string | null;
+  duration_minutes: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TicketSolutionRow = {
+  id: string;
+  ticket_id: string;
+  solution_type_id: string | null;
+  content: string;
+  state: "aguardando" | "aprovada" | "recusada";
+  author_id: string | null;
+  answer_comment: string;
+  answered_by: string | null;
+  answered_at: string | null;
+  created_at: string;
+};
+
+export type TicketValidationRow = {
+  id: string;
+  ticket_id: string;
+  requested_by: string | null;
+  approver_user_id: string | null;
+  approver_group_id: string | null;
+  state: "nao_sujeito" | "aguardando" | "aprovado" | "recusado";
+  request_comment: string;
+  answer_comment: string;
+  requested_at: string;
+  answered_at: string | null;
+};
+
+export type TicketLinkRow = {
+  id: string;
+  ticket_id: string;
+  linked_ticket_id: string;
+  link_type: "ligado" | "duplicado" | "filho" | "pai";
+  created_at: string;
+};
+
+export type TicketItemRow = {
+  id: string;
+  ticket_id: string;
+  asset_id: string;
+  created_at: string;
+};
+
+export type TicketCostRow = {
+  id: string;
+  ticket_id: string;
+  name: string;
+  begin_date: string | null;
+  end_date: string | null;
+  duration_minutes: number;
+  cost_time: number;
+  cost_fixed: number;
+  cost_material: number;
+  comment: string;
+  created_at: string;
+};
+
+export type DocumentRow = {
+  id: string;
+  name: string;
+  filename: string;
+  mime_type: string;
+  size_bytes: number;
+  storage_path: string;
+  entity_id: string;
+  uploaded_by: string | null;
+  created_at: string;
+};
+
+export type DocumentTicketRow = {
+  id: string;
+  document_id: string;
+  ticket_id: string;
+};
+
+export type ItemHistoryRow = {
+  id: string;
+  item_type: string;
+  item_id: string;
+  user_id: string | null;
+  field: string;
+  old_value: string;
+  new_value: string;
+  created_at: string;
+};
+
+export type PriorityMatrixRow = {
+  urgency: number;
+  impact: number;
+  priority: number;
+};
+
 type Table<R> = {
   Row: R;
   Insert: Partial<R>;
@@ -141,6 +306,21 @@ export type GlpiDatabase = {
       user_groups: Table<UserGroupRow>;
       group_members: Table<GroupMemberRow>;
       user_authorizations: Table<UserAuthorizationRow>;
+      itil_categories: Table<ItilCategoryRow>;
+      task_categories: Table<TaskCategoryRow>;
+      solution_types: Table<SolutionTypeRow>;
+      request_sources: Table<RequestSourceRow>;
+      ticket_actors: Table<TicketActorRow>;
+      ticket_tasks: Table<TicketTaskRow>;
+      ticket_solutions: Table<TicketSolutionRow>;
+      ticket_validations: Table<TicketValidationRow>;
+      ticket_links: Table<TicketLinkRow>;
+      ticket_items: Table<TicketItemRow>;
+      ticket_costs: Table<TicketCostRow>;
+      documents: Table<DocumentRow>;
+      document_tickets: Table<DocumentTicketRow>;
+      item_history: Table<ItemHistoryRow>;
+      priority_matrix: Table<PriorityMatrixRow>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

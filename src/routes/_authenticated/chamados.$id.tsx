@@ -1,11 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, FileText, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  FileText,
+  Link2,
+  Lock,
+  Paperclip,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Tag } from "@/components/Tag";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,22 +30,55 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  db,
+  type ItilCategoryRow,
+  type TicketActorRow,
+  type TicketCostRow,
+  type TicketLinkRow,
+  type TicketSolutionRow,
+  type TicketTaskRow,
+  type TicketValidationRow,
+} from "@/integrations/supabase/glpi-db";
 import { useSessionUser } from "@/hooks/useSession";
-import { useRoles } from "@/hooks/useRoles";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
 import {
-  CATEGORIES,
-  PRIORITY_CLASS,
-  PRIORITY_LABEL,
-  PRIORITY_ORDER,
+  ACTOR_LABEL,
+  ACTOR_ROLES,
+  LEVELS,
+  LEVEL_CLASS,
+  LEVEL_DOT,
+  LINK_HINT,
+  LINK_LABEL,
+  LINK_TYPES,
+  SOLUTION_LABEL,
+  TASK_STATES,
+  TASK_STATE_CLASS,
+  TASK_STATE_LABEL,
+  TICKET_TYPES,
+  TICKET_TYPE_LABEL,
+  VALIDATION_CLASS,
+  VALIDATION_LABEL,
+  VALIDATION_PERCENTS,
+  formatDuration,
+  formatMoney,
+  levelLabel,
+  previewPriority,
+  totalCost,
+  type ActorRole,
+  type TaskState,
+  type TicketLinkType,
+  type TicketType,
+} from "@/lib/itil";
+import {
   STATUS_CLASS,
   STATUS_DOT,
   STATUS_LABEL,
   STATUS_ORDER,
   formatDate,
   ticketCode,
-  type TicketPriority,
   type TicketStatus,
 } from "@/lib/tickets";
 
@@ -52,34 +98,49 @@ export const Route = createFileRoute("/_authenticated/chamados/$id")({
 
 const NONE = "__none__";
 
+/** O chamado vem com select("*"), então os campos da fase 3 podem faltar. */
+type Ticket = Record<string, unknown> & { id: string };
+
+const str = (t: Ticket, key: string, fallback = "") =>
+  typeof t[key] === "string" ? (t[key] as string) : fallback;
+const num = (t: Ticket, key: string, fallback: number) =>
+  typeof t[key] === "number" ? (t[key] as number) : fallback;
+
 function DetalheChamado() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useSessionUser();
-  const { isStaff } = useRoles();
+  const { can, hasFlag } = usePermissions();
   const techniciansQuery = useTechnicians();
 
-  const [comment, setComment] = useState("");
+  const canEdit = can("ticket", "update");
+
   const [form, setForm] = useState({
+    type: "incidente" as TicketType,
     status: "aberto" as TicketStatus,
-    priority: "media" as TicketPriority,
-    category: "Outros",
-    assignee_id: NONE,
-    asset_id: NONE,
+    urgency: 3,
+    impact: 3,
+    priority_level: 3,
+    priority_manual: false,
+    category_id: NONE,
+    request_source_id: NONE,
     location_id: NONE,
     sector_id: NONE,
   });
+
+  // ---- consultas ---------------------------------------------------------
 
   const ticketQuery = useQuery({
     queryKey: ["ticket", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("tickets").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
-      return data;
+      return data as Ticket | null;
     },
   });
 
-  const profilesQuery = useQuery({
+  const peopleQuery = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles").select("id,full_name,email");
@@ -88,20 +149,41 @@ function DetalheChamado() {
     },
   });
 
-
-  const lookups = useQuery({
-    queryKey: ["lookups"],
+  const lookupsQuery = useQuery({
+    queryKey: ["itil_lookups"],
     queryFn: async () => {
-      const [locations, sectors, assets] = await Promise.all([
-        supabase.from("locations").select("id,name").order("name"),
-        supabase.from("sectors").select("id,name").order("name"),
-        supabase.from("assets").select("id,name,asset_tag").order("name"),
-      ]);
+      const [categories, taskCategories, solutionTypes, sources, groups, suppliers, assets, locations, sectors] =
+        await Promise.all([
+          db.from("itil_categories").select("*").order("path"),
+          db.from("task_categories").select("*").order("name"),
+          db.from("solution_types").select("*").order("name"),
+          db.from("request_sources").select("*").order("name"),
+          db.from("user_groups").select("id,name").order("name"),
+          supabase.from("suppliers").select("id,name").order("name"),
+          supabase.from("assets").select("id,name,asset_tag").order("name"),
+          supabase.from("locations").select("id,name").order("name"),
+          supabase.from("sectors").select("id,name").order("name"),
+        ]);
       return {
+        categories: (categories.data ?? []) as ItilCategoryRow[],
+        taskCategories: taskCategories.data ?? [],
+        solutionTypes: solutionTypes.data ?? [],
+        sources: sources.data ?? [],
+        groups: groups.data ?? [],
+        suppliers: suppliers.data ?? [],
+        assets: assets.data ?? [],
         locations: locations.data ?? [],
         sectors: sectors.data ?? [],
-        assets: assets.data ?? [],
+        available: !categories.error,
       };
+    },
+  });
+
+  const actorsQuery = useQuery({
+    queryKey: ["ticket_actors", id],
+    queryFn: async () => {
+      const { data } = await db.from("ticket_actors").select("*").eq("ticket_id", id);
+      return (data ?? []) as TicketActorRow[];
     },
   });
 
@@ -110,76 +192,195 @@ function DetalheChamado() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ticket_comments")
-        .select("id,body,author_id,created_at")
+        .select("*")
         .eq("ticket_id", id)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data;
+      return data as (Record<string, unknown> & {
+        id: string;
+        body: string;
+        author_id: string;
+        created_at: string;
+      })[];
     },
   });
 
-  const ticket = ticketQuery.data;
+  const tasksQuery = useQuery({
+    queryKey: ["ticket_tasks", id],
+    queryFn: async () => {
+      const { data } = await db
+        .from("ticket_tasks")
+        .select("*")
+        .eq("ticket_id", id)
+        .order("created_at");
+      return (data ?? []) as TicketTaskRow[];
+    },
+  });
+
+  const solutionsQuery = useQuery({
+    queryKey: ["ticket_solutions", id],
+    queryFn: async () => {
+      const { data } = await db
+        .from("ticket_solutions")
+        .select("*")
+        .eq("ticket_id", id)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as TicketSolutionRow[];
+    },
+  });
+
+  const validationsQuery = useQuery({
+    queryKey: ["ticket_validations", id],
+    queryFn: async () => {
+      const { data } = await db
+        .from("ticket_validations")
+        .select("*")
+        .eq("ticket_id", id)
+        .order("requested_at");
+      return (data ?? []) as TicketValidationRow[];
+    },
+  });
+
+  const linksQuery = useQuery({
+    queryKey: ["ticket_links", id],
+    queryFn: async () => {
+      const { data } = await db.from("ticket_links").select("*").eq("ticket_id", id);
+      return (data ?? []) as TicketLinkRow[];
+    },
+  });
+
+  const itemsQuery = useQuery({
+    queryKey: ["ticket_items", id],
+    queryFn: async () => {
+      const { data } = await db.from("ticket_items").select("*").eq("ticket_id", id);
+      return data ?? [];
+    },
+  });
+
+  const costsQuery = useQuery({
+    queryKey: ["ticket_costs", id],
+    queryFn: async () => {
+      const { data } = await db.from("ticket_costs").select("*").eq("ticket_id", id);
+      return (data ?? []) as TicketCostRow[];
+    },
+  });
+
+  const documentsQuery = useQuery({
+    queryKey: ["ticket_documents", id],
+    queryFn: async () => {
+      const { data: links } = await db
+        .from("document_tickets")
+        .select("document_id")
+        .eq("ticket_id", id);
+      const ids = (links ?? []).map((l) => l.document_id);
+      if (ids.length === 0) return [];
+      const { data } = await db.from("documents").select("*").in("id", ids);
+      return data ?? [];
+    },
+  });
+
+  const historyQuery = useQuery({
+    queryKey: ["ticket_history", id],
+    queryFn: async () => {
+      const { data } = await db
+        .from("item_history")
+        .select("*")
+        .eq("item_type", "ticket")
+        .eq("item_id", id)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const allTicketsQuery = useQuery({
+    queryKey: ["tickets_for_link"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tickets")
+        .select("id,title")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      return data ?? [];
+    },
+  });
+
+  const ticket = ticketQuery.data ?? null;
+  const lookups = lookupsQuery.data;
+  const phase3 = lookups?.available === true;
 
   useEffect(() => {
     if (!ticket) return;
     setForm({
-      status: ticket.status as TicketStatus,
-      priority: ticket.priority as TicketPriority,
-      category: ticket.category,
-      assignee_id: ticket.assignee_id ?? NONE,
-      asset_id: ticket.asset_id ?? NONE,
-      location_id: ticket.location_id ?? NONE,
-      sector_id: ticket.sector_id ?? NONE,
+      type: (str(ticket, "type", "incidente") as TicketType) ?? "incidente",
+      status: str(ticket, "status", "aberto") as TicketStatus,
+      urgency: num(ticket, "urgency", 3),
+      impact: num(ticket, "impact", 3),
+      priority_level: num(ticket, "priority_level", 3),
+      priority_manual: ticket["priority_manual"] === true,
+      category_id: str(ticket, "category_id") || NONE,
+      request_source_id: str(ticket, "request_source_id") || NONE,
+      location_id: str(ticket, "location_id") || NONE,
+      sector_id: str(ticket, "sector_id") || NONE,
     });
   }, [ticket]);
 
   const nameById = useMemo(() => {
     const map = new Map<string, string>();
-    for (const p of profilesQuery.data ?? []) map.set(p.id, p.full_name || p.email);
+    for (const p of peopleQuery.data ?? []) map.set(p.id, p.full_name || p.email);
     return map;
-  }, [profilesQuery.data]);
+  }, [peopleQuery.data]);
 
-  const technicians = techniciansQuery.data ?? [];
+  const personName = (userId: string | null) =>
+    userId ? (nameById.get(userId) ?? userId.slice(0, 8)) : "—";
 
-  const updateTicket = useMutation({
+  const invalidate = (...keys: string[]) => {
+    for (const key of keys) queryClient.invalidateQueries({ queryKey: [key, id] });
+    queryClient.invalidateQueries({ queryKey: ["ticket", id] });
+    queryClient.invalidateQueries({ queryKey: ["tickets"] });
+  };
+
+  // ---- mutações ----------------------------------------------------------
+
+  const saveTicket = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("tickets")
-        .update({
-          status: form.status,
-          priority: form.priority,
-          category: form.category,
-          assignee_id: form.assignee_id === NONE ? null : form.assignee_id,
-          asset_id: form.asset_id === NONE ? null : form.asset_id,
-          location_id: form.location_id === NONE ? null : form.location_id,
-          sector_id: form.sector_id === NONE ? null : form.sector_id,
-        })
-        .eq("id", id);
+      const patch: Record<string, unknown> = { status: form.status };
+      if (phase3) {
+        patch["type"] = form.type;
+        patch["urgency"] = form.urgency;
+        patch["impact"] = form.impact;
+        patch["priority_manual"] = form.priority_manual;
+        if (form.priority_manual) patch["priority_level"] = form.priority_level;
+        patch["category_id"] = form.category_id === NONE ? null : form.category_id;
+        patch["request_source_id"] =
+          form.request_source_id === NONE ? null : form.request_source_id;
+      }
+      patch["location_id"] = form.location_id === NONE ? null : form.location_id;
+      patch["sector_id"] = form.sector_id === NONE ? null : form.sector_id;
+
+      // O types.ts gerado ainda não conhece as colunas da fase 3.
+      const { error } = await supabase.from("tickets").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Chamado atualizado.");
-      queryClient.invalidateQueries({ queryKey: ["ticket", id] });
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      invalidate("ticket_history");
     },
     onError: (e: Error) => toast.error("Falha ao atualizar", { description: e.message }),
   });
 
-  const addComment = useMutation({
+  const trashTicket = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Sessão expirada.");
       const { error } = await supabase
-        .from("ticket_comments")
-        .insert({ ticket_id: id, author_id: user.id, body: comment.trim() });
+        .from("tickets")
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() } as never)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      setComment("");
-      queryClient.invalidateQueries({ queryKey: ["comments", id] });
+      toast.success("Chamado movido para a lixeira.");
+      navigate({ to: "/chamados" });
     },
-    onError: (e: Error) => toast.error("Falha ao registrar acompanhamento", {
-      description: e.message,
-    }),
+    onError: (e: Error) => toast.error("Falha ao excluir", { description: e.message }),
   });
 
   if (ticketQuery.isLoading) {
@@ -203,58 +404,28 @@ function DetalheChamado() {
     );
   }
 
-  const status = ticket.status as TicketStatus;
-  const priority = ticket.priority as TicketPriority;
-  const responseSla = slaState(ticket.response_due_at, ticket.first_response_at, false);
-  const resolutionSla = slaState(ticket.resolution_due_at, ticket.resolved_at, status === "fechado");
-  const comments = commentsQuery.data ?? [];
-  const requester = ticket.requester_id
-    ? (nameById.get(ticket.requester_id) ?? "—")
-    : ticket.reporter_name || "Formulário público";
-
-  const timeline = (
-    <ul className="divide-y divide-border">
-      {comments.length === 0 && (
-        <li className="px-3 py-6 text-center text-xs text-muted-foreground">
-          Nenhum acompanhamento registrado.
-        </li>
-      )}
-      {comments.map((c) => (
-        <li key={c.id} className="px-3 py-2.5">
-          <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {nameById.get(c.author_id) ?? "Usuário"}
-            </span>
-            <span>{formatDate(c.created_at)}</span>
-          </div>
-          <p className="mt-1 whitespace-pre-wrap text-xs">{c.body}</p>
-        </li>
-      ))}
-    </ul>
+  const status = str(ticket, "status", "aberto") as TicketStatus;
+  const type = str(ticket, "type", "incidente") as TicketType;
+  const priorityLevel = num(ticket, "priority_level", 3);
+  const validationState = str(ticket, "validation_state", "nao_sujeito") as
+    | "nao_sujeito"
+    | "aguardando"
+    | "aprovado"
+    | "recusado";
+  const resolutionSla = slaState(
+    str(ticket, "resolution_due_at") || null,
+    str(ticket, "resolved_at") || null,
+    status === "fechado",
+  );
+  const responseSla = slaState(
+    str(ticket, "response_due_at") || null,
+    str(ticket, "first_response_at") || null,
+    false,
   );
 
-  const commentForm = (
-    <form
-      className="space-y-2 border-t border-border p-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (comment.trim()) addComment.mutate();
-      }}
-    >
-      <Textarea
-        rows={3}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Escreva um acompanhamento..."
-        className="text-xs"
-      />
-      <div className="flex justify-end">
-        <Button type="submit" size="sm" className="h-8" disabled={addComment.isPending}>
-          <Send className="size-3.5" /> Adicionar acompanhamento
-        </Button>
-      </div>
-    </form>
-  );
+  const requesterName = str(ticket, "requester_id")
+    ? personName(str(ticket, "requester_id"))
+    : str(ticket, "reporter_name") || "Formulário público";
 
   return (
     <AppShell breadcrumbTail={ticketCode(ticket.id)}>
@@ -265,251 +436,445 @@ function DetalheChamado() {
         <ArrowLeft className="size-3.5" /> Voltar para a lista
       </Link>
 
-      {/* Cabeçalho do chamado */}
+      {/* Cabeçalho */}
       <div className="panel mb-3 p-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-[0.72rem] text-muted-foreground">
             {ticketCode(ticket.id)}
           </span>
+          <Tag className="border-border bg-secondary text-muted-foreground">
+            {TICKET_TYPE_LABEL[type] ?? "Incidente"}
+          </Tag>
           <Tag className={STATUS_CLASS[status]}>
             <span className={`mr-1.5 size-2 rounded-full ${STATUS_DOT[status]}`} />
             {STATUS_LABEL[status]}
           </Tag>
-          <Tag className={PRIORITY_CLASS[priority]}>{PRIORITY_LABEL[priority]}</Tag>
+          <Tag className={LEVEL_CLASS[priorityLevel] ?? ""}>{levelLabel(priorityLevel)}</Tag>
+          {validationState !== "nao_sujeito" && (
+            <Tag className={VALIDATION_CLASS[validationState]}>
+              {VALIDATION_LABEL[validationState]}
+            </Tag>
+          )}
           <span className={`text-xs ${resolutionSla.className}`}>SLA: {resolutionSla.label}</span>
+          {can("ticket", "delete") && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="ml-auto h-7 text-xs"
+              onClick={() => trashTicket.mutate()}
+            >
+              <Trash2 className="size-3.5" /> Excluir
+            </Button>
+          )}
         </div>
-        <h1 className="mt-2 text-base font-semibold">{ticket.title}</h1>
+        <h1 className="mt-2 text-base font-semibold">{str(ticket, "title")}</h1>
         <p className="mt-0.5 text-[0.72rem] text-muted-foreground">
-          Aberto por {requester} em {formatDate(ticket.created_at)} · Entidade raiz
+          Aberto por {requesterName} em {formatDate(str(ticket, "created_at") || null)}
         </p>
       </div>
 
+      {!phase3 && (
+        <div className="panel mb-3 border-warning/40 p-3 text-xs text-muted-foreground">
+          As tabelas da fase 3 ainda não existem no banco. As abas abaixo aparecem vazias e o
+          formulário salva apenas os campos antigos. Aplique a migration da fase 3 para liberar
+          tipo, urgência, impacto, tarefas, aprovações e o resto.
+        </div>
+      )}
+
       <Tabs defaultValue="chamado">
-        <TabsList className="h-8">
+        <TabsList className="h-8 flex-wrap">
           <TabsTrigger value="chamado" className="text-xs">
             Chamado
           </TabsTrigger>
           <TabsTrigger value="acompanhamentos" className="text-xs">
-            Acompanhamentos ({comments.length})
+            Acompanhamentos ({commentsQuery.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="tarefas" className="text-xs">
-            Tarefas
+            Tarefas ({tasksQuery.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="solucao" className="text-xs">
             Solução
+          </TabsTrigger>
+          <TabsTrigger value="aprovacoes" className="text-xs">
+            Aprovações ({validationsQuery.data?.length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="itens" className="text-xs">
+            Itens ({itemsQuery.data?.length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="ligados" className="text-xs">
+            Chamados ligados ({linksQuery.data?.length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="custos" className="text-xs">
+            Custos
           </TabsTrigger>
           <TabsTrigger value="estatisticas" className="text-xs">
             Estatísticas
           </TabsTrigger>
           <TabsTrigger value="documentos" className="text-xs">
-            Documentos
+            Documentos ({documentsQuery.data?.length ?? 0})
           </TabsTrigger>
           <TabsTrigger value="historico" className="text-xs">
             Histórico
           </TabsTrigger>
         </TabsList>
 
-        {/* Aba: Chamado */}
+        {/* ---------------- Chamado ---------------- */}
         <TabsContent value="chamado" className="mt-3">
           <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
-            <section className="panel h-fit">
-              <header className="panel-header">Dados do chamado</header>
-              <div className="space-y-2.5 p-3">
-                <Field label="Requerente" value={requester} />
-                {!ticket.requester_id && (
-                  <>
-                    <Field label="E-mail" value={ticket.reporter_email || "—"} />
-                    <Field label="Setor informado" value={ticket.reporter_sector || "—"} />
-                  </>
-                )}
-                <Field label="Aberto em" value={formatDate(ticket.created_at)} />
-                <Field label="Última atualização" value={formatDate(ticket.updated_at)} />
-                <Field label="Solucionado em" value={formatDate(ticket.resolved_at)} />
+            <div className="space-y-3">
+              <section className="panel h-fit">
+                <header className="panel-header">Dados do chamado</header>
+                <div className="space-y-2.5 p-3">
+                  <Info label="Aberto em" value={formatDate(str(ticket, "created_at") || null)} />
+                  <Info
+                    label="Última atualização"
+                    value={formatDate(str(ticket, "updated_at") || null)}
+                  />
+                  <Info
+                    label="Solucionado em"
+                    value={formatDate(str(ticket, "resolved_at") || null)}
+                  />
 
-                {isStaff ? (
-                  <div className="space-y-2.5 border-t border-border pt-2.5">
-                    <Picker label="Status" value={form.status} onChange={(v) => setForm({ ...form, status: v as TicketStatus })}>
-                      {STATUS_ORDER.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Picker
-                      label="Prioridade"
-                      value={form.priority}
-                      onChange={(v) => setForm({ ...form, priority: v as TicketPriority })}
-                    >
-                      {PRIORITY_ORDER.map((p) => (
-                        <SelectItem key={p} value={p}>
-                          {PRIORITY_LABEL[p]}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Picker
-                      label="Categoria"
-                      value={form.category}
-                      onChange={(v) => setForm({ ...form, category: v })}
-                    >
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Picker
-                      label="Atribuído a"
-                      value={form.assignee_id}
-                      onChange={(v) => setForm({ ...form, assignee_id: v })}
-                    >
-                      <SelectItem value={NONE}>Não atribuído</SelectItem>
-                      {technicians.map((tid) => (
-                        <SelectItem key={tid} value={tid}>
-                          {nameById.get(tid) ?? tid.slice(0, 8)}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Picker
-                      label="Ativo relacionado"
-                      value={form.asset_id}
-                      onChange={(v) => setForm({ ...form, asset_id: v })}
-                    >
-                      <SelectItem value={NONE}>Nenhum</SelectItem>
-                      {(lookups.data?.assets ?? []).map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.name}
-                          {a.asset_tag ? ` (${a.asset_tag})` : ""}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Picker
-                      label="Local"
-                      value={form.location_id}
-                      onChange={(v) => setForm({ ...form, location_id: v })}
-                    >
-                      <SelectItem value={NONE}>Nenhum</SelectItem>
-                      {(lookups.data?.locations ?? []).map((l) => (
-                        <SelectItem key={l.id} value={l.id}>
-                          {l.name}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Picker
-                      label="Setor"
-                      value={form.sector_id}
-                      onChange={(v) => setForm({ ...form, sector_id: v })}
-                    >
-                      <SelectItem value={NONE}>Nenhum</SelectItem>
-                      {(lookups.data?.sectors ?? []).map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-                    <Button
-                      size="sm"
-                      className="h-8 w-full"
-                      onClick={() => updateTicket.mutate()}
-                      disabled={updateTicket.isPending}
-                    >
-                      Salvar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2.5 border-t border-border pt-2.5">
-                    <Field label="Categoria" value={ticket.category} />
-                    <Field
-                      label="Atribuído a"
-                      value={
-                        ticket.assignee_id
-                          ? (nameById.get(ticket.assignee_id) ?? "—")
-                          : "Não atribuído"
-                      }
-                    />
-                  </div>
-                )}
-              </div>
-            </section>
+                  {canEdit ? (
+                    <div className="space-y-2.5 border-t border-border pt-2.5">
+                      {phase3 && (
+                        <Picker
+                          label="Tipo"
+                          value={form.type}
+                          onChange={(v) => setForm({ ...form, type: v as TicketType })}
+                        >
+                          {TICKET_TYPES.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {TICKET_TYPE_LABEL[t]}
+                            </SelectItem>
+                          ))}
+                        </Picker>
+                      )}
+
+                      <Picker
+                        label="Status"
+                        value={form.status}
+                        onChange={(v) => setForm({ ...form, status: v as TicketStatus })}
+                      >
+                        {STATUS_ORDER.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {STATUS_LABEL[s]}
+                          </SelectItem>
+                        ))}
+                      </Picker>
+
+                      {phase3 && (
+                        <>
+                          <Picker
+                            label="Categoria"
+                            value={form.category_id}
+                            onChange={(v) => setForm({ ...form, category_id: v })}
+                          >
+                            <SelectItem value={NONE}>Sem categoria</SelectItem>
+                            {(lookups?.categories ?? []).map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {" ".repeat(c.level * 3)}
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </Picker>
+
+                          <Picker
+                            label="Origem da requisição"
+                            value={form.request_source_id}
+                            onChange={(v) => setForm({ ...form, request_source_id: v })}
+                          >
+                            <SelectItem value={NONE}>Não informada</SelectItem>
+                            {(lookups?.sources ?? []).map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.name}
+                              </SelectItem>
+                            ))}
+                          </Picker>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <Picker
+                              label="Urgência"
+                              value={String(form.urgency)}
+                              onChange={(v) => setForm({ ...form, urgency: Number(v) })}
+                            >
+                              {LEVELS.map((l) => (
+                                <SelectItem key={l} value={String(l)}>
+                                  {levelLabel(l)}
+                                </SelectItem>
+                              ))}
+                            </Picker>
+                            <Picker
+                              label="Impacto"
+                              value={String(form.impact)}
+                              onChange={(v) => setForm({ ...form, impact: Number(v) })}
+                            >
+                              {LEVELS.map((l) => (
+                                <SelectItem key={l} value={String(l)}>
+                                  {levelLabel(l)}
+                                </SelectItem>
+                              ))}
+                            </Picker>
+                          </div>
+
+                          <div className="space-y-1 rounded border border-border bg-secondary/40 p-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Prioridade</span>
+                              <span className="inline-flex items-center gap-1.5 font-medium">
+                                <span
+                                  className={`size-2 rounded-full ${
+                                    LEVEL_DOT[
+                                      form.priority_manual
+                                        ? form.priority_level
+                                        : previewPriority(form.urgency, form.impact)
+                                    ]
+                                  }`}
+                                />
+                                {levelLabel(
+                                  form.priority_manual
+                                    ? form.priority_level
+                                    : previewPriority(form.urgency, form.impact),
+                                )}
+                              </span>
+                            </div>
+                            <label className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+                              <Checkbox
+                                checked={form.priority_manual}
+                                disabled={!hasFlag("ticket_change_priority")}
+                                onCheckedChange={(v) =>
+                                  setForm({ ...form, priority_manual: v === true })
+                                }
+                              />
+                              Definir manualmente
+                            </label>
+                            {form.priority_manual && (
+                              <Select
+                                value={String(form.priority_level)}
+                                onValueChange={(v) =>
+                                  setForm({ ...form, priority_level: Number(v) })
+                                }
+                              >
+                                <SelectTrigger className="h-7 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {LEVELS.map((l) => (
+                                    <SelectItem key={l} value={String(l)}>
+                                      {levelLabel(l)}
+                                    </SelectItem>
+                                  ))}
+                                  {hasFlag("ticket_major_priority") && (
+                                    <SelectItem value="6">Maior</SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      <Picker
+                        label="Local"
+                        value={form.location_id}
+                        onChange={(v) => setForm({ ...form, location_id: v })}
+                      >
+                        <SelectItem value={NONE}>Nenhum</SelectItem>
+                        {(lookups?.locations ?? []).map((l) => (
+                          <SelectItem key={l.id} value={l.id}>
+                            {l.name}
+                          </SelectItem>
+                        ))}
+                      </Picker>
+
+                      <Picker
+                        label="Setor"
+                        value={form.sector_id}
+                        onChange={(v) => setForm({ ...form, sector_id: v })}
+                      >
+                        <SelectItem value={NONE}>Nenhum</SelectItem>
+                        {(lookups?.sectors ?? []).map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </Picker>
+
+                      <Button
+                        size="sm"
+                        className="h-8 w-full"
+                        onClick={() => saveTicket.mutate()}
+                        disabled={saveTicket.isPending}
+                      >
+                        Salvar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 border-t border-border pt-2.5">
+                      <Info label="Categoria" value={str(ticket, "category", "—")} />
+                      <Info label="Prioridade" value={levelLabel(priorityLevel)} />
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <ActorsPanel
+                ticketId={id}
+                actors={actorsQuery.data ?? []}
+                people={peopleQuery.data ?? []}
+                groups={lookups?.groups ?? []}
+                suppliers={lookups?.suppliers ?? []}
+                technicians={techniciansQuery.data ?? []}
+                canEdit={canEdit && phase3}
+                personName={personName}
+                onChanged={() => invalidate("ticket_actors")}
+              />
+            </div>
 
             <div className="space-y-3">
               <section className="panel">
                 <header className="panel-header">Descrição</header>
                 <p className="whitespace-pre-wrap p-3 text-xs leading-relaxed">
-                  {ticket.description || "Sem descrição."}
+                  {str(ticket, "description") || "Sem descrição."}
                 </p>
               </section>
 
-              <section className="panel overflow-hidden">
-                <header className="panel-header">Acompanhamentos</header>
-                {timeline}
-                {commentForm}
-              </section>
+              <FollowupsPanel
+                ticketId={id}
+                comments={commentsQuery.data ?? []}
+                personName={personName}
+                sources={lookups?.sources ?? []}
+                canSeePrivate={hasFlag("followup_see_private")}
+                phase3={phase3}
+                userId={user?.id ?? null}
+                onChanged={() => invalidate("comments")}
+              />
             </div>
           </div>
         </TabsContent>
 
-        {/* Aba: Acompanhamentos */}
+        {/* ---------------- Acompanhamentos ---------------- */}
         <TabsContent value="acompanhamentos" className="mt-3">
-          <section className="panel overflow-hidden">
-            <header className="panel-header">Acompanhamentos ({comments.length})</header>
-            {timeline}
-            {commentForm}
-          </section>
-        </TabsContent>
-
-        {/* Aba: Tarefas */}
-        <TabsContent value="tarefas" className="mt-3">
-          <EmptyTab
-            title="Nenhuma tarefa registrada"
-            description="Tarefas com responsável, duração e planejamento entram junto com o módulo ITIL da próxima etapa."
+          <FollowupsPanel
+            ticketId={id}
+            comments={commentsQuery.data ?? []}
+            personName={personName}
+            sources={lookups?.sources ?? []}
+            canSeePrivate={hasFlag("followup_see_private")}
+            phase3={phase3}
+            userId={user?.id ?? null}
+            onChanged={() => invalidate("comments")}
           />
         </TabsContent>
 
-        {/* Aba: Solução */}
-        <TabsContent value="solucao" className="mt-3">
-          <section className="panel">
-            <header className="panel-header">Solução</header>
-            <div className="p-3 text-xs">
-              {ticket.resolved_at ? (
-                <p>
-                  Chamado marcado como <strong>{STATUS_LABEL[status]}</strong> em{" "}
-                  {formatDate(ticket.resolved_at)}.
-                </p>
-              ) : (
-                <p className="text-muted-foreground">
-                  O chamado ainda não foi solucionado. Altere o status na aba <em>Chamado</em> para
-                  registrar a solução.
-                </p>
-              )}
-              <p className="mt-2 text-muted-foreground">
-                O campo de texto da solução e o tipo de solução entram na próxima etapa.
-              </p>
-            </div>
-          </section>
+        {/* ---------------- Tarefas ---------------- */}
+        <TabsContent value="tarefas" className="mt-3">
+          <TasksPanel
+            ticketId={id}
+            tasks={tasksQuery.data ?? []}
+            categories={lookups?.taskCategories ?? []}
+            technicians={techniciansQuery.data ?? []}
+            personName={personName}
+            canEdit={can("task", "create") && phase3}
+            userId={user?.id ?? null}
+            onChanged={() => invalidate("ticket_tasks")}
+          />
         </TabsContent>
 
-        {/* Aba: Estatísticas */}
+        {/* ---------------- Solução ---------------- */}
+        <TabsContent value="solucao" className="mt-3">
+          <SolutionPanel
+            ticketId={id}
+            solutions={solutionsQuery.data ?? []}
+            types={lookups?.solutionTypes ?? []}
+            personName={personName}
+            canSolve={can("solution", "create") && phase3}
+            isRequester={str(ticket, "requester_id") === user?.id}
+            userId={user?.id ?? null}
+            onChanged={() => invalidate("ticket_solutions")}
+          />
+        </TabsContent>
+
+        {/* ---------------- Aprovações ---------------- */}
+        <TabsContent value="aprovacoes" className="mt-3">
+          <ValidationsPanel
+            ticketId={id}
+            validations={validationsQuery.data ?? []}
+            percent={num(ticket, "validation_percent", 100)}
+            people={peopleQuery.data ?? []}
+            personName={personName}
+            canRequest={hasFlag("validation_request") && phase3}
+            userId={user?.id ?? null}
+            onChanged={() => invalidate("ticket_validations")}
+          />
+        </TabsContent>
+
+        {/* ---------------- Itens ---------------- */}
+        <TabsContent value="itens" className="mt-3">
+          <ItemsPanel
+            ticketId={id}
+            items={(itemsQuery.data ?? []) as { id: string; asset_id: string }[]}
+            assets={lookups?.assets ?? []}
+            canEdit={canEdit && phase3}
+            onChanged={() => invalidate("ticket_items")}
+          />
+        </TabsContent>
+
+        {/* ---------------- Chamados ligados ---------------- */}
+        <TabsContent value="ligados" className="mt-3">
+          <LinksPanel
+            ticketId={id}
+            links={linksQuery.data ?? []}
+            tickets={(allTicketsQuery.data ?? []) as { id: string; title: string }[]}
+            canEdit={canEdit && phase3}
+            onChanged={() => invalidate("ticket_links")}
+          />
+        </TabsContent>
+
+        {/* ---------------- Custos ---------------- */}
+        <TabsContent value="custos" className="mt-3">
+          <CostsPanel
+            ticketId={id}
+            costs={costsQuery.data ?? []}
+            canEdit={can("financial_info", "update") && phase3}
+            onChanged={() => invalidate("ticket_costs")}
+          />
+        </TabsContent>
+
+        {/* ---------------- Estatísticas ---------------- */}
         <TabsContent value="estatisticas" className="mt-3">
           <div className="grid gap-3 md:grid-cols-2">
             <section className="panel">
               <header className="panel-header">Datas</header>
               <dl className="divide-y divide-border text-xs">
-                <Stat label="Abertura" value={formatDate(ticket.created_at)} />
-                <Stat label="Primeira resposta" value={formatDate(ticket.first_response_at)} />
-                <Stat label="Última atualização" value={formatDate(ticket.updated_at)} />
-                <Stat label="Solução" value={formatDate(ticket.resolved_at)} />
+                <Stat label="Abertura" value={formatDate(str(ticket, "created_at") || null)} />
+                <Stat
+                  label="Primeira resposta"
+                  value={formatDate(str(ticket, "first_response_at") || null)}
+                />
+                <Stat
+                  label="Última atualização"
+                  value={formatDate(str(ticket, "updated_at") || null)}
+                />
+                <Stat label="Solução" value={formatDate(str(ticket, "resolved_at") || null)} />
+                <Stat label="Fechamento" value={formatDate(str(ticket, "closed_at") || null)} />
               </dl>
             </section>
             <section className="panel">
               <header className="panel-header">Acordo de nível de serviço</header>
               <dl className="divide-y divide-border text-xs">
-                <Stat label="Prazo de resposta" value={formatDate(ticket.response_due_at)} />
+                <Stat
+                  label="Prazo de resposta"
+                  value={formatDate(str(ticket, "response_due_at") || null)}
+                />
                 <Stat
                   label="Situação da resposta"
                   value={responseSla.label}
                   className={responseSla.className}
                 />
-                <Stat label="Prazo de solução" value={formatDate(ticket.resolution_due_at)} />
+                <Stat
+                  label="Prazo de solução"
+                  value={formatDate(str(ticket, "resolution_due_at") || null)}
+                />
                 <Stat
                   label="Situação da solução"
                   value={resolutionSla.label}
@@ -520,48 +885,57 @@ function DetalheChamado() {
           </div>
         </TabsContent>
 
-        {/* Aba: Documentos */}
+        {/* ---------------- Documentos ---------------- */}
         <TabsContent value="documentos" className="mt-3">
-          <EmptyTab
-            icon={<FileText className="size-5" />}
-            title="Nenhum documento anexado"
-            description="O anexo de arquivos ao chamado entra junto com o módulo de documentos."
+          <DocumentsPanel
+            ticketId={id}
+            entityId={str(ticket, "entity_id")}
+            documents={(documentsQuery.data ?? []) as never[]}
+            canEdit={can("document", "create") && phase3}
+            userId={user?.id ?? null}
+            onChanged={() => invalidate("ticket_documents")}
           />
         </TabsContent>
 
-        {/* Aba: Histórico */}
+        {/* ---------------- Histórico ---------------- */}
         <TabsContent value="historico" className="mt-3">
           <section className="panel overflow-hidden">
             <header className="panel-header">Histórico</header>
-            <ul className="divide-y divide-border text-xs">
-              <li className="flex items-center justify-between px-3 py-2">
-                <span>Chamado criado por {requester}</span>
-                <span className="text-muted-foreground">{formatDate(ticket.created_at)}</span>
-              </li>
-              {comments.map((c) => (
-                <li key={c.id} className="flex items-center justify-between px-3 py-2">
-                  <span>Acompanhamento de {nameById.get(c.author_id) ?? "usuário"}</span>
-                  <span className="text-muted-foreground">{formatDate(c.created_at)}</span>
-                </li>
-              ))}
-              {ticket.first_response_at && (
-                <li className="flex items-center justify-between px-3 py-2">
-                  <span>Primeira resposta registrada</span>
-                  <span className="text-muted-foreground">
-                    {formatDate(ticket.first_response_at)}
-                  </span>
-                </li>
-              )}
-              {ticket.resolved_at && (
-                <li className="flex items-center justify-between px-3 py-2">
-                  <span>Chamado solucionado</span>
-                  <span className="text-muted-foreground">{formatDate(ticket.resolved_at)}</span>
-                </li>
-              )}
-            </ul>
-            <p className="border-t border-border p-3 text-[0.7rem] text-muted-foreground">
-              O registro campo a campo de cada alteração entra na próxima etapa.
-            </p>
+            <div className="overflow-x-auto">
+              <table className="glpi-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Autor</th>
+                    <th>Campo</th>
+                    <th>De</th>
+                    <th>Para</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="whitespace-nowrap text-muted-foreground">
+                      {formatDate(str(ticket, "created_at") || null)}
+                    </td>
+                    <td>{requesterName}</td>
+                    <td colSpan={3}>Chamado criado</td>
+                  </tr>
+                  {(historyQuery.data ?? []).map((h) => (
+                    <tr key={h.id}>
+                      <td className="whitespace-nowrap text-muted-foreground">
+                        {formatDate(h.created_at)}
+                      </td>
+                      <td>{personName(h.user_id)}</td>
+                      <td className="font-medium">{FIELD_LABEL[h.field] ?? h.field}</td>
+                      <td className="max-w-[200px] truncate text-muted-foreground">
+                        {h.old_value || "—"}
+                      </td>
+                      <td className="max-w-[200px] truncate">{h.new_value || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         </TabsContent>
       </Tabs>
@@ -569,7 +943,1405 @@ function DetalheChamado() {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+const FIELD_LABEL: Record<string, string> = {
+  title: "Título",
+  description: "Descrição",
+  status: "Status",
+  type: "Tipo",
+  category: "Categoria",
+  urgency: "Urgência",
+  impact: "Impacto",
+  priority_level: "Prioridade",
+  assignee_id: "Atribuído a",
+  requester_id: "Requerente",
+  entity_id: "Entidade",
+  asset_id: "Ativo",
+  location_id: "Local",
+  sector_id: "Setor",
+  validation_state: "Aprovação",
+  is_deleted: "Lixeira",
+};
+
+// ===========================================================================
+// Painéis
+// ===========================================================================
+
+function ActorsPanel({
+  ticketId,
+  actors,
+  people,
+  groups,
+  suppliers,
+  technicians,
+  canEdit,
+  personName,
+  onChanged,
+}: {
+  ticketId: string;
+  actors: TicketActorRow[];
+  people: { id: string; full_name: string; email: string }[];
+  groups: { id: string; name: string }[];
+  suppliers: { id: string; name: string }[];
+  technicians: string[];
+  canEdit: boolean;
+  personName: (id: string | null) => string;
+  onChanged: () => void;
+}) {
+  const [role, setRole] = useState<ActorRole>("atribuido");
+  const [kind, setKind] = useState<"user" | "group" | "supplier">("user");
+  const [value, setValue] = useState("");
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!value) throw new Error("Escolha quem entra como ator.");
+      const payload: Record<string, unknown> = { ticket_id: ticketId, role };
+      if (kind === "user") payload["user_id"] = value;
+      if (kind === "group") payload["group_id"] = value;
+      if (kind === "supplier") payload["supplier_id"] = value;
+      const { error } = await db.from("ticket_actors").insert(payload as never);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setValue("");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível adicionar", { description: e.message }),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (actorId: string) => {
+      const { error } = await db.from("ticket_actors").delete().eq("id", actorId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: onChanged,
+    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
+  });
+
+  const options =
+    kind === "user"
+      ? (role === "atribuido" ? people.filter((p) => technicians.includes(p.id)) : people).map(
+          (p) => ({ id: p.id, name: p.full_name || p.email }),
+        )
+      : kind === "group"
+        ? groups
+        : suppliers;
+
+  return (
+    <section className="panel">
+      <header className="panel-header">Atores</header>
+      <div className="divide-y divide-border">
+        {ACTOR_ROLES.map((r) => {
+          const list = actors.filter((a) => a.role === r);
+          return (
+            <div key={r} className="px-3 py-2">
+              <p className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">
+                {ACTOR_LABEL[r]}
+              </p>
+              {list.length === 0 ? (
+                <p className="text-xs text-muted-foreground">—</p>
+              ) : (
+                <ul className="mt-0.5 space-y-0.5">
+                  {list.map((a) => (
+                    <li key={a.id} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="truncate">
+                        {a.user_id
+                          ? personName(a.user_id)
+                          : a.group_id
+                            ? `Grupo: ${groups.find((g) => g.id === a.group_id)?.name ?? "—"}`
+                            : a.supplier_id
+                              ? `Fornecedor: ${suppliers.find((s) => s.id === a.supplier_id)?.name ?? "—"}`
+                              : a.alternative_email}
+                      </span>
+                      {canEdit && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-5"
+                          aria-label="Remover ator"
+                          onClick={() => remove.mutate(a.id)}
+                        >
+                          <X className="size-3" />
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {canEdit && (
+        <div className="space-y-2 border-t border-border p-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Select value={role} onValueChange={(v) => setRole(v as ActorRole)}>
+              <SelectTrigger className="h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ACTOR_ROLES.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {ACTOR_LABEL[r]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={kind}
+              onValueChange={(v) => {
+                setKind(v as "user" | "group" | "supplier");
+                setValue("");
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">Usuário</SelectItem>
+                <SelectItem value="group">Grupo</SelectItem>
+                <SelectItem value="supplier">Fornecedor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <Select value={value} onValueChange={setValue}>
+              <SelectTrigger className="h-7 flex-1 text-xs">
+                <SelectValue placeholder="Escolha" />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((o) => (
+                  <SelectItem key={o.id} value={o.id}>
+                    {o.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" className="h-7" onClick={() => add.mutate()} disabled={!value}>
+              <Plus className="size-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FollowupsPanel({
+  ticketId,
+  comments,
+  personName,
+  sources,
+  canSeePrivate,
+  phase3,
+  userId,
+  onChanged,
+}: {
+  ticketId: string;
+  comments: (Record<string, unknown> & {
+    id: string;
+    body: string;
+    author_id: string;
+    created_at: string;
+  })[];
+  personName: (id: string | null) => string;
+  sources: { id: string; name: string }[];
+  canSeePrivate: boolean;
+  phase3: boolean;
+  userId: string | null;
+  onChanged: () => void;
+}) {
+  const [body, setBody] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [sourceId, setSourceId] = useState(NONE);
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error("Sessão expirada.");
+      const payload: Record<string, unknown> = {
+        ticket_id: ticketId,
+        author_id: userId,
+        body: body.trim(),
+      };
+      if (phase3) {
+        payload["is_private"] = isPrivate;
+        payload["source_id"] = sourceId === NONE ? null : sourceId;
+      }
+      const { error } = await supabase.from("ticket_comments").insert(payload as never);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setBody("");
+      setIsPrivate(false);
+      onChanged();
+    },
+    onError: (e: Error) =>
+      toast.error("Falha ao registrar acompanhamento", { description: e.message }),
+  });
+
+  return (
+    <section className="panel overflow-hidden">
+      <header className="panel-header">Acompanhamentos</header>
+      <ul className="divide-y divide-border">
+        {comments.length === 0 && (
+          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+            Nenhum acompanhamento registrado.
+          </li>
+        )}
+        {comments.map((c) => {
+          const priv = c["is_private"] === true;
+          return (
+            <li key={c.id} className={`px-3 py-2.5 ${priv ? "bg-warning/5" : ""}`}>
+              <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
+                <span className="flex items-center gap-1.5 font-medium text-foreground">
+                  {personName(c.author_id)}
+                  {priv && (
+                    <span className="inline-flex items-center gap-1 rounded-sm border border-warning/40 px-1 text-[0.6rem] uppercase text-warning">
+                      <Lock className="size-2.5" /> privado
+                    </span>
+                  )}
+                </span>
+                <span>{formatDate(c.created_at)}</span>
+              </div>
+              <p className="mt-1 whitespace-pre-wrap text-xs">{c.body}</p>
+            </li>
+          );
+        })}
+      </ul>
+
+      <form
+        className="space-y-2 border-t border-border p-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (body.trim()) add.mutate();
+        }}
+      >
+        <Textarea
+          rows={3}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Escreva um acompanhamento..."
+          className="text-xs"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          {phase3 && (
+            <>
+              <label className="flex items-center gap-1.5 text-[0.72rem]">
+                <Checkbox
+                  checked={isPrivate}
+                  disabled={!canSeePrivate}
+                  onCheckedChange={(v) => setIsPrivate(v === true)}
+                />
+                Privado
+              </label>
+              <Select value={sourceId} onValueChange={setSourceId}>
+                <SelectTrigger className="h-7 w-[150px] text-xs">
+                  <SelectValue placeholder="Origem" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Sem origem</SelectItem>
+                  {sources.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+          <Button type="submit" size="sm" className="ml-auto h-8" disabled={add.isPending}>
+            <Send className="size-3.5" /> Adicionar
+          </Button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+function TasksPanel({
+  ticketId,
+  tasks,
+  categories,
+  technicians,
+  personName,
+  canEdit,
+  userId,
+  onChanged,
+}: {
+  ticketId: string;
+  tasks: TicketTaskRow[];
+  categories: { id: string; name: string }[];
+  technicians: string[];
+  personName: (id: string | null) => string;
+  canEdit: boolean;
+  userId: string | null;
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    content: "",
+    category_id: NONE,
+    state: "a_fazer" as TaskState,
+    assigned_user_id: NONE,
+    planned_start: "",
+    duration_minutes: 0,
+    is_private: false,
+  });
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!form.content.trim()) throw new Error("Descreva a tarefa.");
+      const { error } = await db.from("ticket_tasks").insert({
+        ticket_id: ticketId,
+        content: form.content.trim(),
+        category_id: form.category_id === NONE ? null : form.category_id,
+        state: form.state,
+        author_id: userId,
+        assigned_user_id: form.assigned_user_id === NONE ? null : form.assigned_user_id,
+        planned_start: form.planned_start ? new Date(form.planned_start).toISOString() : null,
+        duration_minutes: Number(form.duration_minutes) || 0,
+        is_private: form.is_private,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setOpen(false);
+      setForm({
+        content: "",
+        category_id: NONE,
+        state: "a_fazer",
+        assigned_user_id: NONE,
+        planned_start: "",
+        duration_minutes: 0,
+        is_private: false,
+      });
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível criar a tarefa", { description: e.message }),
+  });
+
+  const setState = useMutation({
+    mutationFn: async (input: { id: string; state: TaskState }) => {
+      const { error } = await db
+        .from("ticket_tasks")
+        .update({ state: input.state })
+        .eq("id", input.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: onChanged,
+    onError: (e: Error) => toast.error("Não foi possível alterar", { description: e.message }),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await db.from("ticket_tasks").delete().eq("id", taskId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: onChanged,
+    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
+  });
+
+  return (
+    <section className="panel overflow-hidden">
+      <header className="panel-header">
+        Tarefas
+        {canEdit && (
+          <Button size="sm" variant="outline" className="ml-auto h-7" onClick={() => setOpen(!open)}>
+            <Plus className="size-3.5" /> Nova tarefa
+          </Button>
+        )}
+      </header>
+
+      {open && canEdit && (
+        <div className="space-y-2 border-b border-border bg-secondary/30 p-3">
+          <Textarea
+            rows={2}
+            value={form.content}
+            onChange={(e) => setForm({ ...form, content: e.target.value })}
+            placeholder="O que precisa ser feito..."
+            className="text-xs"
+          />
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <Picker
+              label="Categoria"
+              value={form.category_id}
+              onChange={(v) => setForm({ ...form, category_id: v })}
+            >
+              <SelectItem value={NONE}>Sem categoria</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </Picker>
+            <Picker
+              label="Estado"
+              value={form.state}
+              onChange={(v) => setForm({ ...form, state: v as TaskState })}
+            >
+              {TASK_STATES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {TASK_STATE_LABEL[s]}
+                </SelectItem>
+              ))}
+            </Picker>
+            <Picker
+              label="Responsável"
+              value={form.assigned_user_id}
+              onChange={(v) => setForm({ ...form, assigned_user_id: v })}
+            >
+              <SelectItem value={NONE}>Ninguém</SelectItem>
+              {technicians.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {personName(t)}
+                </SelectItem>
+              ))}
+            </Picker>
+            <div className="space-y-1">
+              <Label className="text-[0.7rem] text-muted-foreground">Duração (min)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.duration_minutes}
+                onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label className="text-[0.7rem] text-muted-foreground">
+                Planejada para (deixa o chamado "Em atendimento (planejado)")
+              </Label>
+              <Input
+                type="datetime-local"
+                value={form.planned_start}
+                onChange={(e) => setForm({ ...form, planned_start: e.target.value })}
+                className="h-8 text-xs"
+              />
+            </div>
+            <label className="flex items-center gap-1.5 self-end text-xs">
+              <Checkbox
+                checked={form.is_private}
+                onCheckedChange={(v) => setForm({ ...form, is_private: v === true })}
+              />
+              Privada
+            </label>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="ghost" className="h-8" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button size="sm" className="h-8" onClick={() => add.mutate()} disabled={add.isPending}>
+              Criar tarefa
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <ul className="divide-y divide-border">
+        {tasks.length === 0 && (
+          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+            Nenhuma tarefa registrada.
+          </li>
+        )}
+        {tasks.map((t) => (
+          <li key={t.id} className="px-3 py-2.5">
+            <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+              <Tag className={TASK_STATE_CLASS[t.state]}>{TASK_STATE_LABEL[t.state]}</Tag>
+              {t.is_private && (
+                <span className="inline-flex items-center gap-1 text-warning">
+                  <Lock className="size-2.5" /> privada
+                </span>
+              )}
+              <span>
+                {categories.find((c) => c.id === t.category_id)?.name ?? "Sem categoria"}
+              </span>
+              {t.assigned_user_id && <span>· {personName(t.assigned_user_id)}</span>}
+              {t.duration_minutes > 0 && <span>· {formatDuration(t.duration_minutes)}</span>}
+              {t.planned_start && <span>· planejada para {formatDate(t.planned_start)}</span>}
+              <span className="ml-auto">{formatDate(t.created_at)}</span>
+            </div>
+            <p className="mt-1 whitespace-pre-wrap text-xs">{t.content}</p>
+            {canEdit && (
+              <div className="mt-1.5 flex gap-1">
+                {TASK_STATES.filter((s) => s !== t.state).map((s) => (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[0.68rem]"
+                    onClick={() => setState.mutate({ id: t.id, state: s })}
+                  >
+                    {TASK_STATE_LABEL[s]}
+                  </Button>
+                ))}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="ml-auto size-6"
+                  aria-label="Remover tarefa"
+                  onClick={() => remove.mutate(t.id)}
+                >
+                  <Trash2 className="size-3" />
+                </Button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function SolutionPanel({
+  ticketId,
+  solutions,
+  types,
+  personName,
+  canSolve,
+  isRequester,
+  userId,
+  onChanged,
+}: {
+  ticketId: string;
+  solutions: TicketSolutionRow[];
+  types: { id: string; name: string }[];
+  personName: (id: string | null) => string;
+  canSolve: boolean;
+  isRequester: boolean;
+  userId: string | null;
+  onChanged: () => void;
+}) {
+  const [content, setContent] = useState("");
+  const [typeId, setTypeId] = useState(NONE);
+  const [answer, setAnswer] = useState("");
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!content.trim()) throw new Error("Descreva a solução.");
+      const { error } = await db.from("ticket_solutions").insert({
+        ticket_id: ticketId,
+        content: content.trim(),
+        solution_type_id: typeId === NONE ? null : typeId,
+        author_id: userId,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setContent("");
+      toast.success("Solução registrada. O chamado foi para Solucionado.");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível registrar", { description: e.message }),
+  });
+
+  const answerSolution = useMutation({
+    mutationFn: async (input: { id: string; state: "aprovada" | "recusada" }) => {
+      const { error } = await db
+        .from("ticket_solutions")
+        .update({
+          state: input.state,
+          answer_comment: answer,
+          answered_by: userId,
+          answered_at: new Date().toISOString(),
+        })
+        .eq("id", input.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_data, variables) => {
+      setAnswer("");
+      toast.success(
+        variables.state === "aprovada"
+          ? "Solução aprovada. O chamado foi fechado."
+          : "Solução recusada. O chamado voltou para atendimento.",
+      );
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível responder", { description: e.message }),
+  });
+
+  const current = solutions[0];
+
+  return (
+    <section className="panel">
+      <header className="panel-header">Solução</header>
+
+      {solutions.length === 0 ? (
+        <p className="p-3 text-xs text-muted-foreground">
+          Nenhuma solução registrada. O chamado segue em atendimento.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {solutions.map((s) => (
+            <li key={s.id} className="px-3 py-2.5">
+              <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+                <Tag
+                  className={
+                    s.state === "aprovada"
+                      ? "border-success/30 bg-success/15 text-success"
+                      : s.state === "recusada"
+                        ? "border-destructive/40 bg-destructive/15 text-destructive"
+                        : "border-warning/40 bg-warning/20 text-warning"
+                  }
+                >
+                  {SOLUTION_LABEL[s.state]}
+                </Tag>
+                <span>{types.find((t) => t.id === s.solution_type_id)?.name ?? "Sem tipo"}</span>
+                <span>· {personName(s.author_id)}</span>
+                <span className="ml-auto">{formatDate(s.created_at)}</span>
+              </div>
+              <p className="mt-1 whitespace-pre-wrap text-xs">{s.content}</p>
+              {s.answer_comment && (
+                <p className="mt-1 border-l-2 border-border pl-2 text-[0.72rem] text-muted-foreground">
+                  Resposta de {personName(s.answered_by)}: {s.answer_comment}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Aprovação da solução pelo requerente */}
+      {current?.state === "aguardando" && isRequester && (
+        <div className="space-y-2 border-t border-border bg-secondary/30 p-3">
+          <Label className="text-[0.7rem] text-muted-foreground">
+            A solução resolveu o seu chamado?
+          </Label>
+          <Textarea
+            rows={2}
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Comentário (opcional)"
+            className="text-xs"
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8"
+              onClick={() => answerSolution.mutate({ id: current.id, state: "recusada" })}
+            >
+              <X className="size-3.5" /> Recusar
+            </Button>
+            <Button
+              size="sm"
+              className="h-8"
+              onClick={() => answerSolution.mutate({ id: current.id, state: "aprovada" })}
+            >
+              <Check className="size-3.5" /> Aprovar e fechar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {canSolve && (
+        <div className="space-y-2 border-t border-border p-3">
+          <div className="grid gap-2 sm:grid-cols-[200px_1fr]">
+            <Picker label="Tipo de solução" value={typeId} onChange={setTypeId}>
+              <SelectItem value={NONE}>Sem tipo</SelectItem>
+              {types.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </Picker>
+          </div>
+          <Textarea
+            rows={3}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Descreva a solução aplicada..."
+            className="text-xs"
+          />
+          <div className="flex justify-end">
+            <Button size="sm" className="h-8" onClick={() => add.mutate()} disabled={add.isPending}>
+              Registrar solução
+            </Button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ValidationsPanel({
+  ticketId,
+  validations,
+  percent,
+  people,
+  personName,
+  canRequest,
+  userId,
+  onChanged,
+}: {
+  ticketId: string;
+  validations: TicketValidationRow[];
+  percent: number;
+  people: { id: string; full_name: string; email: string }[];
+  personName: (id: string | null) => string;
+  canRequest: boolean;
+  userId: string | null;
+  onChanged: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [approver, setApprover] = useState("");
+  const [comment, setComment] = useState("");
+  const [answer, setAnswer] = useState("");
+
+  const request = useMutation({
+    mutationFn: async () => {
+      if (!approver) throw new Error("Escolha o aprovador.");
+      const { error } = await db.from("ticket_validations").insert({
+        ticket_id: ticketId,
+        requested_by: userId,
+        approver_user_id: approver,
+        request_comment: comment,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setApprover("");
+      setComment("");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível pedir aprovação", { description: e.message }),
+  });
+
+  const answerValidation = useMutation({
+    mutationFn: async (input: { id: string; state: "aprovado" | "recusado" }) => {
+      const { error } = await db
+        .from("ticket_validations")
+        .update({
+          state: input.state,
+          answer_comment: answer,
+          answered_at: new Date().toISOString(),
+        })
+        .eq("id", input.id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setAnswer("");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível responder", { description: e.message }),
+  });
+
+  const setPercent = useMutation({
+    mutationFn: async (value: number) => {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ validation_percent: value } as never)
+        .eq("id", ticketId);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
+    onError: (e: Error) => toast.error("Não foi possível alterar", { description: e.message }),
+  });
+
+  return (
+    <section className="panel">
+      <header className="panel-header">Aprovações</header>
+
+      <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+        <Label className="text-[0.7rem] text-muted-foreground">Aprovação mínima exigida</Label>
+        <Select
+          value={String(percent)}
+          onValueChange={(v) => setPercent.mutate(Number(v))}
+          disabled={!canRequest}
+        >
+          <SelectTrigger className="h-7 w-[260px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {VALIDATION_PERCENTS.map((p) => (
+              <SelectItem key={p.value} value={String(p.value)}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <ul className="divide-y divide-border">
+        {validations.length === 0 && (
+          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+            Nenhum pedido de aprovação.
+          </li>
+        )}
+        {validations.map((v) => (
+          <li key={v.id} className="px-3 py-2.5">
+            <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+              <Tag className={VALIDATION_CLASS[v.state]}>{VALIDATION_LABEL[v.state]}</Tag>
+              <span>Aprovador: {personName(v.approver_user_id)}</span>
+              <span>· pedido por {personName(v.requested_by)}</span>
+              <span className="ml-auto">{formatDate(v.requested_at)}</span>
+            </div>
+            {v.request_comment && <p className="mt-1 text-xs">{v.request_comment}</p>}
+            {v.answer_comment && (
+              <p className="mt-1 border-l-2 border-border pl-2 text-[0.72rem] text-muted-foreground">
+                {v.answer_comment}
+              </p>
+            )}
+            {v.state === "aguardando" && v.approver_user_id === userId && (
+              <div className="mt-2 space-y-2">
+                <Textarea
+                  rows={2}
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  placeholder="Comentário da sua resposta"
+                  className="text-xs"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={() => answerValidation.mutate({ id: v.id, state: "recusado" })}
+                  >
+                    <X className="size-3.5" /> Recusar
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7"
+                    onClick={() => answerValidation.mutate({ id: v.id, state: "aprovado" })}
+                  >
+                    <Check className="size-3.5" /> Aprovar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {canRequest && (
+        <div className="space-y-2 border-t border-border p-3">
+          <div className="flex gap-2">
+            <Select value={approver} onValueChange={setApprover}>
+              <SelectTrigger className="h-8 flex-1 text-xs">
+                <SelectValue placeholder="Escolha o aprovador" />
+              </SelectTrigger>
+              <SelectContent>
+                {people.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.full_name || p.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" className="h-8" onClick={() => request.mutate()} disabled={!approver}>
+              <Plus className="size-3.5" /> Pedir aprovação
+            </Button>
+          </div>
+          <Textarea
+            rows={2}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Por que precisa de aprovação..."
+            className="text-xs"
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ItemsPanel({
+  ticketId,
+  items,
+  assets,
+  canEdit,
+  onChanged,
+}: {
+  ticketId: string;
+  items: { id: string; asset_id: string }[];
+  assets: { id: string; name: string; asset_tag: string }[];
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
+  const [assetId, setAssetId] = useState("");
+
+  const add = useMutation({
+    mutationFn: async () => {
+      const { error } = await db.from("ticket_items").insert({
+        ticket_id: ticketId,
+        asset_id: assetId,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setAssetId("");
+      onChanged();
+    },
+    onError: (e: Error) =>
+      toast.error("Não foi possível associar", {
+        description: e.message.includes("duplicate") ? "Esse ativo já está no chamado." : e.message,
+      }),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (itemId: string) => {
+      const { error } = await db.from("ticket_items").delete().eq("id", itemId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: onChanged,
+    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
+  });
+
+  return (
+    <section className="panel overflow-hidden">
+      <header className="panel-header">Itens associados</header>
+      <ul className="divide-y divide-border">
+        {items.length === 0 && (
+          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+            Nenhum ativo associado.
+          </li>
+        )}
+        {items.map((i) => {
+          const asset = assets.find((a) => a.id === i.asset_id);
+          return (
+            <li key={i.id} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+              <span>
+                {asset?.name ?? "Ativo removido"}
+                {asset?.asset_tag ? ` (${asset.asset_tag})` : ""}
+              </span>
+              {canEdit && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-6"
+                  aria-label="Remover item"
+                  onClick={() => remove.mutate(i.id)}
+                >
+                  <X className="size-3" />
+                </Button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {canEdit && (
+        <div className="flex gap-2 border-t border-border p-2">
+          <Select value={assetId} onValueChange={setAssetId}>
+            <SelectTrigger className="h-8 flex-1 text-xs">
+              <SelectValue placeholder="Associar um ativo" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets
+                .filter((a) => !items.some((i) => i.asset_id === a.id))
+                .map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                    {a.asset_tag ? ` (${a.asset_tag})` : ""}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" className="h-8" onClick={() => add.mutate()} disabled={!assetId}>
+            <Plus className="size-3.5" />
+          </Button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LinksPanel({
+  ticketId,
+  links,
+  tickets,
+  canEdit,
+  onChanged,
+}: {
+  ticketId: string;
+  links: TicketLinkRow[];
+  tickets: { id: string; title: string }[];
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
+  const [target, setTarget] = useState("");
+  const [linkType, setLinkType] = useState<TicketLinkType>("ligado");
+
+  const add = useMutation({
+    mutationFn: async () => {
+      const { error } = await db.from("ticket_links").insert({
+        ticket_id: ticketId,
+        linked_ticket_id: target,
+        link_type: linkType,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setTarget("");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível vincular", { description: e.message }),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (linkId: string) => {
+      const { error } = await db.from("ticket_links").delete().eq("id", linkId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: onChanged,
+    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
+  });
+
+  return (
+    <section className="panel overflow-hidden">
+      <header className="panel-header">Chamados ligados</header>
+      <ul className="divide-y divide-border">
+        {links.length === 0 && (
+          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+            Nenhum chamado vinculado.
+          </li>
+        )}
+        {links.map((l) => (
+          <li key={l.id} className="flex items-center gap-2 px-3 py-2 text-xs">
+            <Tag className="border-border bg-secondary text-muted-foreground">
+              {LINK_LABEL[l.link_type]}
+            </Tag>
+            <Link
+              to="/chamados/$id"
+              params={{ id: l.linked_ticket_id }}
+              className="flex-1 truncate text-primary hover:underline"
+            >
+              <Link2 className="mr-1 inline size-3" />
+              {tickets.find((t) => t.id === l.linked_ticket_id)?.title ??
+                ticketCode(l.linked_ticket_id)}
+            </Link>
+            {canEdit && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-6"
+                aria-label="Remover vínculo"
+                onClick={() => remove.mutate(l.id)}
+              >
+                <X className="size-3" />
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <div className="space-y-2 border-t border-border p-2">
+          <div className="flex gap-2">
+            <Select value={linkType} onValueChange={(v) => setLinkType(v as TicketLinkType)}>
+              <SelectTrigger className="h-8 w-[150px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LINK_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {LINK_LABEL[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={target} onValueChange={setTarget}>
+              <SelectTrigger className="h-8 flex-1 text-xs">
+                <SelectValue placeholder="Escolha o chamado" />
+              </SelectTrigger>
+              <SelectContent>
+                {tickets
+                  .filter((t) => t.id !== ticketId && !links.some((l) => l.linked_ticket_id === t.id))
+                  .map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {ticketCode(t.id)} — {t.title}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" className="h-8" onClick={() => add.mutate()} disabled={!target}>
+              <Plus className="size-3.5" />
+            </Button>
+          </div>
+          <p className="text-[0.68rem] text-muted-foreground">{LINK_HINT[linkType]}</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function CostsPanel({
+  ticketId,
+  costs,
+  canEdit,
+  onChanged,
+}: {
+  ticketId: string;
+  costs: TicketCostRow[];
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    duration_minutes: 0,
+    cost_time: 0,
+    cost_fixed: 0,
+    cost_material: 0,
+  });
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!form.name.trim()) throw new Error("Dê um nome ao custo.");
+      const { error } = await db.from("ticket_costs").insert({
+        ticket_id: ticketId,
+        name: form.name.trim(),
+        duration_minutes: Number(form.duration_minutes) || 0,
+        cost_time: Number(form.cost_time) || 0,
+        cost_fixed: Number(form.cost_fixed) || 0,
+        cost_material: Number(form.cost_material) || 0,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setForm({ name: "", duration_minutes: 0, cost_time: 0, cost_fixed: 0, cost_material: 0 });
+      onChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível lançar", { description: e.message }),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (costId: string) => {
+      const { error } = await db.from("ticket_costs").delete().eq("id", costId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: onChanged,
+    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
+  });
+
+  const total = costs.reduce((sum, c) => sum + totalCost(c), 0);
+
+  return (
+    <section className="panel overflow-hidden">
+      <header className="panel-header">Custos</header>
+      <div className="overflow-x-auto">
+        <table className="glpi-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Duração</th>
+              <th className="text-right">Tempo</th>
+              <th className="text-right">Fixo</th>
+              <th className="text-right">Material</th>
+              <th className="text-right">Total</th>
+              <th className="w-8"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {costs.length === 0 && (
+              <tr>
+                <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                  Nenhum custo lançado.
+                </td>
+              </tr>
+            )}
+            {costs.map((c) => (
+              <tr key={c.id}>
+                <td className="font-medium">{c.name}</td>
+                <td>{formatDuration(c.duration_minutes)}</td>
+                <td className="text-right tabular-nums">{formatMoney(Number(c.cost_time))}</td>
+                <td className="text-right tabular-nums">{formatMoney(Number(c.cost_fixed))}</td>
+                <td className="text-right tabular-nums">{formatMoney(Number(c.cost_material))}</td>
+                <td className="text-right font-medium tabular-nums">
+                  {formatMoney(totalCost(c))}
+                </td>
+                <td>
+                  {canEdit && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-6"
+                      aria-label="Remover custo"
+                      onClick={() => remove.mutate(c.id)}
+                    >
+                      <X className="size-3" />
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {costs.length > 0 && (
+              <tr>
+                <td colSpan={5} className="text-right font-semibold">
+                  Total do chamado
+                </td>
+                <td className="text-right font-semibold tabular-nums">{formatMoney(total)}</td>
+                <td></td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {canEdit && (
+        <div className="grid gap-2 border-t border-border p-2 sm:grid-cols-6">
+          <Input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Nome do custo"
+            className="h-8 text-xs sm:col-span-2"
+          />
+          <Input
+            type="number"
+            min={0}
+            value={form.duration_minutes}
+            onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })}
+            placeholder="Minutos"
+            className="h-8 text-xs"
+          />
+          <Input
+            type="number"
+            step="0.01"
+            value={form.cost_time}
+            onChange={(e) => setForm({ ...form, cost_time: Number(e.target.value) })}
+            placeholder="Tempo R$"
+            className="h-8 text-xs"
+          />
+          <Input
+            type="number"
+            step="0.01"
+            value={form.cost_fixed}
+            onChange={(e) => setForm({ ...form, cost_fixed: Number(e.target.value) })}
+            placeholder="Fixo R$"
+            className="h-8 text-xs"
+          />
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              step="0.01"
+              value={form.cost_material}
+              onChange={(e) => setForm({ ...form, cost_material: Number(e.target.value) })}
+              placeholder="Material R$"
+              className="h-8 text-xs"
+            />
+            <Button size="sm" className="h-8" onClick={() => add.mutate()}>
+              <Plus className="size-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DocumentsPanel({
+  ticketId,
+  entityId,
+  documents,
+  canEdit,
+  userId,
+  onChanged,
+}: {
+  ticketId: string;
+  entityId: string;
+  documents: { id: string; name: string; filename: string; size_bytes: number; storage_path: string; created_at: string }[];
+  canEdit: boolean;
+  userId: string | null;
+  onChanged: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  async function upload(file: File) {
+    setUploading(true);
+    try {
+      const path = `${ticketId}/${Date.now()}-${file.name}`;
+      const { error: storageError } = await supabase.storage.from("documentos").upload(path, file);
+      if (storageError) throw new Error(storageError.message);
+
+      const { data: doc, error: docError } = await db
+        .from("documents")
+        .insert({
+          name: file.name,
+          filename: file.name,
+          mime_type: file.type,
+          size_bytes: file.size,
+          storage_path: path,
+          entity_id: entityId,
+          uploaded_by: userId,
+        })
+        .select("id")
+        .single();
+      if (docError) throw new Error(docError.message);
+
+      const { error: linkError } = await db
+        .from("document_tickets")
+        .insert({ document_id: doc.id, ticket_id: ticketId });
+      if (linkError) throw new Error(linkError.message);
+
+      toast.success("Documento anexado.");
+      onChanged();
+    } catch (e) {
+      toast.error("Falha ao anexar", { description: (e as Error).message });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function download(path: string, name: string) {
+    const { data, error } = await supabase.storage.from("documentos").download(path);
+    if (error || !data) {
+      toast.error("Falha ao baixar", { description: error?.message });
+      return;
+    }
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <section className="panel overflow-hidden">
+      <header className="panel-header">Documentos</header>
+      <ul className="divide-y divide-border">
+        {documents.length === 0 && (
+          <li className="flex flex-col items-center gap-1 px-3 py-8 text-center text-xs text-muted-foreground">
+            <FileText className="size-5" />
+            Nenhum documento anexado.
+          </li>
+        )}
+        {documents.map((d) => (
+          <li key={d.id} className="flex items-center gap-2 px-3 py-2 text-xs">
+            <Paperclip className="size-3.5 text-muted-foreground" />
+            <button
+              type="button"
+              onClick={() => download(d.storage_path, d.filename)}
+              className="flex-1 truncate text-left text-primary hover:underline"
+            >
+              {d.name}
+            </button>
+            <span className="text-muted-foreground">{Math.round(d.size_bytes / 1024)} KB</span>
+            <span className="text-muted-foreground">{formatDate(d.created_at)}</span>
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <div className="border-t border-border p-3">
+          <Label className="text-[0.7rem] text-muted-foreground">Anexar arquivo</Label>
+          <Input
+            type="file"
+            className="mt-1 h-8 text-xs"
+            disabled={uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) upload(file);
+              e.target.value = "";
+            }}
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ===========================================================================
+// Peças pequenas
+// ===========================================================================
+
+function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 text-xs">
       <span className="text-muted-foreground">{label}</span>
@@ -615,24 +2387,6 @@ function Picker({
         </SelectTrigger>
         <SelectContent>{children}</SelectContent>
       </Select>
-    </div>
-  );
-}
-
-function EmptyTab({
-  title,
-  description,
-  icon,
-}: {
-  title: string;
-  description: string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="panel flex flex-col items-center gap-1.5 p-10 text-center">
-      {icon && <span className="text-muted-foreground">{icon}</span>}
-      <p className="text-xs font-medium">{title}</p>
-      <p className="max-w-md text-[0.7rem] text-muted-foreground">{description}</p>
     </div>
   );
 }

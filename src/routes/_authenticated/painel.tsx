@@ -80,9 +80,7 @@ function Painel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select(
-          "id,title,category,status,priority,created_at,updated_at,resolved_at,resolution_due_at,requester_id,assignee_id,reporter_name",
-        )
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as TicketRow[];

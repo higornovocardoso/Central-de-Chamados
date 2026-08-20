@@ -1,10 +1,17 @@
-export type TicketStatus = "aberto" | "em_andamento" | "aguardando" | "resolvido" | "fechado";
+export type TicketStatus =
+  | "aberto"
+  | "em_andamento"
+  | "planejado"
+  | "aguardando"
+  | "resolvido"
+  | "fechado";
 export type TicketPriority = "baixa" | "media" | "alta" | "critica";
 
 /** Nomes do GLPI. Os valores do banco continuam os mesmos. */
 export const STATUS_LABEL: Record<TicketStatus, string> = {
   aberto: "Novo",
-  em_andamento: "Em atendimento",
+  em_andamento: "Em atendimento (atribuído)",
+  planejado: "Em atendimento (planejado)",
   aguardando: "Pendente",
   resolvido: "Solucionado",
   fechado: "Fechado",
@@ -13,6 +20,7 @@ export const STATUS_LABEL: Record<TicketStatus, string> = {
 export const STATUS_CLASS: Record<TicketStatus, string> = {
   aberto: "bg-info/15 text-info border-info/30",
   em_andamento: "bg-primary/15 text-primary border-primary/30",
+  planejado: "bg-accent text-accent-foreground border-primary/30",
   aguardando: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
   resolvido: "bg-success/15 text-success border-success/30",
   fechado: "bg-secondary text-muted-foreground border-border",
@@ -22,6 +30,7 @@ export const STATUS_CLASS: Record<TicketStatus, string> = {
 export const STATUS_DOT: Record<TicketStatus, string> = {
   aberto: "bg-info",
   em_andamento: "bg-primary",
+  planejado: "bg-chart-5",
   aguardando: "bg-warning",
   resolvido: "bg-success",
   fechado: "bg-muted-foreground",
@@ -62,6 +71,7 @@ export const CATEGORIES = [
 export const STATUS_ORDER: TicketStatus[] = [
   "aberto",
   "em_andamento",
+  "planejado",
   "aguardando",
   "resolvido",
   "fechado",
@@ -70,7 +80,12 @@ export const STATUS_ORDER: TicketStatus[] = [
 export const PRIORITY_ORDER: TicketPriority[] = ["critica", "alta", "media", "baixa"];
 
 /** Status que ainda contam como chamado em aberto. */
-export const OPEN_STATUSES: TicketStatus[] = ["aberto", "em_andamento", "aguardando"];
+export const OPEN_STATUSES: TicketStatus[] = [
+  "aberto",
+  "em_andamento",
+  "planejado",
+  "aguardando",
+];
 
 export function isOpenStatus(status: TicketStatus) {
   return OPEN_STATUSES.includes(status);

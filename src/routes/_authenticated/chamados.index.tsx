@@ -28,6 +28,12 @@ import { useRoles } from "@/hooks/useRoles";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
 import {
+  LEVEL_DOT,
+  TICKET_TYPE_LABEL,
+  levelLabel,
+  type TicketType,
+} from "@/lib/itil";
+import {
   PRIORITY_DOT,
   PRIORITY_LABEL,
   PRIORITY_ORDER,
@@ -99,6 +105,10 @@ type TicketRow = {
   requester_id: string | null;
   reporter_name: string;
   assignee_id: string | null;
+  // Campos da fase 3; ausentes enquanto a migration não roda.
+  type?: string;
+  priority_level?: number;
+  is_deleted?: boolean;
 };
 
 /** Critério da barra de pesquisa do GLPI: campo + operador + valor. */
@@ -126,10 +136,13 @@ const QUICK_FILTERS = [
   { key: "atrasados", label: "Atrasados" },
   { key: "novos", label: "Novos" },
   { key: "abertos", label: "Em aberto" },
+  { key: "incidentes", label: "Incidentes" },
+  { key: "requisicoes", label: "Requisições" },
 ];
 
 const COLUMNS = [
   { key: "id", label: "ID", sortable: true },
+  { key: "type", label: "Tipo", sortable: true },
   { key: "title", label: "Título", sortable: true },
   { key: "status", label: "Status", sortable: true },
   { key: "updated_at", label: "Última atualização", sortable: true },
@@ -173,11 +186,11 @@ function ListaChamados() {
   const ticketsQuery = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
+      // select("*") para que as colunas da fase 3 apareçam quando existirem,
+      // sem quebrar enquanto a migration não foi aplicada.
       const { data, error } = await supabase
         .from("tickets")
-        .select(
-          "id,title,category,status,priority,created_at,updated_at,resolved_at,resolution_due_at,requester_id,assignee_id,reporter_name",
-        )
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as TicketRow[];
@@ -220,6 +233,8 @@ function ListaChamados() {
     const needle = term.trim().toLowerCase();
 
     return tickets.filter((t) => {
+      if (t.is_deleted) return false;
+
       if (needle) {
         const haystack = `${t.title} ${ticketCode(t.id)} ${t.category} ${requesterOf(t)}`.toLowerCase();
         if (!haystack.includes(needle)) return false;
@@ -230,6 +245,8 @@ function ListaChamados() {
       if (quick === "meus" && t.assignee_id !== user?.id) return false;
       if (quick === "nao_atribuidos" && t.assignee_id) return false;
       if (quick === "novos" && t.status !== "aberto") return false;
+      if (quick === "incidentes" && (t.type ?? "incidente") !== "incidente") return false;
+      if (quick === "requisicoes" && t.type !== "requisicao") return false;
       if (quick === "abertos" && !isOpenStatus(t.status)) return false;
       if (quick === "atrasados") {
         const sla = slaState(t.resolution_due_at, t.resolved_at, t.status === "fechado");
@@ -265,9 +282,10 @@ function ListaChamados() {
     const statusRank: Record<TicketStatus, number> = {
       aberto: 1,
       em_andamento: 2,
-      aguardando: 3,
-      resolvido: 4,
-      fechado: 5,
+      planejado: 3,
+      aguardando: 4,
+      resolvido: 5,
+      fechado: 6,
     };
 
     return [...filtered].sort((a, b) => {
@@ -280,6 +298,8 @@ function ListaChamados() {
           return a.title.localeCompare(b.title, "pt-BR") * factor;
         case "category":
           return a.category.localeCompare(b.category, "pt-BR") * factor;
+        case "type":
+          return (a.type ?? "").localeCompare(b.type ?? "", "pt-BR") * factor;
         case "id":
           return a.id.localeCompare(b.id) * factor;
         case "updated_at":
@@ -309,7 +329,8 @@ function ListaChamados() {
       if (bulkPriority) patch.priority = bulkPriority as TicketPriority;
       if (bulkAssignee) patch.assignee_id = bulkAssignee === "__none__" ? null : bulkAssignee;
       if (Object.keys(patch).length === 0) throw new Error("Escolha o que alterar.");
-      const { error } = await supabase.from("tickets").update(patch).in("id", selected);
+      // O status "planejado" só existe no enum depois da migration da fase 3.
+      const { error } = await supabase.from("tickets").update(patch as never).in("id", selected);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -602,6 +623,9 @@ function ListaChamados() {
                     <td className="font-mono text-[0.72rem] text-muted-foreground">
                       {ticketCode(t.id)}
                     </td>
+                    <td className="whitespace-nowrap text-muted-foreground">
+                      {TICKET_TYPE_LABEL[(t.type ?? "incidente") as TicketType]}
+                    </td>
                     <td className="max-w-[320px]">
                       <Link
                         to="/chamados/$id"
@@ -628,8 +652,17 @@ function ListaChamados() {
                     </td>
                     <td>
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                        <span className={`size-2 rounded-full ${PRIORITY_DOT[t.priority]}`} />
-                        {PRIORITY_LABEL[t.priority]}
+                        {t.priority_level ? (
+                          <>
+                            <span className={`size-2 rounded-full ${LEVEL_DOT[t.priority_level]}`} />
+                            {levelLabel(t.priority_level)}
+                          </>
+                        ) : (
+                          <>
+                            <span className={`size-2 rounded-full ${PRIORITY_DOT[t.priority]}`} />
+                            {PRIORITY_LABEL[t.priority]}
+                          </>
+                        )}
                       </span>
                     </td>
                     <td className="max-w-[160px] truncate">{requesterOf(t)}</td>
