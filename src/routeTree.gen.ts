@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AbrirChamadoRouteImport } from './routes/abrir-chamado'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedBaseConhecimentoRouteImport } from './routes/_authenticated/base-conhecimento'
 import { Route as AuthenticatedCadastrosRouteImport } from './routes/_authenticated/cadastros'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
@@ -38,6 +39,12 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedBaseConhecimentoRoute =
+  AuthenticatedBaseConhecimentoRouteImport.update({
+    id: '/base-conhecimento',
+    path: '/base-conhecimento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCadastrosRoute = AuthenticatedCadastrosRouteImport.update({
   id: '/cadastros',
   path: '/cadastros',
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/abrir-chamado': typeof AbrirChamadoRoute
   '/auth': typeof AuthRoute
+  '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -79,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/abrir-chamado': typeof AbrirChamadoRoute
   '/auth': typeof AuthRoute
+  '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
   '/cadastros': typeof AuthenticatedCadastrosRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -91,6 +100,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/abrir-chamado': typeof AbrirChamadoRoute
   '/auth': typeof AuthRoute
+  '/_authenticated/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
   '/_authenticated/cadastros': typeof AuthenticatedCadastrosRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/abrir-chamado'
     | '/auth'
+    | '/base-conhecimento'
     | '/cadastros'
     | '/inventario'
     | '/painel'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/'
     | '/abrir-chamado'
     | '/auth'
+    | '/base-conhecimento'
     | '/cadastros'
     | '/inventario'
     | '/painel'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/abrir-chamado'
     | '/auth'
+    | '/_authenticated/base-conhecimento'
     | '/_authenticated/cadastros'
     | '/_authenticated/inventario'
     | '/_authenticated/painel'
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/base-conhecimento': {
+      id: '/_authenticated/base-conhecimento'
+      path: '/base-conhecimento'
+      fullPath: '/base-conhecimento'
+      preLoaderRoute: typeof AuthenticatedBaseConhecimentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cadastros': {
       id: '/_authenticated/cadastros'
       path: '/cadastros'
@@ -207,6 +227,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBaseConhecimentoRoute: typeof AuthenticatedBaseConhecimentoRoute
   AuthenticatedCadastrosRoute: typeof AuthenticatedCadastrosRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
@@ -215,6 +236,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBaseConhecimentoRoute: AuthenticatedBaseConhecimentoRoute,
   AuthenticatedCadastrosRoute: AuthenticatedCadastrosRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
