@@ -72,6 +72,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Chamados", to: "/chamados", right: "ticket" },
       { label: "Criar chamado", to: "/chamados/novo", right: "ticket" },
       { label: "Chamados recorrentes", to: "/chamados/recorrentes", right: "recurrent" },
+      { label: "Problemas", to: "/assistencia/problemas", right: "problem" },
+      { label: "Mudanças", to: "/assistencia/mudancas", right: "change" },
       { label: "Base de conhecimento", to: "/base-conhecimento", right: "knowledgebase" },
       { label: "Estatísticas", to: "/painel", right: "statistics" },
     ],
@@ -96,7 +98,12 @@ export const NAV_GROUPS: NavGroup[] = [
     id: "ferramentas",
     label: "Ferramentas",
     icon: Wrench,
-    links: [soon("Notas", "notas", "reminder"), soon("Relatórios", "relatorios", "report")],
+    links: [
+      { label: "Projetos", to: "/ferramentas/projetos", right: "project" },
+      { label: "Reservas", to: "/ferramentas/reservas", right: "reservation" },
+      { label: "Lembretes e feeds", to: "/ferramentas/lembretes", right: "reminder" },
+      { label: "Relatórios", to: "/ferramentas/relatorios", right: "report" },
+    ],
   },
   {
     id: "administracao",
@@ -173,6 +180,14 @@ const CRUMB_LABEL: Record<string, string> = {
   dominios: "Domínios",
   infra: "Infraestrutura",
   documentos: "Documentos",
+  assistencia: "Assistência",
+  ferramentas: "Ferramentas",
+  problemas: "Problemas",
+  mudancas: "Mudanças",
+  projetos: "Projetos",
+  reservas: "Reservas",
+  lembretes: "Lembretes e feeds",
+  relatorios: "Relatórios",
 };
 
 const GROUP_OF_SEGMENT: Record<string, string> = {
@@ -184,12 +199,14 @@ const GROUP_OF_SEGMENT: Record<string, string> = {
   administracao: "Administração",
   configuracao: "Configurar",
   gestao: "Gestão",
+  assistencia: "Assistência",
+  ferramentas: "Ferramentas",
 };
 
 export type Crumb = { label: string; to?: string | undefined };
 
 /** Segmentos que agrupam telas mas não têm página própria. */
-const NO_INDEX_ROUTE = new Set(["administracao", "modulo", "configuracao", "gestao"]);
+const NO_INDEX_ROUTE = new Set(["administracao", "modulo", "configuracao", "gestao", "assistencia", "ferramentas"]);
 
 /**
  * Caminho no formato do GLPI: Início > Grupo > Tela.

@@ -22,6 +22,8 @@ import { Route as AuthenticatedAdministracaoGruposRouteImport } from './routes/_
 import { Route as AuthenticatedAdministracaoPerfisRouteImport } from './routes/_authenticated/administracao.perfis'
 import { Route as AuthenticatedAdministracaoRegrasRouteImport } from './routes/_authenticated/administracao.regras'
 import { Route as AuthenticatedAdministracaoUsuariosRouteImport } from './routes/_authenticated/administracao.usuarios'
+import { Route as AuthenticatedAssistenciaMudancasRouteImport } from './routes/_authenticated/assistencia.mudancas'
+import { Route as AuthenticatedAssistenciaProblemasRouteImport } from './routes/_authenticated/assistencia.problemas'
 import { Route as AuthenticatedChamadosIndexRouteImport } from './routes/_authenticated/chamados.index'
 import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authenticated/chamados.$id'
 import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authenticated/chamados.novo'
@@ -32,6 +34,10 @@ import { Route as AuthenticatedConfiguracaoColetoresRouteImport } from './routes
 import { Route as AuthenticatedConfiguracaoListasRouteImport } from './routes/_authenticated/configuracao.listas'
 import { Route as AuthenticatedConfiguracaoNotificacoesRouteImport } from './routes/_authenticated/configuracao.notificacoes'
 import { Route as AuthenticatedConfiguracaoSlasRouteImport } from './routes/_authenticated/configuracao.slas'
+import { Route as AuthenticatedFerramentasLembretesRouteImport } from './routes/_authenticated/ferramentas.lembretes'
+import { Route as AuthenticatedFerramentasProjetosRouteImport } from './routes/_authenticated/ferramentas.projetos'
+import { Route as AuthenticatedFerramentasRelatoriosRouteImport } from './routes/_authenticated/ferramentas.relatorios'
+import { Route as AuthenticatedFerramentasReservasRouteImport } from './routes/_authenticated/ferramentas.reservas'
 import { Route as AuthenticatedGestaoCertificadosRouteImport } from './routes/_authenticated/gestao.certificados'
 import { Route as AuthenticatedGestaoContatosRouteImport } from './routes/_authenticated/gestao.contatos'
 import { Route as AuthenticatedGestaoContratosRouteImport } from './routes/_authenticated/gestao.contratos'
@@ -117,6 +123,18 @@ const AuthenticatedAdministracaoUsuariosRoute =
     path: '/administracao/usuarios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAssistenciaMudancasRoute =
+  AuthenticatedAssistenciaMudancasRouteImport.update({
+    id: '/assistencia/mudancas',
+    path: '/assistencia/mudancas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssistenciaProblemasRoute =
+  AuthenticatedAssistenciaProblemasRouteImport.update({
+    id: '/assistencia/problemas',
+    path: '/assistencia/problemas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChamadosIndexRoute =
   AuthenticatedChamadosIndexRouteImport.update({
     id: '/chamados/',
@@ -174,6 +192,30 @@ const AuthenticatedConfiguracaoSlasRoute =
   AuthenticatedConfiguracaoSlasRouteImport.update({
     id: '/configuracao/slas',
     path: '/configuracao/slas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFerramentasLembretesRoute =
+  AuthenticatedFerramentasLembretesRouteImport.update({
+    id: '/ferramentas/lembretes',
+    path: '/ferramentas/lembretes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFerramentasProjetosRoute =
+  AuthenticatedFerramentasProjetosRouteImport.update({
+    id: '/ferramentas/projetos',
+    path: '/ferramentas/projetos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFerramentasRelatoriosRoute =
+  AuthenticatedFerramentasRelatoriosRouteImport.update({
+    id: '/ferramentas/relatorios',
+    path: '/ferramentas/relatorios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFerramentasReservasRoute =
+  AuthenticatedFerramentasReservasRouteImport.update({
+    id: '/ferramentas/reservas',
+    path: '/ferramentas/reservas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedGestaoCertificadosRoute =
@@ -273,6 +315,8 @@ export interface FileRoutesByFullPath {
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
   '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
+  '/assistencia/mudancas': typeof AuthenticatedAssistenciaMudancasRoute
+  '/assistencia/problemas': typeof AuthenticatedAssistenciaProblemasRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
@@ -282,6 +326,10 @@ export interface FileRoutesByFullPath {
   '/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/ferramentas/lembretes': typeof AuthenticatedFerramentasLembretesRoute
+  '/ferramentas/projetos': typeof AuthenticatedFerramentasProjetosRoute
+  '/ferramentas/relatorios': typeof AuthenticatedFerramentasRelatoriosRoute
+  '/ferramentas/reservas': typeof AuthenticatedFerramentasReservasRoute
   '/gestao/certificados': typeof AuthenticatedGestaoCertificadosRoute
   '/gestao/contatos': typeof AuthenticatedGestaoContatosRoute
   '/gestao/contratos': typeof AuthenticatedGestaoContratosRoute
@@ -311,6 +359,8 @@ export interface FileRoutesByTo {
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
   '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
+  '/assistencia/mudancas': typeof AuthenticatedAssistenciaMudancasRoute
+  '/assistencia/problemas': typeof AuthenticatedAssistenciaProblemasRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
@@ -320,6 +370,10 @@ export interface FileRoutesByTo {
   '/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/ferramentas/lembretes': typeof AuthenticatedFerramentasLembretesRoute
+  '/ferramentas/projetos': typeof AuthenticatedFerramentasProjetosRoute
+  '/ferramentas/relatorios': typeof AuthenticatedFerramentasRelatoriosRoute
+  '/ferramentas/reservas': typeof AuthenticatedFerramentasReservasRoute
   '/gestao/certificados': typeof AuthenticatedGestaoCertificadosRoute
   '/gestao/contatos': typeof AuthenticatedGestaoContatosRoute
   '/gestao/contratos': typeof AuthenticatedGestaoContratosRoute
@@ -351,6 +405,8 @@ export interface FileRoutesById {
   '/_authenticated/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
   '/_authenticated/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
   '/_authenticated/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
+  '/_authenticated/assistencia/mudancas': typeof AuthenticatedAssistenciaMudancasRoute
+  '/_authenticated/assistencia/problemas': typeof AuthenticatedAssistenciaProblemasRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/_authenticated/chamados/novo': typeof AuthenticatedChamadosNovoRoute
   '/_authenticated/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
@@ -360,6 +416,10 @@ export interface FileRoutesById {
   '/_authenticated/configuracao/listas': typeof AuthenticatedConfiguracaoListasRoute
   '/_authenticated/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/_authenticated/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/_authenticated/ferramentas/lembretes': typeof AuthenticatedFerramentasLembretesRoute
+  '/_authenticated/ferramentas/projetos': typeof AuthenticatedFerramentasProjetosRoute
+  '/_authenticated/ferramentas/relatorios': typeof AuthenticatedFerramentasRelatoriosRoute
+  '/_authenticated/ferramentas/reservas': typeof AuthenticatedFerramentasReservasRoute
   '/_authenticated/gestao/certificados': typeof AuthenticatedGestaoCertificadosRoute
   '/_authenticated/gestao/contatos': typeof AuthenticatedGestaoContatosRoute
   '/_authenticated/gestao/contratos': typeof AuthenticatedGestaoContratosRoute
@@ -391,6 +451,8 @@ export interface FileRouteTypes {
     | '/administracao/perfis'
     | '/administracao/regras'
     | '/administracao/usuarios'
+    | '/assistencia/mudancas'
+    | '/assistencia/problemas'
     | '/chamados/$id'
     | '/chamados/novo'
     | '/chamados/recorrentes'
@@ -400,6 +462,10 @@ export interface FileRouteTypes {
     | '/configuracao/listas'
     | '/configuracao/notificacoes'
     | '/configuracao/slas'
+    | '/ferramentas/lembretes'
+    | '/ferramentas/projetos'
+    | '/ferramentas/relatorios'
+    | '/ferramentas/reservas'
     | '/gestao/certificados'
     | '/gestao/contatos'
     | '/gestao/contratos'
@@ -429,6 +495,8 @@ export interface FileRouteTypes {
     | '/administracao/perfis'
     | '/administracao/regras'
     | '/administracao/usuarios'
+    | '/assistencia/mudancas'
+    | '/assistencia/problemas'
     | '/chamados/$id'
     | '/chamados/novo'
     | '/chamados/recorrentes'
@@ -438,6 +506,10 @@ export interface FileRouteTypes {
     | '/configuracao/listas'
     | '/configuracao/notificacoes'
     | '/configuracao/slas'
+    | '/ferramentas/lembretes'
+    | '/ferramentas/projetos'
+    | '/ferramentas/relatorios'
+    | '/ferramentas/reservas'
     | '/gestao/certificados'
     | '/gestao/contatos'
     | '/gestao/contratos'
@@ -468,6 +540,8 @@ export interface FileRouteTypes {
     | '/_authenticated/administracao/perfis'
     | '/_authenticated/administracao/regras'
     | '/_authenticated/administracao/usuarios'
+    | '/_authenticated/assistencia/mudancas'
+    | '/_authenticated/assistencia/problemas'
     | '/_authenticated/chamados/$id'
     | '/_authenticated/chamados/novo'
     | '/_authenticated/chamados/recorrentes'
@@ -477,6 +551,10 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracao/listas'
     | '/_authenticated/configuracao/notificacoes'
     | '/_authenticated/configuracao/slas'
+    | '/_authenticated/ferramentas/lembretes'
+    | '/_authenticated/ferramentas/projetos'
+    | '/_authenticated/ferramentas/relatorios'
+    | '/_authenticated/ferramentas/reservas'
     | '/_authenticated/gestao/certificados'
     | '/_authenticated/gestao/contatos'
     | '/_authenticated/gestao/contratos'
@@ -594,6 +672,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdministracaoUsuariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assistencia/mudancas': {
+      id: '/_authenticated/assistencia/mudancas'
+      path: '/assistencia/mudancas'
+      fullPath: '/assistencia/mudancas'
+      preLoaderRoute: typeof AuthenticatedAssistenciaMudancasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assistencia/problemas': {
+      id: '/_authenticated/assistencia/problemas'
+      path: '/assistencia/problemas'
+      fullPath: '/assistencia/problemas'
+      preLoaderRoute: typeof AuthenticatedAssistenciaProblemasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chamados/': {
       id: '/_authenticated/chamados/'
       path: '/chamados'
@@ -662,6 +754,34 @@ declare module '@tanstack/react-router' {
       path: '/configuracao/slas'
       fullPath: '/configuracao/slas'
       preLoaderRoute: typeof AuthenticatedConfiguracaoSlasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ferramentas/lembretes': {
+      id: '/_authenticated/ferramentas/lembretes'
+      path: '/ferramentas/lembretes'
+      fullPath: '/ferramentas/lembretes'
+      preLoaderRoute: typeof AuthenticatedFerramentasLembretesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ferramentas/projetos': {
+      id: '/_authenticated/ferramentas/projetos'
+      path: '/ferramentas/projetos'
+      fullPath: '/ferramentas/projetos'
+      preLoaderRoute: typeof AuthenticatedFerramentasProjetosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ferramentas/relatorios': {
+      id: '/_authenticated/ferramentas/relatorios'
+      path: '/ferramentas/relatorios'
+      fullPath: '/ferramentas/relatorios'
+      preLoaderRoute: typeof AuthenticatedFerramentasRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ferramentas/reservas': {
+      id: '/_authenticated/ferramentas/reservas'
+      path: '/ferramentas/reservas'
+      fullPath: '/ferramentas/reservas'
+      preLoaderRoute: typeof AuthenticatedFerramentasReservasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/gestao/certificados': {
@@ -796,6 +916,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdministracaoPerfisRoute: typeof AuthenticatedAdministracaoPerfisRoute
   AuthenticatedAdministracaoRegrasRoute: typeof AuthenticatedAdministracaoRegrasRoute
   AuthenticatedAdministracaoUsuariosRoute: typeof AuthenticatedAdministracaoUsuariosRoute
+  AuthenticatedAssistenciaMudancasRoute: typeof AuthenticatedAssistenciaMudancasRoute
+  AuthenticatedAssistenciaProblemasRoute: typeof AuthenticatedAssistenciaProblemasRoute
   AuthenticatedChamadosIdRoute: typeof AuthenticatedChamadosIdRoute
   AuthenticatedChamadosNovoRoute: typeof AuthenticatedChamadosNovoRoute
   AuthenticatedChamadosRecorrentesRoute: typeof AuthenticatedChamadosRecorrentesRoute
@@ -805,6 +927,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracaoListasRoute: typeof AuthenticatedConfiguracaoListasRoute
   AuthenticatedConfiguracaoNotificacoesRoute: typeof AuthenticatedConfiguracaoNotificacoesRoute
   AuthenticatedConfiguracaoSlasRoute: typeof AuthenticatedConfiguracaoSlasRoute
+  AuthenticatedFerramentasLembretesRoute: typeof AuthenticatedFerramentasLembretesRoute
+  AuthenticatedFerramentasProjetosRoute: typeof AuthenticatedFerramentasProjetosRoute
+  AuthenticatedFerramentasRelatoriosRoute: typeof AuthenticatedFerramentasRelatoriosRoute
+  AuthenticatedFerramentasReservasRoute: typeof AuthenticatedFerramentasReservasRoute
   AuthenticatedGestaoCertificadosRoute: typeof AuthenticatedGestaoCertificadosRoute
   AuthenticatedGestaoContatosRoute: typeof AuthenticatedGestaoContatosRoute
   AuthenticatedGestaoContratosRoute: typeof AuthenticatedGestaoContratosRoute
@@ -830,6 +956,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdministracaoRegrasRoute: AuthenticatedAdministracaoRegrasRoute,
   AuthenticatedAdministracaoUsuariosRoute:
     AuthenticatedAdministracaoUsuariosRoute,
+  AuthenticatedAssistenciaMudancasRoute: AuthenticatedAssistenciaMudancasRoute,
+  AuthenticatedAssistenciaProblemasRoute:
+    AuthenticatedAssistenciaProblemasRoute,
   AuthenticatedChamadosIdRoute: AuthenticatedChamadosIdRoute,
   AuthenticatedChamadosNovoRoute: AuthenticatedChamadosNovoRoute,
   AuthenticatedChamadosRecorrentesRoute: AuthenticatedChamadosRecorrentesRoute,
@@ -843,6 +972,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracaoNotificacoesRoute:
     AuthenticatedConfiguracaoNotificacoesRoute,
   AuthenticatedConfiguracaoSlasRoute: AuthenticatedConfiguracaoSlasRoute,
+  AuthenticatedFerramentasLembretesRoute:
+    AuthenticatedFerramentasLembretesRoute,
+  AuthenticatedFerramentasProjetosRoute: AuthenticatedFerramentasProjetosRoute,
+  AuthenticatedFerramentasRelatoriosRoute:
+    AuthenticatedFerramentasRelatoriosRoute,
+  AuthenticatedFerramentasReservasRoute: AuthenticatedFerramentasReservasRoute,
   AuthenticatedGestaoCertificadosRoute: AuthenticatedGestaoCertificadosRoute,
   AuthenticatedGestaoContatosRoute: AuthenticatedGestaoContatosRoute,
   AuthenticatedGestaoContratosRoute: AuthenticatedGestaoContratosRoute,
