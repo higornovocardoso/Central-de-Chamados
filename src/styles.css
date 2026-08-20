@@ -5,16 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system — Helpdesk T.I. "sala de controle"
- * Graphite/slate escuro com acento âmbar-âmbar e ciano técnico.
+ * Design system — Helpdesk T.I. no padrão GLPI 10.
+ * Sidebar navy escura, conteúdo cinza-claro, azul institucional como cor primária.
+ * Densidade compacta: fontes pequenas, linhas curtas, cantos pouco arredondados.
  */
 
 @theme inline {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
@@ -60,55 +61,95 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-topbar: var(--topbar);
+  --color-topbar-foreground: var(--topbar-foreground);
 }
 
+/* Tema claro — padrão do GLPI. */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.19 0.014 250);
-  --foreground: oklch(0.95 0.008 250);
-  --surface: oklch(0.235 0.016 250);
-  --surface-foreground: oklch(0.95 0.008 250);
-  --card: oklch(0.235 0.016 250);
-  --card-foreground: oklch(0.95 0.008 250);
-  --popover: oklch(0.235 0.016 250);
-  --popover-foreground: oklch(0.95 0.008 250);
-  --primary: oklch(0.78 0.15 84);
-  --primary-foreground: oklch(0.2 0.03 80);
-  --secondary: oklch(0.29 0.018 250);
-  --secondary-foreground: oklch(0.93 0.008 250);
-  --muted: oklch(0.28 0.016 250);
-  --muted-foreground: oklch(0.68 0.018 250);
-  --accent: oklch(0.72 0.11 205);
-  --accent-foreground: oklch(0.2 0.03 220);
-  --destructive: oklch(0.62 0.2 22);
-  --destructive-foreground: oklch(0.97 0.01 22);
-  --success: oklch(0.7 0.14 155);
-  --success-foreground: oklch(0.2 0.03 155);
-  --warning: oklch(0.78 0.15 70);
-  --warning-foreground: oklch(0.22 0.03 70);
-  --info: oklch(0.72 0.11 235);
-  --info-foreground: oklch(0.2 0.03 235);
-  --border: oklch(0.32 0.018 250);
-  --input: oklch(0.32 0.018 250);
-  --ring: oklch(0.72 0.11 205);
-  --chart-1: oklch(0.78 0.15 84);
-  --chart-2: oklch(0.72 0.11 205);
-  --chart-3: oklch(0.7 0.14 155);
-  --chart-4: oklch(0.62 0.2 22);
-  --chart-5: oklch(0.72 0.11 285);
-  --sidebar: oklch(0.215 0.016 250);
-  --sidebar-foreground: oklch(0.93 0.008 250);
-  --sidebar-primary: oklch(0.78 0.15 84);
-  --sidebar-primary-foreground: oklch(0.2 0.03 80);
-  --sidebar-accent: oklch(0.29 0.018 250);
-  --sidebar-accent-foreground: oklch(0.93 0.008 250);
-  --sidebar-border: oklch(0.32 0.018 250);
-  --sidebar-ring: oklch(0.72 0.11 205);
+  --radius: 0.25rem;
+  --background: oklch(0.965 0.004 250);
+  --foreground: oklch(0.29 0.02 250);
+  --surface: oklch(1 0 0);
+  --surface-foreground: oklch(0.29 0.02 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.29 0.02 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.29 0.02 250);
+  --primary: oklch(0.53 0.115 248);
+  --primary-foreground: oklch(0.99 0.002 250);
+  --secondary: oklch(0.945 0.006 250);
+  --secondary-foreground: oklch(0.34 0.02 250);
+  --muted: oklch(0.955 0.005 250);
+  --muted-foreground: oklch(0.53 0.017 250);
+  --accent: oklch(0.93 0.02 248);
+  --accent-foreground: oklch(0.34 0.05 248);
+  --destructive: oklch(0.57 0.19 26);
+  --destructive-foreground: oklch(0.99 0.005 26);
+  --success: oklch(0.6 0.13 155);
+  --success-foreground: oklch(0.99 0.005 155);
+  --warning: oklch(0.71 0.15 68);
+  --warning-foreground: oklch(0.25 0.04 68);
+  --info: oklch(0.62 0.11 235);
+  --info-foreground: oklch(0.99 0.005 235);
+  --border: oklch(0.9 0.007 250);
+  --input: oklch(0.88 0.008 250);
+  --ring: oklch(0.53 0.115 248);
+  --chart-1: oklch(0.53 0.115 248);
+  --chart-2: oklch(0.6 0.13 155);
+  --chart-3: oklch(0.71 0.15 68);
+  --chart-4: oklch(0.57 0.19 26);
+  --chart-5: oklch(0.58 0.13 295);
+  --topbar: oklch(1 0 0);
+  --topbar-foreground: oklch(0.29 0.02 250);
+  --sidebar: oklch(0.26 0.035 253);
+  --sidebar-foreground: oklch(0.88 0.012 250);
+  --sidebar-primary: oklch(0.62 0.13 248);
+  --sidebar-primary-foreground: oklch(0.99 0.002 250);
+  --sidebar-accent: oklch(0.32 0.04 253);
+  --sidebar-accent-foreground: oklch(0.97 0.005 250);
+  --sidebar-border: oklch(0.33 0.035 253);
+  --sidebar-ring: oklch(0.62 0.13 248);
 }
 
 .dark {
-  --background: oklch(0.19 0.014 250);
-  --foreground: oklch(0.95 0.008 250);
+  --background: oklch(0.19 0.015 253);
+  --foreground: oklch(0.93 0.008 250);
+  --surface: oklch(0.235 0.017 253);
+  --surface-foreground: oklch(0.93 0.008 250);
+  --card: oklch(0.235 0.017 253);
+  --card-foreground: oklch(0.93 0.008 250);
+  --popover: oklch(0.235 0.017 253);
+  --popover-foreground: oklch(0.93 0.008 250);
+  --primary: oklch(0.65 0.125 248);
+  --primary-foreground: oklch(0.16 0.02 250);
+  --secondary: oklch(0.28 0.018 253);
+  --secondary-foreground: oklch(0.93 0.008 250);
+  --muted: oklch(0.275 0.016 253);
+  --muted-foreground: oklch(0.68 0.018 250);
+  --accent: oklch(0.31 0.03 248);
+  --accent-foreground: oklch(0.93 0.01 248);
+  --destructive: oklch(0.62 0.19 26);
+  --destructive-foreground: oklch(0.97 0.01 26);
+  --success: oklch(0.68 0.13 155);
+  --success-foreground: oklch(0.17 0.03 155);
+  --warning: oklch(0.76 0.14 68);
+  --warning-foreground: oklch(0.2 0.03 68);
+  --info: oklch(0.7 0.11 235);
+  --info-foreground: oklch(0.17 0.03 235);
+  --border: oklch(0.31 0.018 253);
+  --input: oklch(0.31 0.018 253);
+  --ring: oklch(0.65 0.125 248);
+  --topbar: oklch(0.235 0.017 253);
+  --topbar-foreground: oklch(0.93 0.008 250);
+  --sidebar: oklch(0.175 0.018 253);
+  --sidebar-foreground: oklch(0.88 0.012 250);
+  --sidebar-primary: oklch(0.65 0.125 248);
+  --sidebar-primary-foreground: oklch(0.99 0.002 250);
+  --sidebar-accent: oklch(0.26 0.025 253);
+  --sidebar-accent-foreground: oklch(0.95 0.005 250);
+  --sidebar-border: oklch(0.28 0.02 253);
+  --sidebar-ring: oklch(0.65 0.125 248);
 }
 
 @layer base {
@@ -120,10 +161,9 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image:
-      radial-gradient(circle at 12% -10%, oklch(0.4 0.06 205 / 0.28), transparent 45%),
-      radial-gradient(circle at 88% 0%, oklch(0.45 0.08 84 / 0.16), transparent 40%);
-    background-attachment: fixed;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1,
@@ -131,20 +171,58 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 }
 
+/* Cartão branco liso, como os blocos do GLPI. */
 @utility panel {
-  background-color: color-mix(in oklab, var(--surface) 88%, transparent);
+  background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  backdrop-filter: blur(6px);
+  border-radius: var(--radius-md);
 }
 
-@utility grid-lines {
-  background-image:
-    linear-gradient(to right, oklch(1 0 0 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 0.035) 1px, transparent 1px);
-  background-size: 56px 56px;
+/* Cabeçalho de bloco, com o filete azul do GLPI. */
+@utility panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* Tabela de listagem no padrão GLPI: linhas baixas, cabeçalho cinza, zebra. */
+@utility glpi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+
+  & thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.625rem;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+  }
+
+  & tbody td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.4375rem 0.625rem;
+    vertical-align: middle;
+  }
+
+  & tbody tr:hover {
+    background-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+
+  & tbody tr[data-selected="true"] {
+    background-color: color-mix(in oklab, var(--primary) 12%, transparent);
+  }
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
@@ -18,7 +18,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/useRoles";
 
+type AbaCadastro = "locations" | "sectors" | "suppliers";
+type CadastrosSearch = { aba?: AbaCadastro | undefined };
+
 export const Route = createFileRoute("/_authenticated/cadastros")({
+  validateSearch: (search: Record<string, unknown>): CadastrosSearch => {
+    const aba = search["aba"];
+    return aba === "sectors" || aba === "suppliers" || aba === "locations" ? { aba } : {};
+  },
   head: () => ({
     meta: [
       { title: "Cadastros — Helpdesk T.I." },
@@ -76,18 +83,24 @@ const CONFIGS: EntityConfig[] = [
 ];
 
 function Cadastros() {
+  const { aba } = Route.useSearch();
+  const navigate = useNavigate();
+  const active = aba ?? "locations";
+  const current = CONFIGS.find((c) => c.table === active);
+
   return (
-    <AppShell>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Cadastros</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Estruturas usadas nos chamados e no inventário.
-        </p>
-      </div>
-      <Tabs defaultValue="locations">
-        <TabsList>
+    <AppShell
+      title={current?.title ?? "Cadastros"}
+      subtitle="Estruturas usadas nos chamados e no inventário."
+      breadcrumbTail={current?.title}
+    >
+      <Tabs
+        value={active}
+        onValueChange={(v) => navigate({ to: "/cadastros", search: { aba: v as AbaCadastro } })}
+      >
+        <TabsList className="h-8">
           {CONFIGS.map((c) => (
-            <TabsTrigger key={c.table} value={c.table}>
+            <TabsTrigger key={c.table} value={c.table} className="text-xs">
               {c.title}
             </TabsTrigger>
           ))}

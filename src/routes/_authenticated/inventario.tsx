@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Monitor, Pencil, Plus, Trash2 } from "lucide-react";
@@ -36,7 +36,15 @@ import {
 } from "@/lib/glpi";
 import { Tag } from "@/components/Tag";
 
+type InventarioSearch = { tipo?: string | undefined };
+
 export const Route = createFileRoute("/_authenticated/inventario")({
+  validateSearch: (search: Record<string, unknown>): InventarioSearch => {
+    const tipo = search["tipo"];
+    return typeof tipo === "string" && (tipo === "todos" || ASSET_KINDS.includes(tipo as AssetKind))
+      ? { tipo }
+      : {};
+  },
   head: () => ({
     meta: [
       { title: "Inventário de ativos — Helpdesk T.I." },
@@ -98,8 +106,14 @@ function Inventario() {
   const { isStaff } = useRoles();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [kind, setKind] = useState("todos");
+  const { tipo } = Route.useSearch();
+  const navigate = useNavigate();
+  const kind = tipo ?? "todos";
   const [status, setStatus] = useState("todos");
+
+  // O tipo vive na URL para que o submenu "Ativos" da lateral aponte direto para ele.
+  const setKind = (value: string) =>
+    navigate({ to: "/inventario", search: { tipo: value === "todos" ? undefined : value } });
   const [editing, setEditing] = useState<AssetRow | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Omit<AssetRow, "id">>(EMPTY);
@@ -198,20 +212,18 @@ function Inventario() {
   }, [assetsQuery.data, search, kind, status]);
 
   return (
-    <AppShell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Inventário de ativos</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Parque de T.I. com patrimônio, garantia, local e responsável.
-          </p>
-        </div>
-        {isStaff && (
-          <Button onClick={openNew}>
-            <Plus className="size-4" /> Novo ativo
+    <AppShell
+      title={kind === "todos" ? "Ativos" : ASSET_KIND_LABEL[kind as AssetKind]}
+      subtitle="Parque de T.I. com patrimônio, garantia, local e responsável."
+      breadcrumbTail={kind === "todos" ? undefined : ASSET_KIND_LABEL[kind as AssetKind]}
+      actions={
+        isStaff ? (
+          <Button size="sm" className="h-8" onClick={openNew}>
+            <Plus className="size-4" /> Adicionar
           </Button>
-        )}
-      </div>
+        ) : null
+      }
+    >
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <Input

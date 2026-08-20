@@ -1,13 +1,155 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LifeBuoy, LogOut, Plus } from "lucide-react";
-import type { ReactNode } from "react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Moon,
+  Plus,
+  Search,
+  Sun,
+  User,
+} from "lucide-react";
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { useRoles } from "@/hooks/useRoles";
+import { breadcrumbFor, NAV_GROUPS, type NavLink } from "@/lib/nav";
 
-export function AppShell({ children }: { children: ReactNode }) {
+/**
+ * O menu é montado a partir de dados (src/lib/nav.ts), então os destinos são
+ * strings genéricas. O Link do TanStack é tipado por rota, por isso a versão
+ * destipada abaixo — o roteador continua validando em tempo de execução.
+ */
+type LooseLinkProps = {
+  to: string;
+  params?: Record<string, string> | undefined;
+  search?: Record<string, string> | undefined;
+  className?: string | undefined;
+  title?: string | undefined;
+  onClick?: (() => void) | undefined;
+  children?: ReactNode;
+};
+const NavLinkTo = Link as unknown as ComponentType<LooseLinkProps>;
+
+const COLLAPSE_KEY = "glpi.sidebar.collapsed";
+const OPEN_GROUPS_KEY = "glpi.sidebar.groups";
+const THEME_KEY = "glpi.theme";
+
+function useTheme() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(THEME_KEY);
+    const prefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = stored ? stored === "dark" : prefers;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+  }, []);
+
+  function toggle() {
+    setDark((prev) => {
+      const next = !prev;
+      document.documentElement.classList.toggle("dark", next);
+      localStorage.setItem(THEME_KEY, next ? "dark" : "light");
+      return next;
+    });
+  }
+
+  return { dark, toggle };
+}
+
+function isLinkActive(link: NavLink, pathname: string, search: Record<string, unknown>) {
+  const base = link.to.replace("/$slug", "");
+  const slug = link.params?.["slug"];
+  if (slug) return pathname === `/modulo/${slug}`;
+  if (pathname !== base) return false;
+  if (!link.search) return true;
+  return Object.entries(link.search).every(([key, value]) => String(search[key] ?? "") === value);
+}
+
+export function AppShell({
+  children,
+  title,
+  subtitle,
+  breadcrumbTail,
+  actions,
+}: {
+  children: ReactNode;
+  title?: string | undefined;
+  subtitle?: string | undefined;
+  breadcrumbTail?: string | undefined;
+  actions?: ReactNode;
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { dark, toggle } = useTheme();
+  const { user, isAdmin, isStaff } = useRoles();
+  const location = useRouterState({ select: (s) => s.location });
+  const [collapsed, setCollapsed] = useState(false);
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [term, setTerm] = useState("");
+
+  const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
+    const stored = localStorage.getItem(OPEN_GROUPS_KEY);
+    setOpenGroups(stored ? (JSON.parse(stored) as string[]) : ["assistencia"]);
+  }, []);
+
+  // Mantém aberto o grupo da tela atual, como o GLPI faz ao navegar.
+  const activeGroup = useMemo(() => {
+    for (const group of NAV_GROUPS) {
+      if (group.links.some((l) => isLinkActive(l, location.pathname, search))) return group.id;
+    }
+    return null;
+  }, [location.pathname, search]);
+
+  useEffect(() => {
+    if (activeGroup) {
+      setOpenGroups((prev) => (prev.includes(activeGroup) ? prev : [...prev, activeGroup]));
+    }
+  }, [activeGroup]);
+
+  function persistGroups(next: string[]) {
+    setOpenGroups(next);
+    localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(next));
+  }
+
+  function toggleGroup(id: string) {
+    persistGroups(openGroups.includes(id) ? openGroups.filter((g) => g !== id) : [...openGroups, id]);
+  }
+
+  function toggleCollapse() {
+    setCollapsed((prev) => {
+      localStorage.setItem(COLLAPSE_KEY, prev ? "0" : "1");
+      return !prev;
+    });
+  }
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -16,47 +158,306 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
 
+  function submitSearch(event: React.FormEvent) {
+    event.preventDefault();
+    navigate({ to: "/chamados", search: { busca: term.trim() || undefined } as never });
+  }
+
+  const crumbs = breadcrumbFor(location.pathname, breadcrumbTail);
+  const perfil = isAdmin ? "Administrador" : isStaff ? "Técnico" : "Colaborador";
+
+  const sidebar = (
+    <SidebarNav
+      collapsed={collapsed}
+      openGroups={openGroups}
+      onToggleGroup={toggleGroup}
+      pathname={location.pathname}
+      search={search}
+      onNavigate={() => setMobileOpen(false)}
+    />
+  );
+
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-          <Link to="/painel" className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <LifeBuoy className="size-4" />
-            </span>
-            <span className="font-display text-sm font-semibold tracking-tight">
-              Helpdesk T.I.
-            </span>
-          </Link>
-          <nav className="ml-4 hidden items-center gap-1 text-sm sm:flex">
-            <Link
-              to="/painel"
-              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ className: "bg-secondary text-foreground" }}
-            >
-              Painel
+    <TooltipProvider delayDuration={300}>
+      <div className="flex min-h-screen bg-background">
+        {/* Menu lateral — desktop */}
+        <aside
+          className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex ${
+            collapsed ? "w-14" : "w-60"
+          }`}
+        >
+          <div className="flex h-12 items-center gap-2 border-b border-sidebar-border px-3">
+            <Link to="/painel" className="flex min-w-0 items-center gap-2">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sidebar-primary-foreground">
+                <LayoutDashboard className="size-4" />
+              </span>
+              {!collapsed && (
+                <span className="truncate text-sm font-semibold tracking-tight">Helpdesk T.I.</span>
+              )}
             </Link>
-            <Link
-              to="/abrir-chamado"
-              target="_blank"
-              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              Formulário dos colaboradores
-            </Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-2">
-            <Button asChild size="sm">
-              <Link to="/chamados/novo">
-                <Plus className="size-4" /> Novo chamado
-              </Link>
-            </Button>
-            <Button size="sm" variant="ghost" onClick={handleSignOut} aria-label="Sair">
-              <LogOut className="size-4" />
-            </Button>
           </div>
+
+          <div className="flex-1 overflow-y-auto py-2">{sidebar}</div>
+
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="flex h-9 items-center justify-center gap-1.5 border-t border-sidebar-border text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+            {!collapsed && "Recolher menu"}
+          </button>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Barra superior */}
+          <header className="sticky top-0 z-30 border-b border-border bg-topbar text-topbar-foreground">
+            <div className="flex h-12 items-center gap-2 px-3">
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger asChild>
+                  <Button size="icon" variant="ghost" className="lg:hidden" aria-label="Abrir menu">
+                    <Menu className="size-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="left"
+                  className="w-64 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+                >
+                  <SheetTitle className="border-b border-sidebar-border px-3 py-3 text-sm font-semibold text-sidebar-foreground">
+                    Helpdesk T.I.
+                  </SheetTitle>
+                  <div className="overflow-y-auto py-2">{sidebar}</div>
+                </SheetContent>
+              </Sheet>
+
+              <Select defaultValue="raiz">
+                <SelectTrigger
+                  className="hidden h-8 w-[200px] text-xs sm:flex"
+                  aria-label="Entidade"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="raiz">Entidade raiz (árvore)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <form onSubmit={submitSearch} className="relative ml-auto hidden w-64 md:block">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={term}
+                  onChange={(e) => setTerm(e.target.value)}
+                  placeholder="Buscar chamado..."
+                  className="h-8 pl-8 text-xs"
+                />
+              </form>
+
+              <div className="ml-auto flex items-center gap-1 md:ml-0">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="size-8"
+                  onClick={toggle}
+                  aria-label={dark ? "Tema claro" : "Tema escuro"}
+                >
+                  {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                </Button>
+                <Button size="icon" variant="ghost" className="size-8" asChild>
+                  <a
+                    href="https://glpi-project.org/documentation/"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Ajuda"
+                  >
+                    <CircleHelp className="size-4" />
+                  </a>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="ghost" className="h-8 gap-1.5 px-2 text-xs">
+                      <User className="size-4" />
+                      <span className="hidden max-w-[140px] truncate sm:inline">
+                        {user?.email ?? "Usuário"}
+                      </span>
+                      <ChevronDown className="size-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="text-xs font-normal">
+                      <span className="block truncate font-medium">{user?.email ?? "Usuário"}</span>
+                      <span className="text-muted-foreground">Perfil: {perfil}</span>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <a href="/abrir-chamado" target="_blank" rel="noreferrer">
+                        Formulário dos colaboradores
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="size-4" /> Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            {/* Caminho de navegação */}
+            <div className="flex h-8 items-center gap-1.5 border-t border-border bg-muted/60 px-3 text-xs text-muted-foreground">
+              {crumbs.map((crumb, index) => (
+                <span key={`${crumb.label}-${index}`} className="flex items-center gap-1.5">
+                  {index > 0 && <ChevronRight className="size-3 opacity-60" />}
+                  {crumb.to ? (
+                    <NavLinkTo to={crumb.to} className="hover:text-foreground hover:underline">
+                      {crumb.label}
+                    </NavLinkTo>
+                  ) : (
+                    <span className={index === crumbs.length - 1 ? "text-foreground" : undefined}>
+                      {crumb.label}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </header>
+
+          <main className="min-w-0 flex-1 px-3 py-4 lg:px-5">
+            {(title || actions) && (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  {title && <h1 className="text-base font-semibold">{title}</h1>}
+                  {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+                </div>
+                <div className="flex items-center gap-2">{actions}</div>
+              </div>
+            )}
+            {children}
+          </main>
         </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
-    </div>
+      </div>
+    </TooltipProvider>
+  );
+}
+
+function SidebarNav({
+  collapsed,
+  openGroups,
+  onToggleGroup,
+  pathname,
+  search,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  openGroups: string[];
+  onToggleGroup: (id: string) => void;
+  pathname: string;
+  search: Record<string, unknown>;
+  onNavigate: () => void;
+}) {
+  return (
+    <nav className="space-y-0.5 px-2 text-sm">
+      <NavLinkTo
+        to="/painel"
+        onClick={onNavigate}
+        className={`flex items-center gap-2 rounded px-2 py-1.5 transition-colors ${
+          pathname === "/painel"
+            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+            : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        }`}
+        title="Painel"
+      >
+        <LayoutDashboard className="size-4 shrink-0" />
+        {!collapsed && <span>Painel</span>}
+      </NavLinkTo>
+
+      {NAV_GROUPS.map((group) => {
+        const open = openGroups.includes(group.id);
+        const Icon = group.icon;
+        const hasActive = group.links.some((l) => isLinkActive(l, pathname, search));
+
+        const first = group.links[0];
+        if (collapsed && first) {
+          return (
+            <Tooltip key={group.id}>
+              <TooltipTrigger asChild>
+                <NavLinkTo
+                  to={first.to}
+                  params={first.params}
+                  search={first.search}
+                  onClick={onNavigate}
+                  className={`flex items-center justify-center rounded px-2 py-2 transition-colors ${
+                    hasActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/85 hover:bg-sidebar-accent"
+                  }`}
+                >
+                  <Icon className="size-4" />
+                </NavLinkTo>
+              </TooltipTrigger>
+              <TooltipContent side="right">{group.label}</TooltipContent>
+            </Tooltip>
+          );
+        }
+
+        return (
+          <div key={group.id}>
+            <button
+              type="button"
+              onClick={() => onToggleGroup(group.id)}
+              className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left transition-colors ${
+                hasActive
+                  ? "text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              }`}
+            >
+              <Icon className="size-4 shrink-0" />
+              <span className="flex-1 truncate">{group.label}</span>
+              <ChevronDown
+                className={`size-3.5 transition-transform ${open ? "" : "-rotate-90"} opacity-70`}
+              />
+            </button>
+            {open && (
+              <ul className="mb-1 ml-[1.4rem] space-y-0.5 border-l border-sidebar-border pl-2">
+                {group.links.map((link) => {
+                  const active = isLinkActive(link, pathname, search);
+                  return (
+                    <li key={`${link.to}-${link.label}`}>
+                      <NavLinkTo
+                        to={link.to}
+                        params={link.params}
+                        search={link.search}
+                        onClick={onNavigate}
+                        className={`flex items-center gap-1.5 rounded px-2 py-1 text-[0.78rem] transition-colors ${
+                          active
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        }`}
+                      >
+                        <span className="truncate">{link.label}</span>
+                        {link.soon && (
+                          <span className="ml-auto rounded-sm bg-sidebar-accent px-1 text-[0.6rem] uppercase tracking-wide opacity-70">
+                            em breve
+                          </span>
+                        )}
+                      </NavLinkTo>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+/** Botão "+ Adicionar" no canto do cabeçalho, como no GLPI. */
+export function AddButton({ to, params }: { to: string; params?: Record<string, string> }) {
+  return (
+    <Button size="sm" asChild className="h-8">
+      <NavLinkTo to={to} params={params}>
+        <Plus className="size-4" /> Adicionar
+      </NavLinkTo>
+    </Button>
   );
 }

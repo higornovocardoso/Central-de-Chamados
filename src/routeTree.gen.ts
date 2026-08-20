@@ -17,8 +17,10 @@ import { Route as AuthenticatedBaseConhecimentoRouteImport } from './routes/_aut
 import { Route as AuthenticatedCadastrosRouteImport } from './routes/_authenticated/cadastros'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedChamadosIndexRouteImport } from './routes/_authenticated/chamados.index'
 import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authenticated/chamados.$id'
 import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authenticated/chamados.novo'
+import { Route as AuthenticatedModuloSlugRouteImport } from './routes/_authenticated/modulo.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -60,6 +62,12 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChamadosIndexRoute =
+  AuthenticatedChamadosIndexRouteImport.update({
+    id: '/chamados/',
+    path: '/chamados/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChamadosIdRoute = AuthenticatedChamadosIdRouteImport.update({
   id: '/chamados/$id',
   path: '/chamados/$id',
@@ -71,6 +79,11 @@ const AuthenticatedChamadosNovoRoute =
     path: '/chamados/novo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedModuloSlugRoute = AuthenticatedModuloSlugRouteImport.update({
+  id: '/modulo/$slug',
+  path: '/modulo/$slug',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +95,8 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
+  '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
+  '/chamados/': typeof AuthenticatedChamadosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,6 +108,8 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
+  '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
+  '/chamados': typeof AuthenticatedChamadosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,6 +123,8 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/_authenticated/chamados/novo': typeof AuthenticatedChamadosNovoRoute
+  '/_authenticated/modulo/$slug': typeof AuthenticatedModuloSlugRoute
+  '/_authenticated/chamados/': typeof AuthenticatedChamadosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,6 +138,8 @@ export interface FileRouteTypes {
     | '/painel'
     | '/chamados/$id'
     | '/chamados/novo'
+    | '/modulo/$slug'
+    | '/chamados/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,6 +151,8 @@ export interface FileRouteTypes {
     | '/painel'
     | '/chamados/$id'
     | '/chamados/novo'
+    | '/modulo/$slug'
+    | '/chamados'
   id:
     | '__root__'
     | '/'
@@ -142,6 +165,8 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/_authenticated/chamados/$id'
     | '/_authenticated/chamados/novo'
+    | '/_authenticated/modulo/$slug'
+    | '/_authenticated/chamados/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -209,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chamados/': {
+      id: '/_authenticated/chamados/'
+      path: '/chamados'
+      fullPath: '/chamados/'
+      preLoaderRoute: typeof AuthenticatedChamadosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chamados/$id': {
       id: '/_authenticated/chamados/$id'
       path: '/chamados/$id'
@@ -223,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChamadosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/modulo/$slug': {
+      id: '/_authenticated/modulo/$slug'
+      path: '/modulo/$slug'
+      fullPath: '/modulo/$slug'
+      preLoaderRoute: typeof AuthenticatedModuloSlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -233,6 +272,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedChamadosIdRoute: typeof AuthenticatedChamadosIdRoute
   AuthenticatedChamadosNovoRoute: typeof AuthenticatedChamadosNovoRoute
+  AuthenticatedModuloSlugRoute: typeof AuthenticatedModuloSlugRoute
+  AuthenticatedChamadosIndexRoute: typeof AuthenticatedChamadosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -242,6 +283,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedChamadosIdRoute: AuthenticatedChamadosIdRoute,
   AuthenticatedChamadosNovoRoute: AuthenticatedChamadosNovoRoute,
+  AuthenticatedModuloSlugRoute: AuthenticatedModuloSlugRoute,
+  AuthenticatedChamadosIndexRoute: AuthenticatedChamadosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

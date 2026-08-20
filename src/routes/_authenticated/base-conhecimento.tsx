@@ -133,27 +133,25 @@ function BaseConhecimento() {
   }, [articlesQuery.data, search]);
 
   return (
-    <AppShell>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Base de conhecimento</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Soluções padronizadas para os problemas mais frequentes.
-          </p>
-        </div>
-        {isStaff && (
+    <AppShell
+      title="Base de conhecimento"
+      subtitle="Soluções padronizadas para os problemas mais frequentes."
+      actions={
+        isStaff ? (
           <Button
+            size="sm"
+            className="h-8"
             onClick={() => {
               setEditing(null);
               setForm(EMPTY);
               setOpen(true);
             }}
           >
-            <Plus className="size-4" /> Novo artigo
+            <Plus className="size-4" /> Adicionar
           </Button>
-        )}
-      </div>
-
+        ) : null
+      }
+    >
       <Input
         value={search}
         onChange={(e) => setSearch(e.target.value)}

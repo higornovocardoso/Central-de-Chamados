@@ -68,14 +68,13 @@ function NovoChamado() {
   }
 
   return (
-    <AppShell>
+    <AppShell
+      title="Criar chamado"
+      subtitle="Descreva o problema com o máximo de detalhes para agilizar o atendimento."
+      breadcrumbTail="Criar chamado"
+    >
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-semibold">Abrir chamado</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Descreva o problema com o máximo de detalhes para agilizar o atendimento.
-        </p>
-
-        <form onSubmit={submit} className="panel mt-6 space-y-5 p-6">
+        <form onSubmit={submit} className="panel space-y-5 p-6">
           <div className="space-y-2">
             <Label htmlFor="titulo">Título</Label>
             <Input
