@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import type { Database } from "@/integrations/supabase/types";
 
 const schema = z.object({
   reporter_name: z.string().trim().min(2).max(120),
@@ -16,18 +14,25 @@ const schema = z.object({
 export const createPublicTicket = createServerFn({ method: "POST" })
   .validator((data: unknown) => schema.parse(data))
   .handler(async ({ data }) => {
-    const supabase = createClient<Database>(
-      process.env["SUPABASE_URL"]!,
-      process.env["SUPABASE_PUBLISHABLE_KEY"]!,
-      {
-        auth: { persistSession: false, autoRefreshToken: false },
-        global: { headers: { Prefer: "return=minimal" } },
-      },
-    );
-
+    const url = process.env["SUPABASE_URL"]!;
+    const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const id = crypto.randomUUID();
-    const { error } = await supabase.from("tickets").insert({ ...data, id, status: "aberto" });
 
-    if (error) throw new Error(error.message);
+    // Insere como visitante (papel anon). Sem "return=representation": o papel
+    // anon pode criar chamados, mas não pode lê-los de volta.
+    const response = await fetch(`${url}/rest/v1/tickets`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ ...data, id, status: "aberto" }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Falha ao registrar chamado (${response.status})`);
+    }
+
     return { id };
   });
