@@ -197,6 +197,10 @@ function Painel() {
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t.category} · aberto em {formatDate(t.created_at)} ·{" "}
+                      {t.requester_id
+                        ? (nameById.get(t.requester_id) ?? "solicitante")
+                        : `${t.reporter_name || "colaborador"} (formulário)`}{" "}
+                      ·{" "}
                       {t.assignee_id
                         ? `resp. ${nameById.get(t.assignee_id) ?? "—"}`
                         : "sem responsável"}
