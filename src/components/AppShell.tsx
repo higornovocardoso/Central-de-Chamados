@@ -36,6 +36,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               Painel
             </Link>
+            <Link
+              to="/abrir-chamado"
+              target="_blank"
+              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              Formulário dos colaboradores
+            </Link>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <Button asChild size="sm">

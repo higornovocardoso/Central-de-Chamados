@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AbrirChamadoRouteImport } from './routes/abrir-chamado'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authenticated/chamados.$id'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AbrirChamadoRoute = AbrirChamadoRouteImport.update({
+  id: '/abrir-chamado',
+  path: '/abrir-chamado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -49,6 +55,7 @@ const AuthenticatedChamadosNovoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/abrir-chamado': typeof AbrirChamadoRoute
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/abrir-chamado': typeof AbrirChamadoRoute
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
@@ -65,6 +73,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/abrir-chamado': typeof AbrirChamadoRoute
   '/auth': typeof AuthRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
@@ -72,13 +81,26 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/painel' | '/chamados/$id' | '/chamados/novo'
+  fullPaths:
+    | '/'
+    | '/abrir-chamado'
+    | '/auth'
+    | '/painel'
+    | '/chamados/$id'
+    | '/chamados/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/painel' | '/chamados/$id' | '/chamados/novo'
+  to:
+    | '/'
+    | '/abrir-chamado'
+    | '/auth'
+    | '/painel'
+    | '/chamados/$id'
+    | '/chamados/novo'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/abrir-chamado'
     | '/auth'
     | '/_authenticated/painel'
     | '/_authenticated/chamados/$id'
@@ -88,6 +110,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AbrirChamadoRoute: typeof AbrirChamadoRoute
   AuthRoute: typeof AuthRoute
 }
 
@@ -105,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/abrir-chamado': {
+      id: '/abrir-chamado'
+      path: '/abrir-chamado'
+      fullPath: '/abrir-chamado'
+      preLoaderRoute: typeof AbrirChamadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -156,6 +186,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AbrirChamadoRoute: AbrirChamadoRoute,
   AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport

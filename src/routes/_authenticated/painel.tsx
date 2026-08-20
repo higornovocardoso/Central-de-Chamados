@@ -51,7 +51,8 @@ type TicketRow = {
   priority: TicketPriority;
   created_at: string;
   resolved_at: string | null;
-  requester_id: string;
+  requester_id: string | null;
+  reporter_name: string;
   assignee_id: string | null;
 };
 
@@ -64,7 +65,9 @@ function Painel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select("id,title,category,status,priority,created_at,resolved_at,requester_id,assignee_id")
+        .select(
+          "id,title,category,status,priority,created_at,resolved_at,requester_id,assignee_id,reporter_name",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as TicketRow[];
@@ -194,6 +197,10 @@ function Painel() {
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t.category} · aberto em {formatDate(t.created_at)} ·{" "}
+                      {t.requester_id
+                        ? (nameById.get(t.requester_id) ?? "solicitante")
+                        : `${t.reporter_name || "colaborador"} (formulário)`}{" "}
+                      ·{" "}
                       {t.assignee_id
                         ? `resp. ${nameById.get(t.assignee_id) ?? "—"}`
                         : "sem responsável"}

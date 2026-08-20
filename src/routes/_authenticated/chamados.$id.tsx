@@ -244,7 +244,20 @@ function DetalheChamado() {
 
         <aside className="space-y-4">
           <div className="panel space-y-3 p-5 text-sm">
-            <Info label="Solicitante" value={nameById.get(ticket.requester_id) ?? "—"} />
+            <Info
+              label="Solicitante"
+              value={
+                ticket.requester_id
+                  ? (nameById.get(ticket.requester_id) ?? "—")
+                  : ticket.reporter_name || "Formulário público"
+              }
+            />
+            {!ticket.requester_id && (
+              <>
+                <Info label="E-mail" value={ticket.reporter_email || "—"} />
+                <Info label="Setor" value={ticket.reporter_sector || "—"} />
+              </>
+            )}
             <Info label="Categoria" value={ticket.category} />
             <Info label="Aberto em" value={formatDate(ticket.created_at)} />
             <Info label="Resolvido em" value={formatDate(ticket.resolved_at)} />
