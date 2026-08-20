@@ -125,15 +125,16 @@ function EntityManager({ config }: { config: EntityConfig }) {
       if (!form["name"]?.trim()) throw new Error("Informe o nome.");
       const payload: Record<string, string> = {};
       for (const f of config.fields) payload[f.key] = (form[f.key] ?? "").trim();
-      if (editing) {
-        const { error } = await supabase.from(config.table).update(payload).eq("id", editing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await (supabase.from(config.table) as never as {
-          insert: (v: Record<string, string>) => Promise<{ error: Error | null }>;
-        }).insert(payload);
-        if (error) throw error;
-      }
+      const table = supabase.from(config.table) as unknown as {
+        insert: (v: Record<string, string>) => Promise<{ error: Error | null }>;
+        update: (v: Record<string, string>) => {
+          eq: (col: string, val: string) => Promise<{ error: Error | null }>;
+        };
+      };
+      const { error } = editing
+        ? await table.update(payload).eq("id", editing.id)
+        : await table.insert(payload);
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Cadastro salvo.");
