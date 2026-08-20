@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 export const createPublicTicket = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => schema.parse(data))
+  .validator((data: unknown) => schema.parse(data))
   .handler(async ({ data }) => {
     const supabase = createClient<Database>(
       process.env["SUPABASE_URL"]!,
@@ -22,12 +22,9 @@ export const createPublicTicket = createServerFn({ method: "POST" })
       { auth: { persistSession: false, autoRefreshToken: false } },
     );
 
-    const { data: row, error } = await supabase
-      .from("tickets")
-      .insert({ ...data, status: "aberto" })
-      .select("id")
-      .single();
+    const id = crypto.randomUUID();
+    const { error } = await supabase.from("tickets").insert({ ...data, id, status: "aberto" });
 
     if (error) throw new Error(error.message);
-    return { id: row.id as string };
+    return { id };
   });
