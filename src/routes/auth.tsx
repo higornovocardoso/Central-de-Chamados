@@ -115,7 +115,7 @@ function AuthPage() {
                 className="rise-in flex gap-3"
                 style={{ animationDelay: `${120 + index * 90}ms` }}
               >
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
                   <item.icon className="size-4" />
                 </span>
                 <span>
