@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   User,
+  UsersRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfileDialog } from "@/components/ProfileDialog";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useEntity } from "@/contexts/entity";
 import { breadcrumbFor, NAV_GROUPS, type NavLink } from "@/lib/nav";
@@ -88,6 +90,7 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [term, setTerm] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
@@ -152,6 +155,12 @@ export function AppShell({
     "Usuário";
   const entityName =
     entities.find((e) => e.id === selectedId)?.name ?? entities[0]?.name ?? "—";
+  const initials = userName
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
 
   const sidebar = (
@@ -244,11 +253,15 @@ export function AppShell({
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    {/* Bloco do usuário do GLPI: avatar redondo, nome em cima
+                    {/* Bloco do usuário: avatar com iniciais, nome em cima
                         e a entidade atual embaixo, em duas linhas. */}
-                    <Button size="sm" variant="ghost" className="h-10 gap-2 px-2 text-xs">
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                        <User className="size-4" />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-10 gap-2 rounded-xl px-2 text-xs hover:bg-secondary"
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#8b5cf6] text-[0.7rem] font-semibold text-white shadow-sm">
+                        {initials}
                       </span>
                       <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
                         <span className="max-w-[150px] truncate font-medium">
@@ -261,22 +274,50 @@ export function AppShell({
                       <ChevronDown className="size-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="text-xs font-normal">
-                      <span className="block truncate font-medium">{user?.email ?? "Usuário"}</span>
-                      <span className="text-muted-foreground">Perfil: {perfil}</span>
+                  <DropdownMenuContent align="end" className="w-64 p-1.5">
+                    <DropdownMenuLabel className="mb-1 rounded-lg bg-secondary/70 p-2.5 text-xs font-normal">
+                      <span className="flex items-center gap-2">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#8b5cf6] text-[0.72rem] font-semibold text-white">
+                          {initials}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">{userName}</span>
+                          <span className="block truncate text-[0.7rem] text-muted-foreground">
+                            {user?.email ?? "Usuário"}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="mt-2 flex flex-wrap gap-1">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.66rem] font-medium text-primary">
+                          {perfil || "Sem perfil"}
+                        </span>
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.66rem] text-muted-foreground">
+                          {entityName}
+                        </span>
+                      </span>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setProfileOpen(true)}>
+                      <User className="size-4" /> Minha conta
+                    </DropdownMenuItem>
+                    {can("user", "read") && (
+                      <DropdownMenuItem asChild>
+                        <NavLinkTo to="/administracao/usuarios">
+                          <UsersRound className="size-4" /> Gerenciar usuários
+                        </NavLinkTo>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <a href="/abrir-chamado" target="_blank" rel="noreferrer">
                         Formulário dos colaboradores
                       </a>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="size-4" /> Sair
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
               </div>
             </div>
 
