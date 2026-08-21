@@ -209,7 +209,7 @@ export function AppShell({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ROOT_TREE}>Entidade raiz (árvore)</SelectItem>
+
                   {entities.map((e) => (
                     <SelectItem key={e.id} value={e.id}>
                       {" ".repeat(e.level * 3)}
