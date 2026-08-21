@@ -107,7 +107,7 @@ function AbrirChamado() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="rise-in grid w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-card shadow-2xl lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="rise-in grid w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl lg:grid-cols-[0.9fr_1.1fr]">
         {/* Vitrine — contexto do atendimento */}
         <section className="relative hidden flex-col items-center justify-center bg-[#131a2b] p-8 text-white lg:flex">
           <div
@@ -133,7 +133,7 @@ function AbrirChamado() {
                 className="rise-in flex gap-3"
                 style={{ animationDelay: `${120 + index * 90}ms` }}
               >
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
                   <item.icon className="size-4" />
                 </span>
                 <span>
@@ -157,7 +157,7 @@ function AbrirChamado() {
               </p>
               <Button
                 variant="secondary"
-                className="h-11 w-full rounded-xl"
+                className="h-11 w-full rounded-lg"
                 onClick={() => setCreated(null)}
               >
                 Abrir outro chamado
@@ -184,7 +184,7 @@ function AbrirChamado() {
                         required
                         minLength={2}
                         placeholder="Nome completo"
-                        className="h-11 rounded-xl pl-9"
+                        className="h-11 rounded-lg pl-9"
                       />
                     </div>
                   </div>
@@ -200,7 +200,7 @@ function AbrirChamado() {
                         type="email"
                         required
                         placeholder="voce@empresa.com"
-                        className="h-11 rounded-xl pl-9"
+                        className="h-11 rounded-lg pl-9"
                       />
                     </div>
                   </div>
@@ -216,7 +216,7 @@ function AbrirChamado() {
                       id="sector"
                       name="sector"
                       placeholder="Ex.: Financeiro"
-                      className="h-11 rounded-xl pl-9"
+                      className="h-11 rounded-lg pl-9"
                     />
                   </div>
                 </div>
@@ -231,7 +231,7 @@ function AbrirChamado() {
                     required
                     minLength={3}
                     placeholder="Resumo do problema"
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-lg"
                   />
                 </div>
 
@@ -239,7 +239,7 @@ function AbrirChamado() {
                   <div className="space-y-1.5">
                     <Label className="text-xs">Categoria</Label>
                     <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="h-11 rounded-xl">
+                      <SelectTrigger className="h-11 rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -254,7 +254,7 @@ function AbrirChamado() {
                   <div className="space-y-1.5">
                     <Label className="text-xs">Prioridade</Label>
                     <Select value={priority} onValueChange={(v) => setPriority(v as TicketPriority)}>
-                      <SelectTrigger className="h-11 rounded-xl">
+                      <SelectTrigger className="h-11 rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -277,14 +277,14 @@ function AbrirChamado() {
                     name="description"
                     rows={4}
                     placeholder="Descreva o que está acontecendo, mensagens de erro e desde quando ocorre."
-                    className="rounded-xl"
+                    className="rounded-lg"
                   />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={saving}
-                  className="h-11 w-full rounded-xl text-sm"
+                  className="h-11 w-full rounded-lg text-sm"
                 >
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                   {saving ? "Enviando..." : "Enviar chamado"}

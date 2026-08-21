@@ -87,7 +87,7 @@ function AuthPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="rise-in grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-card shadow-2xl lg:grid-cols-[1.05fr_1fr]">
+      <div className="rise-in grid w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl lg:grid-cols-[1.05fr_1fr]">
         {/* Vitrine do sistema — dá contexto sem poluir o formulário */}
         <section className="relative hidden flex-col items-center justify-center bg-[#131a2b] p-8 text-white lg:flex">
           <div
@@ -115,7 +115,7 @@ function AuthPage() {
                 className="rise-in flex gap-3"
                 style={{ animationDelay: `${120 + index * 90}ms` }}
               >
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
                   <item.icon className="size-4" />
                 </span>
                 <span>
@@ -151,7 +151,7 @@ function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="voce@empresa.com"
-                  className="h-11 rounded-xl pl-9"
+                  className="h-11 rounded-lg pl-9"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ function AuthPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="h-11 rounded-xl pl-9 pr-10"
+                  className="h-11 rounded-lg pl-9 pr-10"
                 />
                 <button
                   type="button"
@@ -183,7 +183,7 @@ function AuthPage() {
               </div>
             </div>
 
-            <Button type="submit" className="h-11 w-full rounded-xl text-sm" disabled={loading}>
+            <Button type="submit" className="h-11 w-full rounded-lg text-sm" disabled={loading}>
               {loading ? <Loader2 className="size-4 animate-spin" /> : null}
               Entrar
             </Button>
