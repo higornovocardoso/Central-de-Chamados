@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   User,
+  UsersRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfileDialog } from "@/components/ProfileDialog";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useEntity } from "@/contexts/entity";
 import { breadcrumbFor, NAV_GROUPS, type NavLink } from "@/lib/nav";
@@ -88,6 +90,7 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [term, setTerm] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
@@ -152,6 +155,12 @@ export function AppShell({
     "Usuário";
   const entityName =
     entities.find((e) => e.id === selectedId)?.name ?? entities[0]?.name ?? "—";
+  const initials = userName
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
 
   const sidebar = (
