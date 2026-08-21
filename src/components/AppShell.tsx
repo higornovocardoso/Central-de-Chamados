@@ -67,9 +67,11 @@ function useTheme() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
+    // O GLPI abre no claro. Seguir o tema do sistema operacional fazia quem
+    // usa Windows no escuro cair num visual que não é o do GLPI, então só a
+    // escolha explícita no botão vale — o escuro continua disponível.
     const stored = localStorage.getItem(THEME_KEY);
-    const prefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const next = stored ? stored === "dark" : prefers;
+    const next = stored === "dark";
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
   }, []);
