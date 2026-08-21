@@ -198,7 +198,8 @@ export function AppShell({
       <div className="flex min-h-screen bg-background">
         {/* Menu lateral — desktop */}
         <aside
-          className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex ${
+          className={`sidebar-surface sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground transition-[width] duration-200 lg:flex ${
+
             collapsed ? "w-14" : "w-60"
           }`}
         >
