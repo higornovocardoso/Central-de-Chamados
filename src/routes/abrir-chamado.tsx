@@ -114,7 +114,7 @@ function AbrirChamado() {
           <div className="relative text-center">
             <h1 className="text-2xl font-semibold leading-tight">Suporte de T.I.</h1>
             <p className="mt-2 max-w-xs text-sm text-white/70">
-              Registre seu problema e acompanhe a solução sem precisar de login.
+              Registre seu problema e acompanhe a solução.
             </p>
           </div>
 
