@@ -5,7 +5,6 @@ import {
   Eye,
   EyeOff,
   Gauge,
-  LifeBuoy,
   Loader2,
   LockKeyhole,
   Mail,
@@ -198,23 +197,6 @@ function AuthPage() {
             </Button>
           </form>
 
-          <div className="mt-6 rounded-2xl border border-border bg-secondary/60 p-3.5">
-            <p className="flex items-start gap-2 text-xs text-muted-foreground">
-              <LifeBuoy className="mt-0.5 size-4 shrink-0 text-primary" />
-              <span>
-                Não tem acesso? Peça ao administrador de T.I. para criar sua conta. Para registrar
-                um chamado sem login, use o{" "}
-                <a href="/abrir-chamado" className="font-medium text-primary hover:underline">
-                  formulário dos colaboradores
-                </a>
-                .
-              </span>
-            </p>
-          </div>
-
-          <p className="mt-5 text-center text-[0.7rem] text-muted-foreground">
-            Compliance Contábil · Suporte de T.I.
-          </p>
         </section>
       </div>
     </main>
