@@ -166,9 +166,10 @@ export function AppShell({
     .join("");
 
 
+  const sidebarCollapsed = collapsed && !hoverOpen;
   const sidebar = (
     <SidebarNav
-      collapsed={collapsed}
+      collapsed={sidebarCollapsed}
       openGroups={openGroups}
       onToggleGroup={toggleGroup}
       pathname={location.pathname}
