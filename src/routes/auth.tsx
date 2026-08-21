@@ -90,7 +90,7 @@ function AuthPage() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="rise-in grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-card shadow-2xl lg:grid-cols-[1.05fr_1fr]">
         {/* Vitrine do sistema — dá contexto sem poluir o formulário */}
-        <section className="relative hidden flex-col justify-between bg-[#131a2b] p-8 text-white lg:flex">
+        <section className="relative hidden flex-col items-center justify-center bg-[#131a2b] p-8 text-white lg:flex">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-primary/40 blur-3xl"
@@ -100,11 +100,8 @@ function AuthPage() {
             className="pointer-events-none absolute -bottom-20 -left-10 size-56 rounded-full bg-[#8b5cf6]/25 blur-3xl"
           />
 
-          <div className="relative">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[0.68rem] font-medium text-white/80">
-              <ShieldCheck className="size-3.5" /> Acesso restrito à equipe
-            </span>
-            <h1 className="mt-4 text-2xl font-semibold leading-tight">
+          <div className="relative text-center">
+            <h1 className="text-2xl font-semibold leading-tight">
               Central de chamados de T.I.
             </h1>
             <p className="mt-2 max-w-xs text-sm text-white/70">
@@ -129,10 +126,6 @@ function AuthPage() {
               </li>
             ))}
           </ul>
-
-          <p className="relative mt-8 text-[0.7rem] text-white/50">
-            Precisa apenas registrar um problema? Use o formulário público, sem login.
-          </p>
         </section>
 
         {/* Formulário de acesso */}
