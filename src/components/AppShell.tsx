@@ -93,6 +93,7 @@ export function AppShell({
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [term, setTerm] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
