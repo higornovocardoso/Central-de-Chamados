@@ -58,11 +58,13 @@ export const RIGHT_ACTIONS: { key: RightAction; label: string; hint: string }[] 
  * A função my_permissions() ainda não está no types.ts gerado, daí o molde.
  */
 export async function fetchMyPermissions(): Promise<Permissions> {
-  const rpc = supabase.rpc as unknown as (
-    fn: string,
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  // O molde vai no cliente, não no método: arrancar supabase.rpc do objeto
+  // perde o `this` e a chamada estoura em vez de devolver { data, error }.
+  const client = supabase as unknown as {
+    rpc: (fn: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+  };
 
-  const { data, error } = await rpc("my_permissions");
+  const { data, error } = await client.rpc("my_permissions");
 
   // Enquanto a migration da fase 2 não estiver aplicada, a função não existe.
   // Nesse caso o sistema continua rodando com os três papéis antigos.

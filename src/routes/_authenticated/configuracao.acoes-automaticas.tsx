@@ -59,11 +59,15 @@ function AcoesAutomaticas() {
         return result.warning ?? `${result.sent ?? 0} mensagem(ns) enviada(s)`;
       }
 
-      const rpc = supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message: string } | null }>;
-      const { data, error } = await rpc("run_automatic_action", { _code: code });
+      // O molde vai no cliente, não no método: arrancar supabase.rpc do
+      // objeto perde o `this` e a chamada estoura.
+      const client = supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      };
+      const { data, error } = await client.rpc("run_automatic_action", { _code: code });
       if (error) throw new Error(error.message);
       return String(data ?? "Executada");
     },

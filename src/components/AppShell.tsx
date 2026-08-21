@@ -6,6 +6,7 @@ import {
   ChevronRight,
   CircleHelp,
   LayoutDashboard,
+  TriangleAlert,
   LogOut,
   Menu,
   Moon,
@@ -110,7 +111,7 @@ export function AppShell({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { dark, toggle } = useTheme();
-  const { user, profileName, can } = usePermissions();
+  const { user, profileName, can, error: permissionsError } = usePermissions();
   const { entities, selectedId, setSelectedId } = useEntity();
   const location = useRouterState({ select: (s) => s.location });
   const [collapsed, setCollapsed] = useState(false);
@@ -336,6 +337,31 @@ export function AppShell({
           </header>
 
           <main className="min-w-0 flex-1 px-3 py-4 lg:px-5">
+            {/*
+              Sem permissões o menu fica só com o Painel, e antes disso não
+              havia aviso nenhum: o sistema parecia vazio em vez de quebrado.
+            */}
+            {permissionsError && (
+              <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
+                <TriangleAlert className="size-4 shrink-0 text-destructive" />
+                <span className="flex-1">
+                  Não foi possível carregar suas permissões, então o menu está
+                  incompleto. Isto é uma falha do sistema, não falta de acesso.
+                  <span className="ml-1 text-muted-foreground">
+                    ({permissionsError.message})
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="rounded border border-border px-2 py-1 font-medium hover:bg-secondary"
+                  onClick={() =>
+                    queryClient.invalidateQueries({ queryKey: ["my_permissions"] })
+                  }
+                >
+                  Tentar de novo
+                </button>
+              </div>
+            )}
             {(title || actions) && (
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
