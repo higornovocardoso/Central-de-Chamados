@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   TriangleAlert,
   LogOut,
-  Menu,
   Plus,
   Search,
   User,
@@ -16,7 +15,6 @@ import {
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,16 +87,18 @@ export function AppShell({
   const location = useRouterState({ select: (s) => s.location });
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [term, setTerm] = useState("");
 
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
   useEffect(() => {
-    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
+    // Em telas estreitas a mesma barra aparece recolhida (só ícones).
+    const narrow = window.matchMedia("(max-width: 63.99rem)").matches;
+    setCollapsed(narrow || localStorage.getItem(COLLAPSE_KEY) === "1");
     const stored = localStorage.getItem(OPEN_GROUPS_KEY);
     setOpenGroups(stored ? (JSON.parse(stored) as string[]) : ["assistencia"]);
   }, []);
+
 
   // Mantém aberto o grupo da tela atual, como o GLPI faz ao navegar.
   const activeGroup = useMemo(() => {
@@ -161,20 +161,20 @@ export function AppShell({
       pathname={location.pathname}
       search={search}
       canRead={(right) => !right || can(right, "read")}
-      onNavigate={() => setMobileOpen(false)}
+      onNavigate={() => undefined}
     />
   );
 
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex min-h-screen bg-background">
-        {/* Menu lateral — desktop */}
+        {/* Menu lateral — mesma barra em qualquer tamanho de tela */}
         <aside
-          className={`sidebar-surface sidebar-rail sticky top-2 m-2 hidden h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out lg:flex ${
+          className={`sidebar-surface sidebar-rail sticky top-2 m-2 flex h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out ${
             collapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
-          <div className="flex-1 overflow-y-auto py-3">{sidebar}</div>
+          <div className="flex-1 overflow-y-auto pb-3 pt-2">{sidebar}</div>
 
           <div className="border-t border-white/5 p-2">
             <button
@@ -196,22 +196,7 @@ export function AppShell({
           {/* Barra superior */}
           <header className="topbar-glass sticky top-0 z-30 border-b border-border text-topbar-foreground">
             <div className="flex h-12 items-center gap-2 px-3">
-              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                <SheetTrigger asChild>
-                  <Button size="icon" variant="ghost" className="lg:hidden" aria-label="Abrir menu">
-                    <Menu className="size-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="sidebar-surface w-64 border-sidebar-border p-0 text-sidebar-foreground"
-                >
-                  <SheetTitle className="border-b border-sidebar-border px-3 py-3 text-sm font-semibold text-sidebar-foreground">
-                    Menu
-                  </SheetTitle>
-                  <div className="overflow-y-auto py-2">{sidebar}</div>
-                </SheetContent>
-              </Sheet>
+
 
               <Select
                 value={selectedId ?? ROOT_TREE}
