@@ -87,9 +87,9 @@ export const updateSystemUser = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    const patch: Record<string, string> = {};
-    if (data.full_name) patch["full_name"] = data.full_name;
-    if (data.email) patch["email"] = data.email;
+    const patch: { full_name?: string; email?: string } = {};
+    if (data.full_name) patch.full_name = data.full_name;
+    if (data.email) patch.email = data.email;
     if (Object.keys(patch).length > 0) {
       await supabaseAdmin.from("profiles").update(patch).eq("id", data.user_id);
     }
