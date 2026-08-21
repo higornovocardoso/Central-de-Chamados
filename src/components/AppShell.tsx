@@ -326,11 +326,6 @@ export function AppShell({
                         </NavLinkTo>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem asChild>
-                      <a href="/abrir-chamado" target="_blank" rel="noreferrer">
-                        Formulário dos colaboradores
-                      </a>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="size-4" /> Sair
