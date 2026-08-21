@@ -97,13 +97,19 @@ export function CrudTable({
       for (const f of fields) {
         if (f.readOnly) continue;
         const value = form[f.key];
+        // Campo de texto vazio vira string vazia, não null: quase toda coluna
+        // de texto do esquema é NOT NULL DEFAULT '', e null estoura com 23502.
+        // Chave estrangeira e data continuam indo como null quando em branco.
+        const textual = f.type === "text" || f.type === "textarea";
         payload[f.key] =
           f.type === "number"
             ? Number(value ?? 0)
             : f.type === "boolean"
               ? value === true
-              : value === ""
-                ? null
+              : value === "" || value === undefined
+                ? textual
+                  ? ""
+                  : null
                 : value;
       }
       const { error } = editing
