@@ -75,22 +75,30 @@ function AbrirChamado() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+
+    const parsed = publicTicketSchema.safeParse({
+      reporter_name: String(form.get("name") ?? ""),
+      reporter_email: String(form.get("email") ?? ""),
+      reporter_sector: String(form.get("sector") ?? ""),
+      title: String(form.get("title") ?? ""),
+      description: String(form.get("description") ?? ""),
+      category,
+      priority,
+    });
+
+    if (!parsed.success) {
+      toast.error("Confira os dados do chamado", {
+        description: parsed.error.issues[0]?.message,
+      });
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await submit({
-        data: {
-          reporter_name: String(form.get("name") ?? ""),
-          reporter_email: String(form.get("email") ?? ""),
-          reporter_sector: String(form.get("sector") ?? ""),
-          title: String(form.get("title") ?? ""),
-          description: String(form.get("description") ?? ""),
-          category,
-          priority,
-        },
-      });
+      const res = await submit({ data: parsed.data });
       setCreated(res.id);
     } catch (error) {
-      toast.error("Não foi possível enviar o chamado. Confira os dados e tente novamente.");
+      toast.error("Não foi possível enviar o chamado. Tente novamente em instantes.");
       console.error(error);
     } finally {
       setSaving(false);
