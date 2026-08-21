@@ -8,7 +8,6 @@ import {
   Loader2,
   LockKeyhole,
   Mail,
-  ShieldCheck,
   Timer,
 } from "lucide-react";
 import { toast } from "sonner";
