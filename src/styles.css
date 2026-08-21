@@ -66,30 +66,33 @@
   --color-topbar-foreground: var(--topbar-foreground);
 }
 
-/* Tema claro — versão fria e clara do mesmo sistema. */
+/*
+ * Tema único (claro): fundo off-white frio, cartões brancos com cantos
+ * arredondados, sombras suaves e acentos índigo/violeta.
+ */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.85rem;
 
-  --background: #eef2f8;
-  --foreground: #0f1b2d;
+  --background: #f4f6fb;
+  --foreground: #131a2b;
   --surface: #ffffff;
-  --surface-foreground: #0f1b2d;
+  --surface-foreground: #131a2b;
   --card: #ffffff;
-  --card-foreground: #0f1b2d;
+  --card-foreground: #131a2b;
   --popover: #ffffff;
-  --popover-foreground: #0f1b2d;
+  --popover-foreground: #131a2b;
 
-  --primary: #0e7490;
-  --primary-foreground: #ecfeff;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
 
-  --secondary: #e3e9f3;
-  --secondary-foreground: #26364f;
-  --muted: #e8edf5;
-  --muted-foreground: #5a6a83;
-  --accent: #dbe7f5;
-  --accent-foreground: #14526b;
+  --secondary: #eef1f8;
+  --secondary-foreground: #33405c;
+  --muted: #f2f5fa;
+  --muted-foreground: #6b7690;
+  --accent: #eaeeff;
+  --accent-foreground: #3730a3;
 
-  --destructive: #dc2626;
+  --destructive: #e11d48;
   --destructive-foreground: #ffffff;
   --success: #0f9d76;
   --success-foreground: #ffffff;
@@ -98,91 +101,33 @@
   --info: #2563eb;
   --info-foreground: #ffffff;
 
-  --border: #d7e0ec;
-  --input: #c2cede;
-  --ring: #0e7490;
+  --border: #e6eaf2;
+  --input: #dbe1ed;
+  --ring: #6366f1;
 
-  --link: #1d63b8;
+  --link: #4338ca;
 
-  --chart-1: #0ea5e9;
-  --chart-2: #14b8a6;
-  --chart-3: #6366f1;
+  --chart-1: #6366f1;
+  --chart-2: #06b6d4;
+  --chart-3: #8b5cf6;
   --chart-4: #f43f5e;
-  --chart-5: #8b5cf6;
+  --chart-5: #f59e0b;
 
-  --topbar: #ffffffcc;
-  --topbar-foreground: #0f1b2d;
+  --topbar: #ffffffe6;
+  --topbar-foreground: #131a2b;
 
-  --sidebar: #16223a;
-  --sidebar-foreground: #dce6f5;
-  --sidebar-primary: #38bdf8;
-  --sidebar-primary-foreground: #05121f;
-  --sidebar-accent: #1d2c48;
-  --sidebar-accent-foreground: #7dd3fc;
-  --sidebar-border: #24344f;
-  --sidebar-ring: #38bdf8;
+  --sidebar: #131a2b;
+  --sidebar-foreground: #cdd6e8;
+  --sidebar-primary: #a5b4fc;
+  --sidebar-primary-foreground: #0b1020;
+  --sidebar-accent: #1c2438;
+  --sidebar-accent-foreground: #c7d2fe;
+  --sidebar-border: #222c42;
+  --sidebar-ring: #818cf8;
 
-  --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
-    0 18px 40px -24px color-mix(in oklab, var(--primary) 60%, transparent);
+  --glow: 0 1px 2px rgb(19 26 43 / 6%), 0 18px 40px -28px rgb(19 26 43 / 45%);
 }
 
-/* Tema escuro — o padrão do sistema: azul-noite frio, vidro e brilho sutil. */
-.dark {
-  --background: #070d18;
-  --foreground: #e6eefb;
-  --surface: #0e1729;
-  --surface-foreground: #e6eefb;
-  --card: #0e1729;
-  --card-foreground: #e6eefb;
-  --popover: #101c31;
-  --popover-foreground: #e6eefb;
-
-  --primary: #38bdf8;
-  --primary-foreground: #04121e;
-
-  --secondary: #17233a;
-  --secondary-foreground: #d6e3f6;
-  --muted: #131f34;
-  --muted-foreground: #8ea3c2;
-  --accent: #1a2942;
-  --accent-foreground: #7dd3fc;
-
-  --destructive: #f43f5e;
-  --destructive-foreground: #14030a;
-  --success: #2dd4bf;
-  --success-foreground: #04211d;
-  --warning: #fbbf24;
-  --warning-foreground: #231603;
-  --info: #60a5fa;
-  --info-foreground: #05152c;
-
-  --border: #1d2b45;
-  --input: #29395a;
-  --ring: #38bdf8;
-
-  --link: #7dd3fc;
-
-  --chart-1: #38bdf8;
-  --chart-2: #2dd4bf;
-  --chart-3: #818cf8;
-  --chart-4: #fb7185;
-  --chart-5: #a78bfa;
-
-  --topbar: #0b1524b3;
-  --topbar-foreground: #e6eefb;
-
-  --sidebar: #08111f;
-  --sidebar-foreground: #c9d9ef;
-  --sidebar-primary: #38bdf8;
-  --sidebar-primary-foreground: #04121e;
-  --sidebar-accent: #12203a;
-  --sidebar-accent-foreground: #7dd3fc;
-  --sidebar-border: #17253d;
-  --sidebar-ring: #38bdf8;
-
-  --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent),
-    0 22px 50px -28px color-mix(in oklab, var(--primary) 75%, transparent);
-}
 
 
 @layer base {
