@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   TriangleAlert,
   LogOut,
-  Menu,
   Plus,
   Search,
   User,
@@ -16,7 +15,6 @@ import {
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,7 +87,6 @@ export function AppShell({
   const location = useRouterState({ select: (s) => s.location });
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [term, setTerm] = useState("");
 
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
@@ -161,7 +158,7 @@ export function AppShell({
       pathname={location.pathname}
       search={search}
       canRead={(right) => !right || can(right, "read")}
-      onNavigate={() => setMobileOpen(false)}
+      onNavigate={() => undefined}
     />
   );
 
