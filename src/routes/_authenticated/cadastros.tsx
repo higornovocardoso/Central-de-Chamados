@@ -28,13 +28,13 @@ export const Route = createFileRoute("/_authenticated/cadastros")({
   },
   head: () => ({
     meta: [
-      { title: "Cadastros — Helpdesk T.I." },
+      { title: "Cadastros" },
       {
         name: "description",
         content:
           "Gerencie locais, setores e fornecedores usados nos chamados e no inventário de T.I.",
       },
-      { property: "og:title", content: "Cadastros — Helpdesk T.I." },
+      { property: "og:title", content: "Cadastros" },
       {
         property: "og:description",
         content: "Locais, setores e fornecedores do helpdesk de T.I.",

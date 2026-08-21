@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/inventario/softwares")({
   },
   head: () => ({
     meta: [
-      { title: "Softwares — Helpdesk T.I." },
+      { title: "Softwares" },
       {
         name: "description",
         content: "Softwares, versões, licenças e onde cada licença está instalada.",

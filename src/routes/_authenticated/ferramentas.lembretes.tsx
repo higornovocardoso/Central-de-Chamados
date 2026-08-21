@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/ferramentas/lembretes")({
   },
   head: () => ({
     meta: [
-      { title: "Lembretes e feeds — Helpdesk T.I." },
+      { title: "Lembretes e feeds" },
       {
         name: "description",
         content: "Anotações da equipe e feeds RSS acompanhados pelo time de T.I.",

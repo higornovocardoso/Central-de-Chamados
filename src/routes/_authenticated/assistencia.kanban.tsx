@@ -15,7 +15,7 @@ import { STATUS_LABEL, STATUS_ORDER, ticketCode, type TicketStatus } from "@/lib
 export const Route = createFileRoute("/_authenticated/assistencia/kanban")({
   head: () => ({
     meta: [
-      { title: "Kanban — Helpdesk T.I." },
+      { title: "Kanban" },
       {
         name: "description",
         content: "Chamados, problemas e mudanças em colunas, arrastando entre os status.",

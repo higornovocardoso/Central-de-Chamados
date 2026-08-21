@@ -18,7 +18,7 @@ import { formatMoneyBR } from "@/lib/inventory";
 export const Route = createFileRoute("/_authenticated/gestao/contratos")({
   head: () => ({
     meta: [
-      { title: "Contratos — Helpdesk T.I." },
+      { title: "Contratos" },
       {
         name: "description",
         content: "Contratos com vigência, renovação, aviso prévio e alerta de vencimento.",

@@ -17,7 +17,7 @@ import { STATUS_LABEL, isOpenStatus, type TicketStatus } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/ferramentas/relatorios")({
   head: () => ({
     meta: [
-      { title: "Relatórios — Helpdesk T.I." },
+      { title: "Relatórios" },
       {
         name: "description",
         content: "Chamados por período, parque por tipo, garantias e contratos vencendo.",

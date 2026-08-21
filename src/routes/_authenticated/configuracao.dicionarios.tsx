@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/configuracao/dicionarios")
   },
   head: () => ({
     meta: [
-      { title: "Dicionários e unicidade — Helpdesk T.I." },
+      { title: "Dicionários e unicidade" },
       {
         name: "description",
         content: "Normalização de nomes na entrada e regras de campo único.",

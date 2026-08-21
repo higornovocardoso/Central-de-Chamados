@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_authenticated/configuracao/geral")({
   },
   head: () => ({
     meta: [
-      { title: "Configurações gerais — Helpdesk T.I." },
+      { title: "Configurações gerais" },
       {
         name: "description",
         content: "Remetente das notificações, fechamento automático e pesquisa de satisfação.",

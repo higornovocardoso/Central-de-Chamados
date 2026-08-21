@@ -19,16 +19,16 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Helpdesk T.I." },
+      { title: "Entrar" },
       {
         name: "description",
         content:
-          "Acesse o Helpdesk de T.I. para abrir, acompanhar e resolver chamados de suporte técnico.",
+          "Acesse para abrir, acompanhar e resolver chamados de suporte técnico.",
       },
-      { property: "og:title", content: "Entrar — Helpdesk T.I." },
+      { property: "og:title", content: "Entrar" },
       {
         property: "og:description",
-        content: "Acesse o Helpdesk de T.I. para abrir e acompanhar chamados de suporte.",
+        content: "Acesse para abrir e acompanhar chamados de suporte.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

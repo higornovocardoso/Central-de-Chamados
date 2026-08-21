@@ -29,13 +29,13 @@ import { createPublicTicket, publicTicketSchema } from "@/lib/public-tickets.fun
 export const Route = createFileRoute("/abrir-chamado")({
   head: () => ({
     meta: [
-      { title: "Abrir chamado de T.I. — Helpdesk" },
+      { title: "Abrir chamado" },
       {
         name: "description",
         content:
           "Formulário para colaboradores registrarem chamados de suporte de T.I. sem precisar de login.",
       },
-      { property: "og:title", content: "Abrir chamado de T.I. — Helpdesk" },
+      { property: "og:title", content: "Abrir chamado" },
       {
         property: "og:description",
         content: "Descreva seu problema de T.I. e a equipe de suporte receberá o chamado.",

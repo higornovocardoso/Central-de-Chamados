@@ -32,7 +32,7 @@ import { STATUS_LABEL, STATUS_ORDER, type TicketStatus } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/assistencia/estatisticas")({
   head: () => ({
     meta: [
-      { title: "Estatísticas — Helpdesk T.I." },
+      { title: "Estatísticas" },
       {
         name: "description",
         content: "Volume, tempo de solução e cumprimento de SLA no período escolhido.",

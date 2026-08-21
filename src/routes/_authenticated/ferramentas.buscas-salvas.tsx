@@ -14,7 +14,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/ferramentas/buscas-salvas")({
   head: () => ({
     meta: [
-      { title: "Buscas salvas — Helpdesk T.I." },
+      { title: "Buscas salvas" },
       {
         name: "description",
         content: "As pesquisas guardadas em cada tela, com contador e visibilidade.",

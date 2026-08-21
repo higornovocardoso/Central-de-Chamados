@@ -20,7 +20,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/assistencia/problemas")({
   head: () => ({
     meta: [
-      { title: "Problemas — Helpdesk T.I." },
+      { title: "Problemas" },
       {
         name: "description",
         content: "A causa por trás dos incidentes: impactos, causas e sintomas.",

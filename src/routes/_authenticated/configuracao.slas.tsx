@@ -16,7 +16,7 @@ import { STATUS_LABEL, STATUS_ORDER } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/configuracao/slas")({
   head: () => ({
     meta: [
-      { title: "Níveis de serviço — Helpdesk T.I." },
+      { title: "Níveis de serviço" },
       {
         name: "description",
         content: "SLA e OLA com prazo de atendimento, prazo de solução e níveis de escalonamento.",

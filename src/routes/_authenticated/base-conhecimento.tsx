@@ -37,13 +37,13 @@ import { Tag } from "@/components/Tag";
 export const Route = createFileRoute("/_authenticated/base-conhecimento")({
   head: () => ({
     meta: [
-      { title: "Base de conhecimento — Helpdesk T.I." },
+      { title: "Base de conhecimento" },
       {
         name: "description",
         content:
           "Artigos e soluções padronizadas de T.I. para resolver problemas recorrentes com mais rapidez.",
       },
-      { property: "og:title", content: "Base de conhecimento — Helpdesk T.I." },
+      { property: "og:title", content: "Base de conhecimento" },
       {
         property: "og:description",
         content: "Procedimentos e soluções de T.I. pesquisáveis pela equipe.",

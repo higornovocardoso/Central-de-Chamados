@@ -13,7 +13,7 @@ import { useEntityOptions } from "@/hooks/useEntityOptions";
 export const Route = createFileRoute("/_authenticated/configuracao/coletores")({
   head: () => ({
     meta: [
-      { title: "Coletores de e-mail — Helpdesk T.I." },
+      { title: "Coletores de e-mail" },
       {
         name: "description",
         content: "Caixas de e-mail que viram chamados, e a lista negra de remetentes.",

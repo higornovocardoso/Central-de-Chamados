@@ -53,7 +53,7 @@ import {
 export const Route = createFileRoute("/_authenticated/administracao/usuarios")({
   head: () => ({
     meta: [
-      { title: "Usuários — Helpdesk T.I." },
+      { title: "Usuários" },
       {
         name: "description",
         content: "Usuários, suas autorizações por entidade e os grupos a que pertencem.",

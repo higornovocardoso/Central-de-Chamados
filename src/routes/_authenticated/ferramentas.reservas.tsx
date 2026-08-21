@@ -16,7 +16,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/ferramentas/reservas")({
   head: () => ({
     meta: [
-      { title: "Reservas — Helpdesk T.I." },
+      { title: "Reservas" },
       {
         name: "description",
         content: "Reserva de equipamento: projetor, notebook de empréstimo, sala.",

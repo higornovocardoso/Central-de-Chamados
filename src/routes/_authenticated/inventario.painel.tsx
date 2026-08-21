@@ -34,7 +34,7 @@ import { ASSET_KIND_LABEL, type AssetKind } from "@/lib/glpi";
 export const Route = createFileRoute("/_authenticated/inventario/painel")({
   head: () => ({
     meta: [
-      { title: "Painel de ativos — Helpdesk T.I." },
+      { title: "Painel de ativos" },
       {
         name: "description",
         content: "Quantos equipamentos de cada tipo, por fabricante e por situação.",

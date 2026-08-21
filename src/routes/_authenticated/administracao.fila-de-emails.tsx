@@ -17,7 +17,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/administracao/fila-de-emails")({
   head: () => ({
     meta: [
-      { title: "Fila de e-mails — Helpdesk T.I." },
+      { title: "Fila de e-mails" },
       {
         name: "description",
         content: "As notificações aguardando envio, as que saíram e as que falharam.",

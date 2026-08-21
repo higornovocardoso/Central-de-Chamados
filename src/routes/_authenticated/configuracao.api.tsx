@@ -10,7 +10,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 export const Route = createFileRoute("/_authenticated/configuracao/api")({
   head: () => ({
     meta: [
-      { title: "API — Helpdesk T.I." },
+      { title: "API" },
       {
         name: "description",
         content: "Como consultar e gravar dados do sistema por fora, pela API REST.",

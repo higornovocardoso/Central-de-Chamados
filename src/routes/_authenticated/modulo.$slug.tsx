@@ -89,7 +89,7 @@ const MODULES: Record<string, { title: string; description: string; note?: strin
 
 export const Route = createFileRoute("/_authenticated/modulo/$slug")({
   head: () => ({
-    meta: [{ title: "Módulo — Helpdesk T.I." }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Módulo" }, { name: "robots", content: "noindex" }],
   }),
   component: Modulo,
 });

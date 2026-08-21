@@ -13,7 +13,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/configuracao/acoes-automaticas")({
   head: () => ({
     meta: [
-      { title: "Ações automáticas — Helpdesk T.I." },
+      { title: "Ações automáticas" },
       {
         name: "description",
         content: "As rotinas que rodam sozinhas: fechamento, recorrentes, satisfação e SLA.",

@@ -10,7 +10,7 @@ import { LEVELS, levelLabel } from "@/lib/itil";
 export const Route = createFileRoute("/_authenticated/chamados/recorrentes")({
   head: () => ({
     meta: [
-      { title: "Chamados recorrentes — Helpdesk T.I." },
+      { title: "Chamados recorrentes" },
       {
         name: "description",
         content: "Chamados que o sistema abre sozinho em uma periodicidade definida.",

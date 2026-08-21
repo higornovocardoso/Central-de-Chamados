@@ -42,13 +42,13 @@ import {
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
-      { title: "Painel — Helpdesk T.I." },
+      { title: "Painel" },
       {
         name: "description",
         content:
           "Visão geral dos chamados de T.I.: contadores por status, SLA, carga por técnico e evolução no mês.",
       },
-      { property: "og:title", content: "Painel — Helpdesk T.I." },
+      { property: "og:title", content: "Painel" },
       {
         property: "og:description",
         content: "Contadores por status, SLA e carga da equipe de suporte.",

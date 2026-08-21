@@ -2,7 +2,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   LayoutDashboard,
   TriangleAlert,
@@ -129,13 +128,6 @@ export function AppShell({
     persistGroups(openGroups.includes(id) ? openGroups.filter((g) => g !== id) : [...openGroups, id]);
   }
 
-  function toggleCollapse() {
-    setCollapsed((prev) => {
-      localStorage.setItem(COLLAPSE_KEY, prev ? "0" : "1");
-      return !prev;
-    });
-  }
-
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -191,20 +183,6 @@ export function AppShell({
           }`}
         >
           <div className="flex-1 overflow-y-auto pb-3 pt-2">{sidebar}</div>
-
-          <div className="border-t border-white/5 p-2">
-            <button
-              type="button"
-              onClick={toggleCollapse}
-              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-              className={`flex h-9 items-center gap-2 rounded-xl text-xs font-medium text-sidebar-foreground/70 transition-colors hover:bg-white/10 hover:text-white ${
-                collapsed ? "mx-auto w-9 justify-center" : "w-full justify-start px-3"
-              }`}
-            >
-              {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-              {!collapsed && "Recolher menu"}
-            </button>
-          </div>
         </aside>
 
         {/* Folha lateral para celular/tablet */}

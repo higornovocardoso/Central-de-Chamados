@@ -11,7 +11,7 @@ import { formatMoneyBR } from "@/lib/inventory";
 export const Route = createFileRoute("/_authenticated/gestao/orcamentos")({
   head: () => ({
     meta: [
-      { title: "Orçamentos — Helpdesk T.I." },
+      { title: "Orçamentos" },
       {
         name: "description",
         content: "Verba por período, com o consumo vindo dos custos de chamado e das compras.",

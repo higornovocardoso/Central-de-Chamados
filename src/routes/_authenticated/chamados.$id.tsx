@@ -98,7 +98,7 @@ import {
 export const Route = createFileRoute("/_authenticated/chamados/$id")({
   head: () => ({
     meta: [
-      { title: "Chamado — Helpdesk T.I." },
+      { title: "Chamado" },
       {
         name: "description",
         content: "Processamento do chamado: acompanhamentos, tarefas, solução, SLA e histórico.",

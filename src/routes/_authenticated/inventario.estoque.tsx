@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/inventario/estoque")({
   },
   head: () => ({
     meta: [
-      { title: "Cartuchos e consumíveis — Helpdesk T.I." },
+      { title: "Cartuchos e consumíveis" },
       {
         name: "description",
         content: "Estoque de cartuchos e consumíveis, com alerta de nível mínimo.",

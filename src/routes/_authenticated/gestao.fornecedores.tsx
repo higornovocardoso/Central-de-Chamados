@@ -11,7 +11,7 @@ import { useGestaoOptions } from "@/hooks/useGestaoOptions";
 export const Route = createFileRoute("/_authenticated/gestao/fornecedores")({
   head: () => ({
     meta: [
-      { title: "Fornecedores — Helpdesk T.I." },
+      { title: "Fornecedores" },
       {
         name: "description",
         content: "Fornecedores, prestadores e operadoras, com contatos e contratos.",

@@ -7,7 +7,7 @@ import { useGestaoOptions } from "@/hooks/useGestaoOptions";
 export const Route = createFileRoute("/_authenticated/inventario/componentes")({
   head: () => ({
     meta: [
-      { title: "Componentes — Helpdesk T.I." },
+      { title: "Componentes" },
       {
         name: "description",
         content: "Processadores, memórias, discos e placas que compõem os equipamentos.",

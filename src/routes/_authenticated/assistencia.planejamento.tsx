@@ -14,7 +14,7 @@ import { ticketCode } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/assistencia/planejamento")({
   head: () => ({
     meta: [
-      { title: "Planejamento — Helpdesk T.I." },
+      { title: "Planejamento" },
       {
         name: "description",
         content: "A agenda da equipe: tarefas de chamado com data marcada.",

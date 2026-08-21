@@ -15,7 +15,7 @@ import { useEntityOptions } from "@/hooks/useEntityOptions";
 export const Route = createFileRoute("/_authenticated/configuracao/calendarios")({
   head: () => ({
     meta: [
-      { title: "Calendários — Helpdesk T.I." },
+      { title: "Calendários" },
       {
         name: "description",
         content: "Horários de expediente e feriados usados no cálculo dos prazos de SLA.",

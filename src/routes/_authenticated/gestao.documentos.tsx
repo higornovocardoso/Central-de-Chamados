@@ -17,7 +17,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/gestao/documentos")({
   head: () => ({
     meta: [
-      { title: "Documentos — Helpdesk T.I." },
+      { title: "Documentos" },
       {
         name: "description",
         content: "Notas fiscais, manuais e termos, anexados a chamados e ativos.",

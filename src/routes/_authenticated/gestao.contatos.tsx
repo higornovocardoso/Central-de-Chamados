@@ -8,7 +8,7 @@ import { useGestaoOptions } from "@/hooks/useGestaoOptions";
 export const Route = createFileRoute("/_authenticated/gestao/contatos")({
   head: () => ({
     meta: [
-      { title: "Contatos — Helpdesk T.I." },
+      { title: "Contatos" },
       {
         name: "description",
         content: "Agenda de contatos dos fornecedores e prestadores de serviço.",

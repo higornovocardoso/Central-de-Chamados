@@ -11,7 +11,7 @@ import { LEVELS, levelLabel } from "@/lib/itil";
 export const Route = createFileRoute("/_authenticated/assistencia/mudancas-recorrentes")({
   head: () => ({
     meta: [
-      { title: "Mudanças recorrentes — Helpdesk T.I." },
+      { title: "Mudanças recorrentes" },
       {
         name: "description",
         content: "Mudanças que o sistema abre sozinho numa periodicidade definida.",

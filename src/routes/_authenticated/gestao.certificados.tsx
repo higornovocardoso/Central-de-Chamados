@@ -10,7 +10,7 @@ import { useGestaoOptions } from "@/hooks/useGestaoOptions";
 export const Route = createFileRoute("/_authenticated/gestao/certificados")({
   head: () => ({
     meta: [
-      { title: "Certificados — Helpdesk T.I." },
+      { title: "Certificados" },
       {
         name: "description",
         content: "Certificados digitais e SSL, com aviso antes do vencimento.",

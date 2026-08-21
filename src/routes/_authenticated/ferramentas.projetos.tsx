@@ -18,7 +18,7 @@ import { LEVELS, levelLabel } from "@/lib/itil";
 export const Route = createFileRoute("/_authenticated/ferramentas/projetos")({
   head: () => ({
     meta: [
-      { title: "Projetos — Helpdesk T.I." },
+      { title: "Projetos" },
       {
         name: "description",
         content: "Projetos com tarefas, equipe, andamento e cronograma.",

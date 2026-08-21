@@ -14,7 +14,7 @@ import { useEntityOptions } from "@/hooks/useEntityOptions";
 export const Route = createFileRoute("/_authenticated/administracao/regras")({
   head: () => ({
     meta: [
-      { title: "Regras de negócio — Helpdesk T.I." },
+      { title: "Regras de negócio" },
       {
         name: "description",
         content: "Regras que alteram o chamado automaticamente na abertura e na atualização.",

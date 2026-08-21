@@ -14,7 +14,7 @@ import { formatDate } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/administracao/logs")({
   head: () => ({
     meta: [
-      { title: "Logs — Helpdesk T.I." },
+      { title: "Logs" },
       {
         name: "description",
         content: "Trilha de auditoria: quem mexeu em perfil, entidade e autorização.",

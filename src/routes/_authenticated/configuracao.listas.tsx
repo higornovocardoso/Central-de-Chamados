@@ -12,7 +12,7 @@ import { COMPONENT_KINDS, COMPONENT_KIND_LABEL } from "@/lib/inventory";
 export const Route = createFileRoute("/_authenticated/configuracao/listas")({
   head: () => ({
     meta: [
-      { title: "Listas suspensas — Helpdesk T.I." },
+      { title: "Listas suspensas" },
       {
         name: "description",
         content: "Fabricantes, modelos, tipos, estados, componentes, VLANs e redes.",

@@ -21,7 +21,7 @@ import { ticketCode } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/assistencia/impacto")({
   head: () => ({
     meta: [
-      { title: "Análise de impacto — Helpdesk T.I." },
+      { title: "Análise de impacto" },
       {
         name: "description",
         content: "O que depende do quê: chamados, problemas, mudanças e os ativos envolvidos.",

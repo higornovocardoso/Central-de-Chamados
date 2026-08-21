@@ -29,7 +29,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 export const Route = createFileRoute("/_authenticated/administracao/entidades")({
   head: () => ({
     meta: [
-      { title: "Entidades — Helpdesk T.I." },
+      { title: "Entidades" },
       {
         name: "description",
         content: "Árvore de entidades: empresas, filiais e departamentos, com herança.",

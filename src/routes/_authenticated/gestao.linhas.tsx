@@ -9,7 +9,7 @@ import { formatMoneyBR } from "@/lib/inventory";
 export const Route = createFileRoute("/_authenticated/gestao/linhas")({
   head: () => ({
     meta: [
-      { title: "Linhas telefônicas — Helpdesk T.I." },
+      { title: "Linhas telefônicas" },
       {
         name: "description",
         content: "Linhas móveis, fixas e de dados, com operadora e valor mensal.",

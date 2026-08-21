@@ -40,7 +40,7 @@ import { STATUS_LABEL, STATUS_ORDER } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/administracao/perfis")({
   head: () => ({
     meta: [
-      { title: "Perfis — Helpdesk T.I." },
+      { title: "Perfis" },
       {
         name: "description",
         content: "Perfis de acesso e a matriz de direitos por objeto, no modelo do GLPI.",

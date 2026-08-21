@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/gestao/infra")({
   },
   head: () => ({
     meta: [
-      { title: "Infraestrutura — Helpdesk T.I." },
+      { title: "Infraestrutura" },
       {
         name: "description",
         content: "Datacenters, salas, clusters, appliances e bancos de dados.",

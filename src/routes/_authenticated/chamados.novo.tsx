@@ -29,13 +29,13 @@ import {
 export const Route = createFileRoute("/_authenticated/chamados/novo")({
   head: () => ({
     meta: [
-      { title: "Abrir chamado — Helpdesk T.I." },
+      { title: "Abrir chamado" },
       {
         name: "description",
         content:
           "Registre um novo chamado de suporte de T.I. informando categoria, prioridade e descrição do problema.",
       },
-      { property: "og:title", content: "Abrir chamado — Helpdesk T.I." },
+      { property: "og:title", content: "Abrir chamado" },
       {
         property: "og:description",
         content: "Registre um novo chamado de suporte técnico em poucos segundos.",

@@ -49,13 +49,13 @@ export const Route = createFileRoute("/_authenticated/inventario/")({
   },
   head: () => ({
     meta: [
-      { title: "Inventário de ativos — Helpdesk T.I." },
+      { title: "Inventário de ativos" },
       {
         name: "description",
         content:
           "Cadastro completo do parque de T.I.: computadores, monitores, impressoras, licenças, garantias e responsáveis.",
       },
-      { property: "og:title", content: "Inventário de ativos — Helpdesk T.I." },
+      { property: "og:title", content: "Inventário de ativos" },
       {
         property: "og:description",
         content: "Controle o patrimônio de T.I. com garantia, local, setor e responsável.",

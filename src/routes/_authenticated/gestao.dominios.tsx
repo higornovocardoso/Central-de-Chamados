@@ -11,7 +11,7 @@ import { useGestaoOptions } from "@/hooks/useGestaoOptions";
 export const Route = createFileRoute("/_authenticated/gestao/dominios")({
   head: () => ({
     meta: [
-      { title: "Domínios — Helpdesk T.I." },
+      { title: "Domínios" },
       {
         name: "description",
         content: "Domínios com validade e as entradas DNS de cada um.",

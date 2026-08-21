@@ -28,7 +28,7 @@ import { formatDate, ticketCode } from "@/lib/tickets";
 export const Route = createFileRoute("/_authenticated/inventario/$id")({
   head: () => ({
     meta: [
-      { title: "Ativo — Helpdesk T.I." },
+      { title: "Ativo" },
       {
         name: "description",
         content: "Ficha do ativo: componentes, rede, softwares, garantia e chamados.",

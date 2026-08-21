@@ -35,7 +35,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 export const Route = createFileRoute("/_authenticated/administracao/grupos")({
   head: () => ({
     meta: [
-      { title: "Grupos — Helpdesk T.I." },
+      { title: "Grupos" },
       {
         name: "description",
         content: "Grupos de competência e organizacionais, com seus membros e características.",
