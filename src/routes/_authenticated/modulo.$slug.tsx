@@ -6,7 +6,25 @@ import { AppShell } from "@/components/AppShell";
  * Tela única para os módulos do GLPI que ainda não foram construídos.
  * O menu já leva a eles para que a navegação fique completa desde a etapa 1.
  */
-const MODULES: Record<string, { title: string; description: string }> = {
+const MODULES: Record<string, { title: string; description: string; note?: string }> = {
+  "fila-de-emails": {
+    title: "Fila de e-mails",
+    description:
+      "As notificações aguardando envio, as que saíram e as que falharam, com reenvio manual.",
+    note: "Depende da entrega de e-mail, que ainda não foi configurada. A tela já existe no código e volta ao menu quando o envio for ligado.",
+  },
+  notificacoes: {
+    title: "Notificações",
+    description:
+      "Quais eventos avisam quem, e o texto de cada modelo de mensagem enviado por e-mail.",
+    note: "Depende da entrega de e-mail, que ainda não foi configurada. A tela já existe no código e volta ao menu quando o envio for ligado.",
+  },
+  coletores: {
+    title: "Coletores de e-mail",
+    description:
+      "Caixas de entrada lidas pelo sistema para abrir chamado a partir de e-mail recebido.",
+    note: "Depende da entrega de e-mail, que ainda não foi configurada. A tela já existe no código e volta ao menu quando o envio for ligado.",
+  },
   contratos: {
     title: "Contratos",
     description:
@@ -93,7 +111,7 @@ function Modulo() {
           {module?.description ?? "Este módulo ainda não foi construído."}
         </p>
         <p className="mt-2 text-[0.7rem] text-muted-foreground">
-          Entra na etapa 2, junto com o restante das funcionalidades ITIL.
+          {module?.note ?? "Entra na etapa 2, junto com o restante das funcionalidades ITIL."}
         </p>
         <Link to="/chamados" className="mt-3 text-xs text-link hover:underline">
           Ir para os chamados
