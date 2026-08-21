@@ -14,11 +14,17 @@ import { formatBytes } from "@/lib/inventory";
 export const Route = createFileRoute("/_authenticated/gestao/infra")({
   // O menu do GLPI lista estes objetos separadamente; aqui eles
   // dividem a mesma tela, então a aba vem pela URL.
-  validateSearch: (search: Record<string, unknown>): { aba: "datacenters" | "salas" | "clusters" } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { aba: "datacenters" | "salas" | "clusters" | "appliances" | "bancos" } => {
     const aba = String(search["aba"] ?? "");
-    return { aba: (["datacenters", "salas", "clusters"] as const).includes(aba as never)
-      ? (aba as "datacenters" | "salas" | "clusters")
-      : "datacenters" };
+    return {
+      aba: (["datacenters", "salas", "clusters", "appliances", "bancos"] as const).includes(
+        aba as never,
+      )
+        ? (aba as "datacenters" | "salas" | "clusters" | "appliances" | "bancos")
+        : "datacenters",
+    };
   },
   head: () => ({
     meta: [
