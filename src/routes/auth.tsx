@@ -5,7 +5,6 @@ import {
   Eye,
   EyeOff,
   Gauge,
-  LifeBuoy,
   Loader2,
   LockKeyhole,
   Mail,
