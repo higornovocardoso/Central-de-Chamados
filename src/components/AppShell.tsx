@@ -392,7 +392,7 @@ function SidebarNav({
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Buscar no menu"
-              className="h-7 w-full rounded-sm border border-sidebar-border bg-black/20 pl-7 pr-2 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus:border-sidebar-primary focus:outline-none"
+              className="h-8 w-full rounded-xl border border-white/10 bg-black/25 pl-7 pr-2 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus:border-sidebar-primary focus:outline-none"
             />
           </label>
         </div>
