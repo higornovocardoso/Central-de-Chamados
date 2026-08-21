@@ -64,17 +64,16 @@ const OPEN_GROUPS_KEY = "glpi.sidebar.groups";
 const THEME_KEY = "glpi.theme";
 
 function useTheme() {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    // O GLPI abre no claro. Seguir o tema do sistema operacional fazia quem
-    // usa Windows no escuro cair num visual que não é o do GLPI, então só a
-    // escolha explícita no botão vale — o escuro continua disponível.
+    // O sistema abre no tema escuro frio; o claro fica disponível no botão.
     const stored = localStorage.getItem(THEME_KEY);
-    const next = stored === "dark";
+    const next = stored !== "light";
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
   }, []);
+
 
   function toggle() {
     setDark((prev) => {
