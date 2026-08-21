@@ -184,8 +184,10 @@ export function AppShell({
       <div className="flex min-h-screen bg-background">
         {/* Menu lateral — escondido no celular, abre pela folha lateral */}
         <aside
+          onMouseEnter={() => setHoverOpen(true)}
+          onMouseLeave={() => setHoverOpen(false)}
           className={`sidebar-surface sidebar-rail sticky top-2 m-2 hidden h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out lg:flex ${
-            collapsed ? "w-[4.25rem]" : "w-60"
+            sidebarCollapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
           <div className="flex-1 overflow-y-auto pb-3 pt-2">{sidebar}</div>
