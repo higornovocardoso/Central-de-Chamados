@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { LayoutGrid, List } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Tag } from "@/components/Tag";
@@ -117,9 +118,28 @@ function Kanban() {
 
   return (
     <AppShell
-      title="Kanban"
+      title="Chamados"
       subtitle="A fila inteira em colunas. Arraste o cartão para mudar o status."
       breadcrumbTail="Kanban"
+      actions={
+        <div className="flex items-center rounded border border-border">
+          <Link
+            to="/chamados"
+            title="Visão em lista"
+            aria-label="Visão em lista"
+            className="flex size-7 items-center justify-center rounded-l text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <List className="size-4" />
+          </Link>
+          <span
+            className="flex size-7 items-center justify-center rounded-r bg-secondary text-secondary-foreground"
+            title="Visão em Kanban"
+            aria-current="page"
+          >
+            <LayoutGrid className="size-4" />
+          </span>
+        </div>
+      }
     >
       <Tabs value={board} onValueChange={(v) => setBoard(v as Board)}>
         <TabsList className="mb-3 min-h-8">

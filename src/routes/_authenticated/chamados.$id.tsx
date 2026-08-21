@@ -131,7 +131,6 @@ function DetalheChamado() {
     category_id: NONE,
     request_source_id: NONE,
     location_id: NONE,
-    sector_id: NONE,
   });
 
   // ---- consultas ---------------------------------------------------------
@@ -157,7 +156,7 @@ function DetalheChamado() {
   const lookupsQuery = useQuery({
     queryKey: ["itil_lookups"],
     queryFn: async () => {
-      const [categories, taskCategories, solutionTypes, sources, groups, suppliers, assets, locations, sectors] =
+      const [categories, taskCategories, solutionTypes, sources, groups, suppliers, assets, locations] =
         await Promise.all([
           db.from("itil_categories").select("*").order("path"),
           db.from("task_categories").select("*").order("name"),
@@ -167,7 +166,6 @@ function DetalheChamado() {
           supabase.from("suppliers").select("id,name").order("name"),
           supabase.from("assets").select("id,name,asset_tag").order("name"),
           supabase.from("locations").select("id,name").order("name"),
-          supabase.from("sectors").select("id,name").order("name"),
         ]);
       return {
         categories: (categories.data ?? []) as ItilCategoryRow[],
@@ -178,7 +176,6 @@ function DetalheChamado() {
         suppliers: suppliers.data ?? [],
         assets: assets.data ?? [],
         locations: locations.data ?? [],
-        sectors: sectors.data ?? [],
         available: !categories.error,
       };
     },
@@ -325,7 +322,6 @@ function DetalheChamado() {
       category_id: str(ticket, "category_id") || NONE,
       request_source_id: str(ticket, "request_source_id") || NONE,
       location_id: str(ticket, "location_id") || NONE,
-      sector_id: str(ticket, "sector_id") || NONE,
     });
   }, [ticket]);
 
@@ -360,7 +356,6 @@ function DetalheChamado() {
           form.request_source_id === NONE ? null : form.request_source_id;
       }
       patch["location_id"] = form.location_id === NONE ? null : form.location_id;
-      patch["sector_id"] = form.sector_id === NONE ? null : form.sector_id;
 
       // O types.ts gerado ainda não conhece as colunas da fase 3.
       const { error } = await supabase.from("tickets").update(patch as never).eq("id", id);
@@ -708,19 +703,6 @@ function DetalheChamado() {
                       ))}
                     </Picker>
 
-                    <Picker
-                      label="Setor"
-                      value={form.sector_id}
-                      onChange={(v) => setForm({ ...form, sector_id: v })}
-                    >
-                      <SelectItem value={NONE}>Nenhum</SelectItem>
-                      {(lookups?.sectors ?? []).map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </Picker>
-
                     <Button
                       size="sm"
                       className="h-8 w-full"
@@ -922,7 +904,6 @@ const FIELD_LABEL: Record<string, string> = {
   entity_id: "Entidade",
   asset_id: "Ativo",
   location_id: "Local",
-  sector_id: "Setor",
   validation_state: "Aprovação",
   is_deleted: "Lixeira",
 };

@@ -67,7 +67,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Cabos", to: "/inventario", search: { tipo: "cabo" }, right: "cable" },
       { label: "Cartões SIM", to: "/inventario", search: { tipo: "sim_card" }, right: "sim" },
       { label: "Global", to: "/inventario", search: { tipo: "todos" }, right: "computer" },
-      { label: "Importar CSV", to: "/inventario/importar", right: "import" },
     ],
   },
   {
@@ -79,7 +78,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Criar chamado", to: "/chamados/novo", right: "ticket" },
       { label: "Problemas", to: "/assistencia/problemas", right: "problem" },
       { label: "Mudanças", to: "/assistencia/mudancas", right: "change" },
-      { label: "Kanban", to: "/assistencia/kanban", right: "ticket" },
       soon("Planejamento", "planejamento", "planning"),
       soon("Estatísticas", "estatisticas", "statistics"),
       { label: "Chamados recorrentes", to: "/chamados/recorrentes", right: "recurrent" },
@@ -144,7 +142,6 @@ export const NAV_GROUPS: NavGroup[] = [
     links: [
       { label: "Listas suspensas", to: "/configuracao/listas", right: "dropdown" },
       { label: "Locais", to: "/cadastros", search: { aba: "locations" }, right: "dropdown" },
-      { label: "Setores", to: "/cadastros", search: { aba: "sectors" }, right: "dropdown" },
       { label: "Notificações", to: "/configuracao/notificacoes", right: "notification" },
       { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
       soon("Configurações gerais", "configuracoes", "config"),
@@ -185,7 +182,6 @@ const CRUMB_LABEL: Record<string, string> = {
   listas: "Listas suspensas",
   softwares: "Software",
   estoque: "Cartuchos e consumíveis",
-  importar: "Importar CSV",
   gestao: "Gestão",
   contratos: "Contratos",
   fornecedores: "Fornecedores",

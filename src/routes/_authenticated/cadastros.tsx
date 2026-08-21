@@ -18,13 +18,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/useRoles";
 
-type AbaCadastro = "locations" | "sectors" | "suppliers";
+type AbaCadastro = "locations" | "suppliers";
 type CadastrosSearch = { aba?: AbaCadastro | undefined };
 
 export const Route = createFileRoute("/_authenticated/cadastros")({
   validateSearch: (search: Record<string, unknown>): CadastrosSearch => {
     const aba = search["aba"];
-    return aba === "sectors" || aba === "suppliers" || aba === "locations" ? { aba } : {};
+    return aba === "suppliers" || aba === "locations" ? { aba } : {};
   },
   head: () => ({
     meta: [
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_authenticated/cadastros")({
 });
 
 type EntityConfig = {
-  table: "locations" | "sectors" | "suppliers";
+  table: "locations" | "suppliers";
   title: string;
   fields: { key: string; label: string }[];
 };
@@ -60,14 +60,6 @@ const CONFIGS: EntityConfig[] = [
       { key: "name", label: "Nome *" },
       { key: "building", label: "Prédio / andar" },
       { key: "notes", label: "Observações" },
-    ],
-  },
-  {
-    table: "sectors",
-    title: "Setores",
-    fields: [
-      { key: "name", label: "Nome *" },
-      { key: "manager", label: "Responsável" },
     ],
   },
   {

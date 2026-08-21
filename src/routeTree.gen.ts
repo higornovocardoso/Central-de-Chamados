@@ -53,7 +53,6 @@ import { Route as AuthenticatedGestaoOrcamentosRouteImport } from './routes/_aut
 import { Route as AuthenticatedInventarioIndexRouteImport } from './routes/_authenticated/inventario.index'
 import { Route as AuthenticatedInventarioIdRouteImport } from './routes/_authenticated/inventario.$id'
 import { Route as AuthenticatedInventarioEstoqueRouteImport } from './routes/_authenticated/inventario.estoque'
-import { Route as AuthenticatedInventarioImportarRouteImport } from './routes/_authenticated/inventario.importar'
 import { Route as AuthenticatedInventarioSoftwaresRouteImport } from './routes/_authenticated/inventario.softwares'
 import { Route as AuthenticatedModuloSlugRouteImport } from './routes/_authenticated/modulo.$slug'
 
@@ -313,12 +312,6 @@ const AuthenticatedInventarioEstoqueRoute =
     path: '/inventario/estoque',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedInventarioImportarRoute =
-  AuthenticatedInventarioImportarRouteImport.update({
-    id: '/inventario/importar',
-    path: '/inventario/importar',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedInventarioSoftwaresRoute =
   AuthenticatedInventarioSoftwaresRouteImport.update({
     id: '/inventario/softwares',
@@ -373,7 +366,6 @@ export interface FileRoutesByFullPath {
   '/gestao/orcamentos': typeof AuthenticatedGestaoOrcamentosRoute
   '/inventario/$id': typeof AuthenticatedInventarioIdRoute
   '/inventario/estoque': typeof AuthenticatedInventarioEstoqueRoute
-  '/inventario/importar': typeof AuthenticatedInventarioImportarRoute
   '/inventario/softwares': typeof AuthenticatedInventarioSoftwaresRoute
   '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
   '/chamados/': typeof AuthenticatedChamadosIndexRoute
@@ -421,7 +413,6 @@ export interface FileRoutesByTo {
   '/gestao/orcamentos': typeof AuthenticatedGestaoOrcamentosRoute
   '/inventario/$id': typeof AuthenticatedInventarioIdRoute
   '/inventario/estoque': typeof AuthenticatedInventarioEstoqueRoute
-  '/inventario/importar': typeof AuthenticatedInventarioImportarRoute
   '/inventario/softwares': typeof AuthenticatedInventarioSoftwaresRoute
   '/modulo/$slug': typeof AuthenticatedModuloSlugRoute
   '/chamados': typeof AuthenticatedChamadosIndexRoute
@@ -471,7 +462,6 @@ export interface FileRoutesById {
   '/_authenticated/gestao/orcamentos': typeof AuthenticatedGestaoOrcamentosRoute
   '/_authenticated/inventario/$id': typeof AuthenticatedInventarioIdRoute
   '/_authenticated/inventario/estoque': typeof AuthenticatedInventarioEstoqueRoute
-  '/_authenticated/inventario/importar': typeof AuthenticatedInventarioImportarRoute
   '/_authenticated/inventario/softwares': typeof AuthenticatedInventarioSoftwaresRoute
   '/_authenticated/modulo/$slug': typeof AuthenticatedModuloSlugRoute
   '/_authenticated/chamados/': typeof AuthenticatedChamadosIndexRoute
@@ -521,7 +511,6 @@ export interface FileRouteTypes {
     | '/gestao/orcamentos'
     | '/inventario/$id'
     | '/inventario/estoque'
-    | '/inventario/importar'
     | '/inventario/softwares'
     | '/modulo/$slug'
     | '/chamados/'
@@ -569,7 +558,6 @@ export interface FileRouteTypes {
     | '/gestao/orcamentos'
     | '/inventario/$id'
     | '/inventario/estoque'
-    | '/inventario/importar'
     | '/inventario/softwares'
     | '/modulo/$slug'
     | '/chamados'
@@ -618,7 +606,6 @@ export interface FileRouteTypes {
     | '/_authenticated/gestao/orcamentos'
     | '/_authenticated/inventario/$id'
     | '/_authenticated/inventario/estoque'
-    | '/_authenticated/inventario/importar'
     | '/_authenticated/inventario/softwares'
     | '/_authenticated/modulo/$slug'
     | '/_authenticated/chamados/'
@@ -942,13 +929,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInventarioEstoqueRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/inventario/importar': {
-      id: '/_authenticated/inventario/importar'
-      path: '/inventario/importar'
-      fullPath: '/inventario/importar'
-      preLoaderRoute: typeof AuthenticatedInventarioImportarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/inventario/softwares': {
       id: '/_authenticated/inventario/softwares'
       path: '/inventario/softwares'
@@ -1005,7 +985,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestaoOrcamentosRoute: typeof AuthenticatedGestaoOrcamentosRoute
   AuthenticatedInventarioIdRoute: typeof AuthenticatedInventarioIdRoute
   AuthenticatedInventarioEstoqueRoute: typeof AuthenticatedInventarioEstoqueRoute
-  AuthenticatedInventarioImportarRoute: typeof AuthenticatedInventarioImportarRoute
   AuthenticatedInventarioSoftwaresRoute: typeof AuthenticatedInventarioSoftwaresRoute
   AuthenticatedModuloSlugRoute: typeof AuthenticatedModuloSlugRoute
   AuthenticatedChamadosIndexRoute: typeof AuthenticatedChamadosIndexRoute
@@ -1061,7 +1040,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGestaoOrcamentosRoute: AuthenticatedGestaoOrcamentosRoute,
   AuthenticatedInventarioIdRoute: AuthenticatedInventarioIdRoute,
   AuthenticatedInventarioEstoqueRoute: AuthenticatedInventarioEstoqueRoute,
-  AuthenticatedInventarioImportarRoute: AuthenticatedInventarioImportarRoute,
   AuthenticatedInventarioSoftwaresRoute: AuthenticatedInventarioSoftwaresRoute,
   AuthenticatedModuloSlugRoute: AuthenticatedModuloSlugRoute,
   AuthenticatedChamadosIndexRoute: AuthenticatedChamadosIndexRoute,

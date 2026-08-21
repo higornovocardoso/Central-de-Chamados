@@ -79,7 +79,6 @@ type AssetRow = {
   purchase_date: string | null;
   warranty_end: string | null;
   location_id: string | null;
-  sector_id: string | null;
   supplier_id: string | null;
   assigned_name: string;
   notes: string;
@@ -96,7 +95,6 @@ const EMPTY: Omit<AssetRow, "id"> = {
   purchase_date: null,
   warranty_end: null,
   location_id: null,
-  sector_id: null,
   supplier_id: null,
   assigned_name: "",
   notes: "",
@@ -128,7 +126,7 @@ function Inventario() {
       const { data, error } = await supabase
         .from("assets")
         .select(
-          "id,name,asset_tag,kind,status,brand,model,serial_number,purchase_date,warranty_end,location_id,sector_id,supplier_id,assigned_name,notes",
+          "id,name,asset_tag,kind,status,brand,model,serial_number,purchase_date,warranty_end,location_id,supplier_id,assigned_name,notes",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -139,14 +137,12 @@ function Inventario() {
   const lookups = useQuery({
     queryKey: ["lookups"],
     queryFn: async () => {
-      const [locations, sectors, suppliers] = await Promise.all([
+      const [locations, suppliers] = await Promise.all([
         supabase.from("locations").select("id,name").order("name"),
-        supabase.from("sectors").select("id,name").order("name"),
         supabase.from("suppliers").select("id,name").order("name"),
       ]);
       return {
         locations: locations.data ?? [],
-        sectors: sectors.data ?? [],
         suppliers: suppliers.data ?? [],
       };
     },
@@ -255,14 +251,9 @@ function Inventario() {
       breadcrumbTail={kind === "todos" ? undefined : ASSET_KIND_LABEL[kind as AssetKind]}
       actions={
         isStaff ? (
-          <>
-            <Button size="sm" variant="outline" className="h-8" asChild>
-              <Link to="/inventario/importar">Importar CSV</Link>
-            </Button>
-            <Button size="sm" className="h-8" onClick={openNew}>
-              <Plus className="size-4" /> Adicionar
-            </Button>
-          </>
+          <Button size="sm" className="h-8" onClick={openNew}>
+            <Plus className="size-4" /> Adicionar
+          </Button>
         ) : null
       }
     >
@@ -351,7 +342,6 @@ function Inventario() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     {ASSET_KIND_LABEL[a.kind]} · {a.brand || "—"} {a.model} · série{" "}
                     {a.serial_number || "—"} · {nameOf(lookups.data?.locations, a.location_id)} ·{" "}
-                    {nameOf(lookups.data?.sectors, a.sector_id)} ·{" "}
                     {a.assigned_name ? `resp. ${a.assigned_name}` : "sem responsável"} · garantia até{" "}
                     {formatDay(a.warranty_end)}
                   </p>
@@ -463,13 +453,6 @@ function Inventario() {
                 value={form.location_id}
                 options={lookups.data?.locations ?? []}
                 onChange={(v) => setForm({ ...form, location_id: v })}
-              />
-            </Field>
-            <Field label="Setor">
-              <LookupSelect
-                value={form.sector_id}
-                options={lookups.data?.sectors ?? []}
-                onChange={(v) => setForm({ ...form, sector_id: v })}
               />
             </Field>
             <Field label="Fornecedor">

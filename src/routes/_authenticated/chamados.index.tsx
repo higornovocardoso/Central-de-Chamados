@@ -7,6 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  LayoutGrid,
+  List,
   Plus,
   Search,
   X,
@@ -357,11 +359,32 @@ function ListaChamados() {
       title="Chamados"
       subtitle={`${total} chamado(s) encontrado(s)`}
       actions={
-        <Button size="sm" className="h-8" asChild>
-          <Link to="/chamados/novo">
-            <Plus className="size-4" /> Adicionar
-          </Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Alternador de visualização do GLPI: o Kanban é um modo de ver a
+              lista, não uma tela separada no menu. */}
+          <div className="mr-1 flex items-center rounded border border-border">
+            <span
+              className="flex size-7 items-center justify-center rounded-l bg-secondary text-secondary-foreground"
+              title="Visão em lista"
+              aria-current="page"
+            >
+              <List className="size-4" />
+            </span>
+            <Link
+              to="/assistencia/kanban"
+              title="Visão em Kanban"
+              aria-label="Visão em Kanban"
+              className="flex size-7 items-center justify-center rounded-r text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              <LayoutGrid className="size-4" />
+            </Link>
+          </div>
+          <Button size="sm" className="h-8" asChild>
+            <Link to="/chamados/novo">
+              <Plus className="size-4" /> Adicionar
+            </Link>
+          </Button>
+        </div>
       }
     >
       {/* Barra de pesquisa, no formato do GLPI */}
