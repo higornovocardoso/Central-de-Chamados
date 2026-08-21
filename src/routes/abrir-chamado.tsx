@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { LifeBuoy, Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,15 +72,6 @@ function AbrirChamado() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-4">
-          <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <LifeBuoy className="size-4" />
-          </span>
-          <span className="font-display text-sm font-semibold tracking-tight">Helpdesk T.I.</span>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-2xl px-4 py-10">
         {created ? (
           <div className="panel space-y-4 p-8 text-center">

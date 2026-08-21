@@ -203,16 +203,7 @@ export function AppShell({
             collapsed ? "w-14" : "w-60"
           }`}
         >
-          <div className="flex h-12 items-center gap-2 border-b border-sidebar-border px-3">
-            <Link to="/painel" className="flex min-w-0 items-center gap-2">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sidebar-primary-foreground">
-                <LayoutDashboard className="size-4" />
-              </span>
-              {!collapsed && (
-                <span className="truncate text-sm font-semibold tracking-tight">Helpdesk T.I.</span>
-              )}
-            </Link>
-          </div>
+          <div className="flex h-12 items-center border-b border-sidebar-border px-3" />
 
           <div className="flex-1 overflow-y-auto py-2">{sidebar}</div>
 
@@ -241,7 +232,7 @@ export function AppShell({
                   className="sidebar-surface w-64 border-sidebar-border p-0 text-sidebar-foreground"
                 >
                   <SheetTitle className="border-b border-sidebar-border px-3 py-3 text-sm font-semibold text-sidebar-foreground">
-                    Helpdesk T.I.
+                    Menu
                   </SheetTitle>
                   <div className="overflow-y-auto py-2">{sidebar}</div>
                 </SheetContent>

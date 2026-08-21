@@ -93,13 +93,6 @@ function AuthPage() {
   return (
     <div className="grid-lines flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <LifeBuoy className="size-5" />
-          </span>
-          <span className="font-display text-lg font-semibold">Helpdesk T.I.</span>
-        </Link>
-
         <div className="panel p-6">
           <Tabs defaultValue="entrar">
             <TabsList className="grid w-full grid-cols-2">
