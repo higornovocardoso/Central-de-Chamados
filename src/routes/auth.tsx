@@ -87,7 +87,7 @@ function AuthPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="rise-in grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-card shadow-2xl lg:grid-cols-[1.05fr_1fr]">
+      <div className="rise-in grid w-full max-w-4xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl lg:grid-cols-[1.05fr_1fr]">
         {/* Vitrine do sistema — dá contexto sem poluir o formulário */}
         <section className="relative hidden flex-col items-center justify-center bg-[#131a2b] p-8 text-white lg:flex">
           <div
