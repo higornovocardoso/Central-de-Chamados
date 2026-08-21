@@ -287,7 +287,43 @@ function Usuarios() {
       title="Usuários"
       subtitle="Quem acessa o sistema, com qual perfil e em qual entidade."
       breadcrumbTail="Usuários"
+      actions={
+        can("user", "create") ? (
+          <Button
+            size="sm"
+            className="h-9 rounded-xl"
+            onClick={() => {
+              setNewUser({ ...emptyNewUser, entity_id: entities[0]?.id ?? "" });
+              setCreateOpen(true);
+            }}
+          >
+            <UserPlus className="size-4" /> Novo usuário
+          </Button>
+        ) : undefined
+      }
     >
+      <div className="mb-3 grid gap-3 sm:grid-cols-3">
+        {[
+          { label: "Usuários", value: people.length, icon: Users },
+          { label: "Autorizações", value: authorizations.length, icon: ShieldCheck },
+          { label: "Sem autorização", value: withoutAuth, icon: UserCog },
+        ].map((tile, index) => (
+          <div
+            key={tile.label}
+            className="tile rise-in flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
+            style={{ animationDelay: `${index * 60}ms` }}
+          >
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <tile.icon className="size-5" />
+            </span>
+            <span>
+              <span className="block text-xl font-semibold leading-none">{tile.value}</span>
+              <span className="text-[0.72rem] text-muted-foreground">{tile.label}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
       <div className="panel mb-3 p-2">
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -295,7 +331,7 @@ function Usuarios() {
             value={term}
             onChange={(e) => setTerm(e.target.value)}
             placeholder="Buscar por nome ou e-mail..."
-            className="h-8 pl-8 text-xs"
+            className="h-9 rounded-xl pl-8 text-xs"
           />
         </div>
       </div>
@@ -328,7 +364,14 @@ function Usuarios() {
                   .filter(Boolean);
                 return (
                   <tr key={p.id}>
-                    <td className="font-medium">{p.full_name || "—"}</td>
+                    <td className="font-medium">
+                      <span className="flex items-center gap-2">
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#8b5cf6] text-[0.68rem] font-semibold text-white">
+                          {initialsOf(p)}
+                        </span>
+                        {p.full_name || "—"}
+                      </span>
+                    </td>
                     <td className="text-muted-foreground">{p.email}</td>
                     <td>
                       {auths.length === 0 ? (
@@ -359,6 +402,11 @@ function Usuarios() {
                             className="h-7 text-xs"
                             onClick={() => {
                               setSelected(p);
+                              setAccount({
+                                full_name: p.full_name ?? "",
+                                email: p.email ?? "",
+                                password: "",
+                              });
                               setNewAuth({
                                 profile_id: "",
                                 entity_id: entities[0]?.id ?? "",
@@ -383,9 +431,76 @@ function Usuarios() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{selected?.full_name || selected?.email}</DialogTitle>
+            <DialogDescription className="text-xs">{selected?.email}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            {can("user", "update") && (
+              <section>
+                <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold">
+                  <UserCog className="size-3.5" /> Dados da conta
+                </h3>
+                <div className="panel grid gap-2 p-3 sm:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label className="text-[0.7rem] text-muted-foreground">Nome</Label>
+                    <Input
+                      value={account.full_name}
+                      onChange={(e) => setAccount({ ...account, full_name: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[0.7rem] text-muted-foreground">E-mail</Label>
+                    <Input
+                      value={account.email}
+                      onChange={(e) => setAccount({ ...account, email: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[0.7rem] text-muted-foreground">Nova senha</Label>
+                    <Input
+                      type="password"
+                      value={account.password}
+                      placeholder="Deixe em branco para manter"
+                      onChange={(e) => setAccount({ ...account, password: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="sm:col-span-3 flex flex-wrap justify-end gap-2">
+                    {can("user", "delete") && selected && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs text-destructive"
+                        onClick={() => {
+                          if (confirm("Excluir este usuário em definitivo?")) {
+                            removeUser.mutate(selected.id);
+                          }
+                        }}
+                        disabled={removeUser.isPending}
+                      >
+                        <Trash2 className="size-3.5" /> Excluir usuário
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => saveAccount.mutate()}
+                      disabled={saveAccount.isPending}
+                    >
+                      {saveAccount.isPending ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <KeyRound className="size-3.5" />
+                      )}
+                      Salvar conta
+                    </Button>
+                  </div>
+                </div>
+              </section>
+            )}
+
             <section>
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold">
                 <ShieldCheck className="size-3.5" /> Autorizações
@@ -514,6 +629,103 @@ function Usuarios() {
           <DialogFooter>
             <Button size="sm" onClick={() => setSelected(null)}>
               Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo usuário</DialogTitle>
+            <DialogDescription className="text-xs">
+              A conta é criada já confirmada — o usuário entra com o e-mail e a senha definidos aqui.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Nome completo</Label>
+              <Input
+                value={newUser.full_name}
+                onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
+                placeholder="Ex.: Maria Souza"
+                className="h-9 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">E-mail</Label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  placeholder="usuario@empresa.com.br"
+                  className="h-9 pl-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Senha</Label>
+              <Input
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                placeholder="Mínimo de 8 caracteres"
+                className="h-9 text-xs"
+              />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Perfil</Label>
+                <Select
+                  value={newUser.profile_id}
+                  onValueChange={(v) => setNewUser({ ...newUser, profile_id: v })}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Escolha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accessProfiles.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Entidade</Label>
+                <Select
+                  value={newUser.entity_id}
+                  onValueChange={(v) => setNewUser({ ...newUser, entity_id: v })}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Escolha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entities.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button size="sm" variant="outline" onClick={() => setCreateOpen(false)}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={() => createUser.mutate()} disabled={createUser.isPending}>
+              {createUser.isPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Plus className="size-4" />
+              )}
+              Criar usuário
             </Button>
           </DialogFooter>
         </DialogContent>
