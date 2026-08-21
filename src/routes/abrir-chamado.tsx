@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, PRIORITY_LABEL, ticketCode, type TicketPriority } from "@/lib/tickets";
-import { createPublicTicket } from "@/lib/public-tickets.functions";
+import { createPublicTicket, publicTicketSchema } from "@/lib/public-tickets.functions";
 
 export const Route = createFileRoute("/abrir-chamado")({
   head: () => ({
