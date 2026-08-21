@@ -151,7 +151,8 @@ export function AppShell({
     user?.email?.split("@")[0] ||
     "Usuário";
   const entityName =
-    entities.find((e) => e.id === selectedId)?.name ?? "Entidade raiz (árvore)";
+    entities.find((e) => e.id === selectedId)?.name ?? entities[0]?.name ?? "—";
+
 
   const sidebar = (
     <SidebarNav
