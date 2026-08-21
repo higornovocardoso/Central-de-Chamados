@@ -25,6 +25,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { DashboardSelector } from "@/components/DashboardSelector";
 import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ASSET_KIND_LABEL, type AssetKind } from "@/lib/glpi";
@@ -137,6 +138,7 @@ function PainelDeAtivos() {
       title="Painel de ativos"
       subtitle="Quantos equipamentos de cada tipo, e como o parque se distribui."
       breadcrumbTail="Painel de ativos"
+      actions={<DashboardSelector atual="ativos" />}
     >
       <div className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {BLOCOS.map((b) => {

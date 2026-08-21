@@ -26,6 +26,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { DashboardSelector } from "@/components/DashboardSelector";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { slaState } from "@/lib/glpi";
@@ -204,8 +205,10 @@ function Painel() {
       subtitle="Visão geral da central de serviços"
       actions={
         <div className="flex items-center gap-1">
-          {/* Barra do painel do GLPI. Só entram as ações que existem de
-              verdade — botão que não faz nada é pior que botão ausente. */}
+          {/* Barra do painel do GLPI: seletor à esquerda e as ações à direita.
+              Só entram as ações que existem de verdade — botão que não faz
+              nada é pior que botão ausente. */}
+          <DashboardSelector atual="assistencia" />
           <Button
             size="icon"
             variant="ghost"

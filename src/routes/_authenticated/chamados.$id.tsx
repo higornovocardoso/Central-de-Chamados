@@ -44,6 +44,7 @@ import {
   type TicketSolutionRow,
   type TicketTaskRow,
   type TicketValidationRow,
+  type LooseRow,
 } from "@/integrations/supabase/glpi-db";
 import { useSessionUser } from "@/hooks/useSession";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -486,56 +487,36 @@ function DetalheChamado() {
           direita. Os dois lados rolam de forma independente. */}
       <div className="itil-object">
         <div className="itil-left-side space-y-3">
-            <section className="panel">
-              <header className="panel-header">Descrição</header>
-              <p className="whitespace-pre-wrap p-3 text-xs leading-relaxed">
-                {str(ticket, "description") || "Sem descrição."}
-              </p>
-            </section>
+          <section className="panel">
+            <header className="panel-header">Descrição</header>
+            <p className="whitespace-pre-wrap p-3 text-xs leading-relaxed">
+              {str(ticket, "description") || "Sem descrição."}
+            </p>
+          </section>
 
-            <FollowupsPanel
-              ticketId={id}
-              comments={commentsQuery.data ?? []}
-              personName={personName}
-              sources={lookups?.sources ?? []}
-              canSeePrivate={hasFlag("followup_see_private")}
-              phase3={phase3}
-              userId={user?.id ?? null}
-              onChanged={() => invalidate("comments")}
-            />
+          {/* A linha do tempo do GLPI: tudo em ordem de acontecimento. */}
+          <TicketTimeline
+            comments={commentsQuery.data ?? []}
+            tasks={tasksQuery.data ?? []}
+            solutions={solutionsQuery.data ?? []}
+            validations={validationsQuery.data ?? []}
+            personName={personName}
+            canSeePrivate={hasFlag("followup_see_private")}
+            userId={user?.id ?? null}
+          />
 
-        <TasksPanel
-          ticketId={id}
-          tasks={tasksQuery.data ?? []}
-          categories={lookups?.taskCategories ?? []}
-          technicians={techniciansQuery.data ?? []}
-          personName={personName}
-          canEdit={can("task", "create") && phase3}
-          userId={user?.id ?? null}
-          onChanged={() => invalidate("ticket_tasks")}
-        />
-
-        <SolutionPanel
-          ticketId={id}
-          solutions={solutionsQuery.data ?? []}
-          types={lookups?.solutionTypes ?? []}
-          personName={personName}
-          canSolve={can("solution", "create") && phase3}
-          isRequester={str(ticket, "requester_id") === user?.id}
-          userId={user?.id ?? null}
-          onChanged={() => invalidate("ticket_solutions")}
-        />
-
-        <ValidationsPanel
-          ticketId={id}
-          validations={validationsQuery.data ?? []}
-          percent={num(ticket, "validation_percent", 100)}
-          people={peopleQuery.data ?? []}
-          personName={personName}
-          canRequest={hasFlag("validation_request") && phase3}
-          userId={user?.id ?? null}
-          onChanged={() => invalidate("ticket_validations")}
-        />
+          {/* A caixa de resposta fica no fim da linha, como no original. */}
+          <FollowupsPanel
+            composerOnly
+            ticketId={id}
+            comments={commentsQuery.data ?? []}
+            personName={personName}
+            sources={lookups?.sources ?? []}
+            canSeePrivate={hasFlag("followup_see_private")}
+            phase3={phase3}
+            userId={user?.id ?? null}
+            onChanged={() => invalidate("comments")}
+          />
         </div>
 
         <aside className="itil-right-side space-y-3">
@@ -734,6 +715,57 @@ function DetalheChamado() {
             />
 
           <Accordion type="multiple" className="rounded border border-border bg-card">
+            <AccordionItem value="tarefas">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Tarefas ({tasksQuery.data?.length ?? 0})
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+                <TasksPanel
+                ticketId={id}
+                tasks={tasksQuery.data ?? []}
+                categories={lookups?.taskCategories ?? []}
+                technicians={techniciansQuery.data ?? []}
+                personName={personName}
+                canEdit={can("task", "create") && phase3}
+                userId={user?.id ?? null}
+                onChanged={() => invalidate("ticket_tasks")}
+                />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="solucao">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Solução
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+                <SolutionPanel
+                ticketId={id}
+                solutions={solutionsQuery.data ?? []}
+                types={lookups?.solutionTypes ?? []}
+                personName={personName}
+                canSolve={can("solution", "create") && phase3}
+                isRequester={str(ticket, "requester_id") === user?.id}
+                userId={user?.id ?? null}
+                onChanged={() => invalidate("ticket_solutions")}
+                />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="aprovacoes">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Aprovações ({validationsQuery.data?.length ?? 0})
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+                <ValidationsPanel
+                ticketId={id}
+                validations={validationsQuery.data ?? []}
+                percent={num(ticket, "validation_percent", 100)}
+                people={peopleQuery.data ?? []}
+                personName={personName}
+                canRequest={hasFlag("validation_request") && phase3}
+                userId={user?.id ?? null}
+                onChanged={() => invalidate("ticket_validations")}
+                />
+              </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="itens">
               <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
                 Itens ({itemsQuery.data?.length ?? 0})
@@ -908,6 +940,139 @@ const FIELD_LABEL: Record<string, string> = {
   is_deleted: "Lixeira",
 };
 
+/**
+ * A linha do tempo do chamado, como no GLPI: acompanhamento, tarefa, solução
+ * e aprovação misturados em ordem cronológica, e não separados por aba. Cada
+ * entrada mostra de onde veio pela cor do marcador e por uma etiqueta.
+ */
+type EntradaLinha = {
+  id: string;
+  tipo: "acompanhamento" | "tarefa" | "solucao" | "aprovacao";
+  quando: string;
+  autor: string | null;
+  texto: string;
+  privado: boolean;
+  detalhe?: string;
+};
+
+const ENTRADA_ROTULO: Record<EntradaLinha["tipo"], string> = {
+  acompanhamento: "Acompanhamento",
+  tarefa: "Tarefa",
+  solucao: "Solução",
+  aprovacao: "Aprovação",
+};
+
+const ENTRADA_COR: Record<EntradaLinha["tipo"], string> = {
+  acompanhamento: "bg-info",
+  tarefa: "bg-primary",
+  solucao: "bg-success",
+  aprovacao: "bg-chart-5",
+};
+
+function TicketTimeline({
+  comments,
+  tasks,
+  solutions,
+  validations,
+  personName,
+  canSeePrivate,
+  userId,
+}: {
+  comments: LooseRow[];
+  tasks: LooseRow[];
+  solutions: LooseRow[];
+  validations: LooseRow[];
+  personName: (id: string | null) => string;
+  canSeePrivate: boolean;
+  userId: string | null;
+}) {
+  const entradas: EntradaLinha[] = [];
+
+  for (const c of comments) {
+    entradas.push({
+      id: `c-${c.id}`,
+      tipo: "acompanhamento",
+      quando: String(c["created_at"]),
+      autor: (c["author_id"] as string | null) ?? null,
+      texto: String(c["body"] ?? ""),
+      privado: c["is_private"] === true,
+    });
+  }
+  for (const t of tasks) {
+    entradas.push({
+      id: `t-${t.id}`,
+      tipo: "tarefa",
+      quando: String(t["created_at"]),
+      autor: (t["author_id"] as string | null) ?? null,
+      texto: String(t["content"] ?? ""),
+      privado: t["is_private"] === true,
+      detalhe: TASK_STATE_LABEL[String(t["state"]) as TaskState] ?? String(t["state"]),
+    });
+  }
+  for (const sol of solutions) {
+    entradas.push({
+      id: `s-${sol.id}`,
+      tipo: "solucao",
+      quando: String(sol["created_at"]),
+      autor: (sol["author_id"] as string | null) ?? null,
+      texto: String(sol["content"] ?? ""),
+      privado: false,
+      detalhe: String(sol["state"] ?? ""),
+    });
+  }
+  for (const v of validations) {
+    entradas.push({
+      id: `v-${v.id}`,
+      tipo: "aprovacao",
+      quando: String(v["requested_at"] ?? v["created_at"]),
+      autor: (v["requested_by"] as string | null) ?? null,
+      texto: String(v["request_comment"] ?? ""),
+      privado: false,
+      detalhe: String(v["state"] ?? ""),
+    });
+  }
+
+  const visiveis = entradas
+    .filter((e) => !e.privado || canSeePrivate || e.autor === userId)
+    .sort((a, b) => new Date(a.quando).getTime() - new Date(b.quando).getTime());
+
+  if (visiveis.length === 0) {
+    return (
+      <section className="panel p-6 text-center text-xs text-muted-foreground">
+        Nada registrado ainda. O primeiro acompanhamento aparece aqui.
+      </section>
+    );
+  }
+
+  return (
+    <section className="panel p-3">
+      <ol className="m-0 list-none p-0">
+        {visiveis.map((e) => (
+          <li key={e.id} className="timeline-entry">
+            <span className={`timeline-dot ${ENTRADA_COR[e.tipo]}`} />
+            <div className="flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground">
+              <span className="font-medium text-foreground">{personName(e.autor)}</span>
+              <Tag className="border-border bg-secondary text-muted-foreground">
+                {ENTRADA_ROTULO[e.tipo]}
+              </Tag>
+              {e.detalhe && <span>{e.detalhe}</span>}
+              {e.privado && (
+                <span className="inline-flex items-center gap-1 rounded-sm border border-warning/40 px-1 text-[0.6rem] uppercase text-warning">
+                  <Lock className="size-2.5" /> privado
+                </span>
+              )}
+              <span className="ml-auto">{formatDate(e.quando)}</span>
+            </div>
+            {e.texto && (
+              <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed">{e.texto}</p>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 // ===========================================================================
 // Painéis
 // ===========================================================================
@@ -1074,6 +1239,7 @@ function ActorsPanel({
 }
 
 function FollowupsPanel({
+  composerOnly = false,
   ticketId,
   comments,
   personName,
@@ -1096,6 +1262,7 @@ function FollowupsPanel({
   phase3: boolean;
   userId: string | null;
   onChanged: () => void;
+  composerOnly?: boolean;
 }) {
   const [body, setBody] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -1126,8 +1293,9 @@ function FollowupsPanel({
   });
 
   return (
-    <section className="panel overflow-hidden">
-      <header className="panel-header">Acompanhamentos</header>
+    <section className={composerOnly ? "panel overflow-hidden" : "panel overflow-hidden"}>
+      {!composerOnly && <header className="panel-header">Acompanhamentos</header>}
+      {!composerOnly && (
       <ul className="divide-y divide-border">
         {comments.length === 0 && (
           <li className="px-3 py-6 text-center text-xs text-muted-foreground">
@@ -1154,9 +1322,10 @@ function FollowupsPanel({
           );
         })}
       </ul>
+      )}
 
       <form
-        className="space-y-2 border-t border-border p-3"
+        className={`space-y-2 p-3 ${composerOnly ? "" : "border-t border-border"}`}
         onSubmit={(e) => {
           e.preventDefault();
           if (body.trim()) add.mutate();

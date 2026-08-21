@@ -335,29 +335,51 @@ export type GlpiDatabase = {
 export const db = supabase as unknown as SupabaseClient<GlpiDatabase>;
 
 /**
- * Acesso por nome de tabela em tempo de execução, para telas de cadastro
- * genéricas. O cliente é o mesmo; só o tipo é afrouxado onde a tabela é
- * escolhida em uma variável.
+ * Acesso por nome de tabela em tempo de execução, para telas genéricas em
+ * que a tabela vem de uma variável.
+ *
+ * O molde é escrito à mão de propósito: apoiá-lo no cliente do Supabase faz
+ * o `select("*")` perder a inferência, porque a linha aqui é um tipo com
+ * assinatura de índice. O que mudou é a cobertura — antes eram quatro
+ * métodos, e faltavam `.not()`, `.in()`, `.limit()` e dois `.order()`
+ * encadeados, o que obrigava a contornar no cliente.
  */
 export type LooseRow = Record<string, unknown> & { id: string };
 
 type LooseError = { message: string } | null;
-type LooseResult = Promise<{ data: LooseRow[] | null; error: LooseError }>;
+type LooseData = { data: LooseRow[] | null; error: LooseError };
+type LooseSingle = { data: LooseRow | null; error: LooseError };
+
+/** Encadeável e aguardável: cada filtro devolve a própria consulta. */
+export interface LooseQuery extends PromiseLike<LooseData> {
+  eq: (column: string, value: unknown) => LooseQuery;
+  neq: (column: string, value: unknown) => LooseQuery;
+  gt: (column: string, value: unknown) => LooseQuery;
+  gte: (column: string, value: unknown) => LooseQuery;
+  lt: (column: string, value: unknown) => LooseQuery;
+  lte: (column: string, value: unknown) => LooseQuery;
+  like: (column: string, pattern: string) => LooseQuery;
+  ilike: (column: string, pattern: string) => LooseQuery;
+  is: (column: string, value: unknown) => LooseQuery;
+  in: (column: string, values: readonly unknown[]) => LooseQuery;
+  not: (column: string, operator: string, value: unknown) => LooseQuery;
+  order: (column: string, options?: { ascending?: boolean }) => LooseQuery;
+  limit: (count: number) => LooseQuery;
+  single: () => Promise<LooseSingle>;
+  maybeSingle: () => Promise<LooseSingle>;
+}
+
+type LooseWrite = PromiseLike<{ error: LooseError }> & {
+  eq: (column: string, value: unknown) => PromiseLike<{ error: LooseError }>;
+  select: (columns?: string) => LooseQuery;
+};
 
 export type LooseTable = {
-  select: (columns: string) => {
-    order: (column: string, options?: { ascending?: boolean }) => LooseResult;
-    eq: (column: string, value: string) => {
-      order: (column: string, options?: { ascending?: boolean }) => LooseResult;
-    };
-  };
-  insert: (values: Record<string, unknown>) => Promise<{ error: LooseError }>;
-  update: (values: Record<string, unknown>) => {
-    eq: (column: string, value: string) => Promise<{ error: LooseError }>;
-  };
-  delete: () => {
-    eq: (column: string, value: string) => Promise<{ error: LooseError }>;
-  };
+  select: (columns?: string) => LooseQuery;
+  insert: (values: Record<string, unknown> | Record<string, unknown>[]) => LooseWrite;
+  update: (values: Record<string, unknown>) => LooseWrite;
+  delete: () => LooseWrite;
+  upsert: (values: Record<string, unknown> | Record<string, unknown>[]) => LooseWrite;
 };
 
 export const looseDb = db as unknown as { from: (table: string) => LooseTable };

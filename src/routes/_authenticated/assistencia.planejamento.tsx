@@ -56,10 +56,10 @@ function Planejamento() {
       const { data, error } = await looseDb
         .from("ticket_tasks")
         .select("*")
+        .not("planned_start", "is", null)
         .order("planned_start");
       if (error) throw new Error(error.message);
-      // O molde do looseDb não tem .not(), então a tarefa sem data sai aqui.
-      return (data ?? []).filter((t) => t["planned_start"]);
+      return data ?? [];
     },
   });
 
