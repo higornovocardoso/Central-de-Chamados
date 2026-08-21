@@ -170,19 +170,18 @@ export function AppShell({
       <div className="flex min-h-screen bg-background">
         {/* Menu lateral — desktop */}
         <aside
-          className={`sidebar-surface sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground transition-[width] duration-200 lg:flex ${
-
-            collapsed ? "w-14" : "w-60"
+          className={`sidebar-surface sidebar-rail sticky top-2 m-2 hidden h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out lg:flex ${
+            collapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
-          <div className="flex h-12 items-center border-b border-sidebar-border px-3" />
+          <div className="flex h-12 items-center px-3" />
 
-          <div className="flex-1 overflow-y-auto py-2">{sidebar}</div>
+          <div className="flex-1 overflow-y-auto py-1.5">{sidebar}</div>
 
           <button
             type="button"
             onClick={toggleCollapse}
-            className="flex h-9 items-center justify-center gap-1.5 border-t border-sidebar-border text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="m-2 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white/5 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
             {!collapsed && "Recolher menu"}
