@@ -1,15 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const schema = z.object({
-  reporter_name: z.string().trim().min(2).max(120),
-  reporter_email: z.string().trim().email().max(180),
+export const publicTicketSchema = z.object({
+  reporter_name: z.string().trim().min(2, "Informe seu nome completo.").max(120),
+  reporter_email: z
+    .string()
+    .trim()
+    .min(1, "Informe um e-mail para contato.")
+    .email("Informe um e-mail válido, como voce@empresa.com.")
+    .max(180),
   reporter_sector: z.string().trim().max(120).default(""),
-  title: z.string().trim().min(3).max(160),
+  title: z.string().trim().min(3, "Descreva o assunto do chamado.").max(160),
   description: z.string().trim().max(4000).default(""),
   category: z.string().trim().min(1).max(60),
   priority: z.enum(["baixa", "media", "alta", "critica"]),
 });
+
+const schema = publicTicketSchema;
 
 export const createPublicTicket = createServerFn({ method: "POST" })
   .validator((data: unknown) => schema.parse(data))
