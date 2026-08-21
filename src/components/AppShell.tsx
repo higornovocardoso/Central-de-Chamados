@@ -238,7 +238,7 @@ export function AppShell({
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="w-64 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+                  className="sidebar-surface w-64 border-sidebar-border p-0 text-sidebar-foreground"
                 >
                   <SheetTitle className="border-b border-sidebar-border px-3 py-3 text-sm font-semibold text-sidebar-foreground">
                     Helpdesk T.I.
