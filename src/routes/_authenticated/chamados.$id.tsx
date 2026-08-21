@@ -18,6 +18,13 @@ import { AppShell } from "@/components/AppShell";
 import { Tag } from "@/components/Tag";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -704,6 +711,9 @@ function DetalheChamado() {
 
             <ActorsPanel
               ticketId={id}
+              requesterId={str(ticket, "requester_id") || null}
+              reporterName={str(ticket, "reporter_name") || ""}
+              reporterEmail={str(ticket, "reporter_email") || ""}
               actors={actorsQuery.data ?? []}
               people={peopleQuery.data ?? []}
               groups={lookups?.groups ?? []}
@@ -712,6 +722,7 @@ function DetalheChamado() {
               canEdit={canEdit && phase3}
               personName={personName}
               onChanged={() => invalidate("ticket_actors")}
+              onRequesterChanged={() => invalidate("ticket_actors", "ticket")}
             />
 
           <Accordion type="multiple" className="rounded border border-border bg-card">
@@ -1079,6 +1090,9 @@ function TicketTimeline({
 
 function ActorsPanel({
   ticketId,
+  requesterId,
+  reporterName,
+  reporterEmail,
   actors,
   people,
   groups,
@@ -1087,6 +1101,7 @@ function ActorsPanel({
   canEdit,
   personName,
   onChanged,
+  onRequesterChanged,
 }: {
   ticketId: string;
   actors: TicketActorRow[];
@@ -1097,10 +1112,46 @@ function ActorsPanel({
   canEdit: boolean;
   personName: (id: string | null) => string;
   onChanged: () => void;
+  requesterId: string | null;
+  reporterName: string;
+  reporterEmail: string;
+  onRequesterChanged: () => void;
 }) {
   const [role, setRole] = useState<ActorRole>("atribuido");
   const [kind, setKind] = useState<"user" | "group" | "supplier">("user");
   const [value, setValue] = useState("");
+
+  // Troca de requerente. Duas formas, porque a realidade tem as duas: quem
+  // tem conta no sistema, e quem só tem nome e e-mail — o caso de quem abre
+  // pelo formulário público, que é a maioria num escritório.
+  const [trocando, setTrocando] = useState(false);
+  const [modoReq, setModoReq] = useState<"conta" | "avulso">(requesterId ? "conta" : "avulso");
+  const [reqUser, setReqUser] = useState(requesterId ?? "");
+  const [reqNome, setReqNome] = useState(reporterName);
+  const [reqEmail, setReqEmail] = useState(reporterEmail);
+
+  const trocarRequerente = useMutation({
+    mutationFn: async () => {
+      // Um dos dois campos manda; o outro é zerado, para não sobrar
+      // requerente fantasma de quando o chamado era do outro tipo.
+      const patch =
+        modoReq === "conta"
+          ? { requester_id: reqUser, reporter_name: "", reporter_email: "" }
+          : { requester_id: null, reporter_name: reqNome.trim(), reporter_email: reqEmail.trim() };
+
+      if (modoReq === "conta" && !reqUser) throw new Error("Escolha o usuário.");
+      if (modoReq === "avulso" && !reqNome.trim()) throw new Error("Informe o nome.");
+
+      const { error } = await db.from("tickets").update(patch as never).eq("id", ticketId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Requerente alterado.");
+      setTrocando(false);
+      onRequesterChanged();
+    },
+    onError: (e: Error) => toast.error("Não foi possível alterar", { description: e.message }),
+  });
 
   const add = useMutation({
     mutationFn: async () => {
@@ -1145,9 +1196,27 @@ function ActorsPanel({
           const list = actors.filter((a) => a.role === r);
           return (
             <div key={r} className="px-3 py-2">
-              <p className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">
-                {ACTOR_LABEL[r]}
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">
+                  {ACTOR_LABEL[r]}
+                </p>
+                {r === "requerente" && canEdit && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-5 px-1 text-[0.68rem]"
+                    onClick={() => {
+                      setModoReq(requesterId ? "conta" : "avulso");
+                      setReqUser(requesterId ?? "");
+                      setReqNome(reporterName);
+                      setReqEmail(reporterEmail);
+                      setTrocando(true);
+                    }}
+                  >
+                    Alterar
+                  </Button>
+                )}
+              </div>
               {list.length === 0 ? (
                 <p className="text-xs text-muted-foreground">—</p>
               ) : (
@@ -1161,7 +1230,9 @@ function ActorsPanel({
                             ? `Grupo: ${groups.find((g) => g.id === a.group_id)?.name ?? "—"}`
                             : a.supplier_id
                               ? `Fornecedor: ${suppliers.find((s) => s.id === a.supplier_id)?.name ?? "—"}`
-                              : a.alternative_email}
+                              : a.alternative_email === reporterEmail && reporterName
+                                ? `${reporterName} (${a.alternative_email})`
+                                : a.alternative_email}
                       </span>
                       {canEdit && (
                         <Button
@@ -1182,6 +1253,85 @@ function ActorsPanel({
           );
         })}
       </div>
+
+      <Dialog open={trocando} onOpenChange={setTrocando}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar requerente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-[0.7rem] text-muted-foreground">Quem é o requerente</Label>
+              <Select value={modoReq} onValueChange={(v) => setModoReq(v as "conta" | "avulso")}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="conta">Um usuário do sistema</SelectItem>
+                  <SelectItem value="avulso">Alguém sem conta (nome e e-mail)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {modoReq === "conta" ? (
+              <div className="space-y-1">
+                <Label className="text-[0.7rem] text-muted-foreground">Usuário</Label>
+                <Select value={reqUser} onValueChange={setReqUser}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Escolha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {people.map((pessoa) => (
+                      <SelectItem key={pessoa.id} value={pessoa.id}>
+                        {pessoa.full_name || pessoa.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {people.length <= 1 && (
+                  <p className="text-[0.68rem] text-muted-foreground">
+                    Só há um usuário cadastrado. Para escolher colegas aqui, crie as contas em
+                    Administração &rsaquo; Usuários — ou use a outra opção, que não exige conta.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="space-y-1">
+                  <Label className="text-[0.7rem] text-muted-foreground">Nome</Label>
+                  <Input
+                    value={reqNome}
+                    onChange={(e) => setReqNome(e.target.value)}
+                    placeholder="Ludmilla Diniz"
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[0.7rem] text-muted-foreground">E-mail</Label>
+                  <Input
+                    value={reqEmail}
+                    onChange={(e) => setReqEmail(e.target.value)}
+                    placeholder="nome@compliancecontabil.com"
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setTrocando(false)}>
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => trocarRequerente.mutate()}
+              disabled={trocarRequerente.isPending}
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {canEdit && (
         <div className="space-y-2 border-t border-border p-2">
