@@ -3,11 +3,11 @@ import { supabase } from "./client";
 
 /**
  * As tabelas da fase 2 (entidades, perfis, grupos, autorizações) ainda não
- * aparecem em types.ts, que é gerado pelo Lovable. Este arquivo declara o
+ * aparecem em types.ts, gerado a partir do banco. Este arquivo declara o
  * formato delas e expõe o mesmo cliente com esse esquema, para que o código
  * novo continue com tipo em vez de cair em `any`.
  *
- * Quando o Lovable regerar types.ts com as tabelas, este arquivo pode sumir.
+ * Quando types.ts for regerado com todas as tabelas, este arquivo pode sumir.
  */
 
 export type EntityRow = {

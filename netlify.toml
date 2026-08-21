@@ -1,0 +1,10 @@
+# O build do nitro (preset netlify) coloca o estático em dist/ e a função de
+# SSR em .netlify/functions-internal/server, que o Netlify detecta sozinho.
+# O roteamento não usa _redirects: a própria função declara path = "/*" com
+# preferStatic, então arquivo estático ganha e o resto cai no SSR.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

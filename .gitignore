@@ -16,7 +16,10 @@ dist-ssr
 .nitro
 *.local
 
-# Wrangler / Cloudflare
+# Netlify (saida do build do nitro)
+.netlify/
+
+# Wrangler / Cloudflare (sobra do alvo antigo)
 .wrangler/
 .dev.vars
 
