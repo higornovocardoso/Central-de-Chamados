@@ -174,18 +174,22 @@ export function AppShell({
             collapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
-          <div className="flex h-12 items-center px-3" />
+          <div className="flex-1 overflow-y-auto py-3">{sidebar}</div>
 
-          <div className="flex-1 overflow-y-auto py-1.5">{sidebar}</div>
+          <div className="border-t border-white/5 p-2">
+            <button
+              type="button"
+              onClick={toggleCollapse}
+              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+              className={`flex h-9 items-center gap-2 rounded-xl text-xs font-medium text-sidebar-foreground/70 transition-colors hover:bg-white/10 hover:text-white ${
+                collapsed ? "mx-auto w-9 justify-center" : "w-full justify-start px-3"
+              }`}
+            >
+              {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+              {!collapsed && "Recolher menu"}
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={toggleCollapse}
-            className="m-2 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white/5 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
-            {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-            {!collapsed && "Recolher menu"}
-          </button>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -388,23 +392,37 @@ function SidebarNav({
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Buscar no menu"
-              className="h-7 w-full rounded-sm border border-sidebar-border bg-black/20 pl-7 pr-2 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus:border-sidebar-primary focus:outline-none"
+              className="h-8 w-full rounded-xl border border-white/10 bg-black/25 pl-7 pr-2 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus:border-sidebar-primary focus:outline-none"
             />
           </label>
         </div>
       )}
 
-      <NavLinkTo
-        to="/painel"
-        onClick={onNavigate}
-        className={`nav-link ${pathname === "/painel" ? "nav-link-active" : ""} ${
-          collapsed ? "justify-center" : ""
-        }`}
-        title="Painel"
-      >
-        <LayoutDashboard className="size-4 shrink-0" />
-        {!collapsed && <span>Painel</span>}
-      </NavLinkTo>
+      {collapsed ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLinkTo
+              to="/painel"
+              onClick={onNavigate}
+              className={`nav-icon ${pathname === "/painel" ? "nav-icon-active" : ""}`}
+              title="Painel"
+            >
+              <LayoutDashboard className="size-[1.15rem] shrink-0" />
+            </NavLinkTo>
+          </TooltipTrigger>
+          <TooltipContent side="right">Painel</TooltipContent>
+        </Tooltip>
+      ) : (
+        <NavLinkTo
+          to="/painel"
+          onClick={onNavigate}
+          className={`nav-link ${pathname === "/painel" ? "nav-link-active" : ""}`}
+          title="Painel"
+        >
+          <LayoutDashboard className="size-4 shrink-0" />
+          <span>Painel</span>
+        </NavLinkTo>
+      )}
 
       {NAV_GROUPS.map((group) => {
         // Um grupo sem nenhum item legível some do menu, como no GLPI.
@@ -427,9 +445,9 @@ function SidebarNav({
                   params={first.params}
                   search={first.search}
                   onClick={onNavigate}
-                  className={`nav-link justify-center ${hasActive ? "nav-link-active" : ""}`}
+                  className={`nav-icon ${hasActive ? "nav-icon-active" : ""}`}
                 >
-                  <Icon className="size-4" />
+                  <Icon className="size-[1.15rem]" />
                 </NavLinkTo>
               </TooltipTrigger>
               <TooltipContent side="right">{group.label}</TooltipContent>
@@ -437,12 +455,13 @@ function SidebarNav({
           );
         }
 
+
         return (
           <div key={group.id}>
             <button
               type="button"
               onClick={() => onToggleGroup(group.id)}
-              className={`nav-link ${hasActive || open ? "nav-link-active" : ""}`}
+              className={`nav-link ${hasActive ? "nav-link-active" : open ? "bg-white/5 text-white" : ""}`}
             >
               <Icon className="size-4 shrink-0" />
               <span className="flex-1 truncate">{group.label}</span>
