@@ -170,7 +170,7 @@ function AuthPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="h-11 rounded-xl pl-9 pr-10"
+                  className="h-11 rounded-lg pl-9 pr-10"
                 />
                 <button
                   type="button"
