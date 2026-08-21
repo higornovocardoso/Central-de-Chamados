@@ -64,17 +64,16 @@ const OPEN_GROUPS_KEY = "glpi.sidebar.groups";
 const THEME_KEY = "glpi.theme";
 
 function useTheme() {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    // O GLPI abre no claro. Seguir o tema do sistema operacional fazia quem
-    // usa Windows no escuro cair num visual que não é o do GLPI, então só a
-    // escolha explícita no botão vale — o escuro continua disponível.
+    // O sistema abre no tema escuro frio; o claro fica disponível no botão.
     const stored = localStorage.getItem(THEME_KEY);
-    const next = stored === "dark";
+    const next = stored !== "light";
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
   }, []);
+
 
   function toggle() {
     setDark((prev) => {
@@ -199,7 +198,8 @@ export function AppShell({
       <div className="flex min-h-screen bg-background">
         {/* Menu lateral — desktop */}
         <aside
-          className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex ${
+          className={`sidebar-surface sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border text-sidebar-foreground transition-[width] duration-200 lg:flex ${
+
             collapsed ? "w-14" : "w-60"
           }`}
         >
@@ -228,7 +228,7 @@ export function AppShell({
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Barra superior */}
-          <header className="sticky top-0 z-30 border-b border-border bg-topbar text-topbar-foreground">
+          <header className="topbar-glass sticky top-0 z-30 border-b border-border text-topbar-foreground">
             <div className="flex h-12 items-center gap-2 px-3">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
@@ -238,7 +238,7 @@ export function AppShell({
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="w-64 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+                  className="sidebar-surface w-64 border-sidebar-border p-0 text-sidebar-foreground"
                 >
                   <SheetTitle className="border-b border-sidebar-border px-3 py-3 text-sm font-semibold text-sidebar-foreground">
                     Helpdesk T.I.

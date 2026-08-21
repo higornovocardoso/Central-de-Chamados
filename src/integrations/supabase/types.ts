@@ -1,7 +1,3 @@
-// Gerado a partir do banco real (projeto kowfewqchsbriqicqapv).
-// Substitui a versão que só conhecia as 9 tabelas originais do Lovable e
-// que obrigava as telas novas a usar o atalho destipado do glpi-db.
-
 export type Json =
   | string
   | number

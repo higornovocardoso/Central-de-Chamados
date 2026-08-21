@@ -66,121 +66,124 @@
   --color-topbar-foreground: var(--topbar-foreground);
 }
 
-/* Tema claro — padrão do GLPI. */
+/* Tema claro — versão fria e clara do mesmo sistema. */
 :root {
-  /* Paleta do GLPI 10, valores exatos.
-     O GLPI é Tabler 1.0.0-beta9: a paleta clara dele importa o Tabler inteiro
-     e sobrescreve seis variáveis, listadas em css/palettes/_defaults.scss.
-     O primário é âmbar, não azul — é ele que marca o item ativo do menu. */
-  --radius: 0.25rem;
+  --radius: 0.5rem;
 
-  --background: #f5f7fb;
-  --foreground: #1e293b;
+  --background: #eef2f8;
+  --foreground: #0f1b2d;
   --surface: #ffffff;
-  --surface-foreground: #1e293b;
+  --surface-foreground: #0f1b2d;
   --card: #ffffff;
-  --card-foreground: #1e293b;
+  --card-foreground: #0f1b2d;
   --popover: #ffffff;
-  --popover-foreground: #1e293b;
+  --popover-foreground: #0f1b2d;
 
-  --primary: #fec95c;
-  --primary-foreground: #3d2f08;
+  --primary: #0e7490;
+  --primary-foreground: #ecfeff;
 
-  --secondary: #f1f5f9;
-  --secondary-foreground: #334155;
-  --muted: #f1f5f9;
-  --muted-foreground: #626976;
-  --accent: #e9eef7;
-  --accent-foreground: #3a5693;
+  --secondary: #e3e9f3;
+  --secondary-foreground: #26364f;
+  --muted: #e8edf5;
+  --muted-foreground: #5a6a83;
+  --accent: #dbe7f5;
+  --accent-foreground: #14526b;
 
-  --destructive: #d63939;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --success: #2fb344;
+  --success: #0f9d76;
   --success-foreground: #ffffff;
-  --warning: #f76707;
+  --warning: #d97706;
   --warning-foreground: #ffffff;
-  --info: #80abe4;
-  --info-foreground: #14243c;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
 
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --ring: #fec95c;
+  --border: #d7e0ec;
+  --input: #c2cede;
+  --ring: #0e7490;
 
-  /* Azul dos links do GLPI. Separado do primário, que é âmbar. */
-  --link: #3a5693;
+  --link: #1d63b8;
 
-  --chart-1: #206bc4;
-  --chart-2: #2fb344;
-  --chart-3: #f76707;
-  --chart-4: #d63939;
-  --chart-5: #ae3ec9;
+  --chart-1: #0ea5e9;
+  --chart-2: #14b8a6;
+  --chart-3: #6366f1;
+  --chart-4: #f43f5e;
+  --chart-5: #8b5cf6;
 
-  --topbar: #ffffff;
-  --topbar-foreground: #1e293b;
+  --topbar: #ffffffcc;
+  --topbar-foreground: #0f1b2d;
 
-  --sidebar: #2f3f64;
-  --sidebar-foreground: #f4f6fa;
-  --sidebar-primary: #fec95c;
-  --sidebar-primary-foreground: #2f3f64;
-  --sidebar-accent: #27344f;
-  --sidebar-accent-foreground: #fec95c;
-  --sidebar-border: #3b4c74;
-  --sidebar-ring: #fec95c;
+  --sidebar: #16223a;
+  --sidebar-foreground: #dce6f5;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #05121f;
+  --sidebar-accent: #1d2c48;
+  --sidebar-accent-foreground: #7dd3fc;
+  --sidebar-border: #24344f;
+  --sidebar-ring: #38bdf8;
+
+  --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
+    0 18px 40px -24px color-mix(in oklab, var(--primary) 60%, transparent);
 }
 
+/* Tema escuro — o padrão do sistema: azul-noite frio, vidro e brilho sutil. */
 .dark {
-  --background: #151b28;
-  --foreground: #e8edf5;
-  --surface: #1c2333;
-  --surface-foreground: #e8edf5;
-  --card: #1c2333;
-  --card-foreground: #e8edf5;
-  --popover: #1c2333;
-  --popover-foreground: #e8edf5;
+  --background: #070d18;
+  --foreground: #e6eefb;
+  --surface: #0e1729;
+  --surface-foreground: #e6eefb;
+  --card: #0e1729;
+  --card-foreground: #e6eefb;
+  --popover: #101c31;
+  --popover-foreground: #e6eefb;
 
-  --primary: #fec95c;
-  --primary-foreground: #2b2205;
+  --primary: #38bdf8;
+  --primary-foreground: #04121e;
 
-  --secondary: #262f42;
-  --secondary-foreground: #e8edf5;
-  --muted: #232b3b;
-  --muted-foreground: #97a3b8;
-  --accent: #2c3853;
-  --accent-foreground: #fed88c;
+  --secondary: #17233a;
+  --secondary-foreground: #d6e3f6;
+  --muted: #131f34;
+  --muted-foreground: #8ea3c2;
+  --accent: #1a2942;
+  --accent-foreground: #7dd3fc;
 
-  --destructive: #e05656;
-  --destructive-foreground: #1a0c0c;
-  --success: #45c45a;
-  --success-foreground: #08240d;
-  --warning: #fa8a3c;
-  --warning-foreground: #2a1403;
-  --info: #80abe4;
-  --info-foreground: #0d1826;
+  --destructive: #f43f5e;
+  --destructive-foreground: #14030a;
+  --success: #2dd4bf;
+  --success-foreground: #04211d;
+  --warning: #fbbf24;
+  --warning-foreground: #231603;
+  --info: #60a5fa;
+  --info-foreground: #05152c;
 
-  --border: #2c3547;
-  --input: #3a4459;
-  --ring: #fec95c;
+  --border: #1d2b45;
+  --input: #29395a;
+  --ring: #38bdf8;
 
-  --link: #8fa9de;
+  --link: #7dd3fc;
 
-  --chart-1: #4d8fd6;
-  --chart-2: #45c45a;
-  --chart-3: #fa8a3c;
-  --chart-4: #e05656;
-  --chart-5: #c266d9;
+  --chart-1: #38bdf8;
+  --chart-2: #2dd4bf;
+  --chart-3: #818cf8;
+  --chart-4: #fb7185;
+  --chart-5: #a78bfa;
 
-  --topbar: #1c2333;
-  --topbar-foreground: #e8edf5;
+  --topbar: #0b1524b3;
+  --topbar-foreground: #e6eefb;
 
-  --sidebar: #18202f;
-  --sidebar-foreground: #dbe3ef;
-  --sidebar-primary: #fec95c;
-  --sidebar-primary-foreground: #18202f;
-  --sidebar-accent: #222c3f;
-  --sidebar-accent-foreground: #fec95c;
-  --sidebar-border: #2b3549;
-  --sidebar-ring: #fec95c;
+  --sidebar: #08111f;
+  --sidebar-foreground: #c9d9ef;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #04121e;
+  --sidebar-accent: #12203a;
+  --sidebar-accent-foreground: #7dd3fc;
+  --sidebar-border: #17253d;
+  --sidebar-ring: #38bdf8;
+
+  --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent),
+    0 22px 50px -28px color-mix(in oklab, var(--primary) 75%, transparent);
 }
+
 
 @layer base {
   * {
@@ -194,6 +197,19 @@
     font-size: 0.8125rem;
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
+    /* Brilho frio no topo, como um painel de monitoramento. */
+    background-image:
+      radial-gradient(
+        900px 420px at 12% -12%,
+        color-mix(in oklab, var(--chart-1) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        800px 380px at 92% -6%,
+        color-mix(in oklab, var(--chart-3) 14%, transparent),
+        transparent 70%
+      );
+    background-attachment: fixed;
   }
 
   h1,
@@ -203,16 +219,56 @@
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--muted-foreground) 35%, transparent);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--primary) 55%, transparent);
+    background-clip: content-box;
+  }
 }
 
-/* Cartão branco liso, como os blocos do GLPI. */
+/* Bloco de conteúdo: vidro fosco frio, borda fina e sombra profunda. */
 @utility panel {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  position: relative;
+  background-color: color-mix(in oklab, var(--surface) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(130%);
+  border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--foreground) 5%, transparent) inset,
+    0 18px 40px -32px rgb(0 0 0 / 80%);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
-/* Cabeçalho de bloco, com o filete azul do GLPI. */
+/* Painel que reage ao mouse — usado em cartões clicáveis. */
+@utility panel-interactive {
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+    box-shadow: var(--glow);
+  }
+}
+
+/* Cabeçalho de bloco, com filete de destaque. */
 @utility panel-header {
   display: flex;
   align-items: center;
@@ -221,7 +277,30 @@
   padding: 0.625rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
+  background: linear-gradient(
+    to right,
+    color-mix(in oklab, var(--primary) 8%, transparent),
+    transparent 55%
+  );
 }
+
+/* Barra superior em vidro. */
+@utility topbar-glass {
+  background-color: var(--topbar);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Menu lateral com degradê frio. */
+@utility sidebar-surface {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--chart-1) 10%, var(--sidebar)),
+    var(--sidebar) 45%,
+    color-mix(in oklab, var(--chart-3) 10%, var(--sidebar))
+  );
+}
+
 
 /* Tabela de listagem no padrão GLPI: linhas baixas, cabeçalho cinza, zebra. */
 @utility glpi-table {
@@ -233,23 +312,34 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: var(--muted);
+    background-color: color-mix(in oklab, var(--muted) 85%, transparent);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
     padding: 0.5rem 0.625rem;
     text-align: left;
     font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     white-space: nowrap;
     color: var(--muted-foreground);
   }
 
   & tbody td {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
     padding: 0.4375rem 0.625rem;
     vertical-align: middle;
   }
 
+  & tbody tr {
+    transition:
+      background-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
   & tbody tr:hover {
     background-color: color-mix(in oklab, var(--accent) 55%, transparent);
+    box-shadow: inset 3px 0 0 0 var(--primary);
   }
 
   & tbody tr[data-selected="true"] {
@@ -258,12 +348,7 @@
 }
 
 /**
- * Cartão big-number do painel do GLPI.
- * No original o número vai a 3em com peso normal e o ícone fica em
- * marca-d'água no canto superior direito, sobre um fundo de cor sólida
- * (css/standalone/dashboard.scss).
- * A cor sai de um matiz só, misturado com a superfície e com o texto —
- * assim o tema escuro se resolve sozinho, sem uma segunda tabela de cores.
+ * Cartão big-number do painel: vidro frio, halo do matiz e brilho no hover.
  */
 @utility tile {
   --tile-hue: var(--chart-1);
@@ -271,38 +356,78 @@
   position: relative;
   display: block;
   overflow: hidden;
-  border-radius: var(--radius);
-  border: 1px solid color-mix(in oklab, var(--tile-hue) 28%, transparent);
-  background-color: color-mix(in oklab, var(--tile-hue) 20%, var(--card));
-  color: color-mix(in oklab, var(--tile-hue) 28%, var(--foreground));
-  padding: 0.625rem 0.75rem 0.5rem;
-  transition: background-color 150ms ease;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklab, var(--tile-hue) 32%, transparent);
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--tile-hue) 24%, var(--card)),
+    color-mix(in oklab, var(--tile-hue) 8%, var(--card))
+  );
+  color: color-mix(in oklab, var(--tile-hue) 30%, var(--foreground));
+  padding: 0.75rem 0.875rem 0.625rem;
+  box-shadow: 0 16px 36px -30px rgb(0 0 0 / 90%);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -40% 55% 40% -20%;
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--tile-hue) 45%, transparent),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 260ms ease;
+    pointer-events: none;
+  }
 
   &:hover {
-    background-color: color-mix(in oklab, var(--tile-hue) 32%, var(--card));
+    transform: translateY(-3px);
+    border-color: color-mix(in oklab, var(--tile-hue) 60%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--tile-hue) 30%, transparent),
+      0 24px 45px -28px color-mix(in oklab, var(--tile-hue) 90%, transparent);
+  }
+
+  &:hover::after {
+    opacity: 0.55;
   }
 
   & .tile-number {
     display: block;
-    font-size: 3em;
-    font-weight: 400;
+    font-size: 2.75em;
+    font-weight: 600;
     line-height: 1.05;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
 
   & .tile-label {
     display: block;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     line-height: 1.25;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
   }
 
   & .tile-icon {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    opacity: 0.3;
+    top: 8px;
+    right: 8px;
+    opacity: 0.35;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+
+  &:hover .tile-icon {
+    opacity: 0.6;
+    transform: scale(1.08);
   }
 }
+
 
 @utility tile-info { --tile-hue: var(--info); }
 @utility tile-primary { --tile-hue: var(--primary); }
@@ -328,22 +453,26 @@
   text-align: left;
   color: color-mix(in oklab, var(--sidebar-foreground) 80%, transparent);
   transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
 
   &:hover {
     border-left-color: var(--sidebar-primary);
-    background-color: rgb(0 0 0 / 10%);
+    background-color: color-mix(in oklab, var(--sidebar-primary) 12%, transparent);
     color: var(--sidebar-primary);
   }
 }
 
 @utility nav-link-active {
-  border-left-color: color-mix(in oklab, var(--sidebar-primary) 30%, transparent);
-  color: color-mix(in oklab, var(--sidebar-primary) 90%, transparent);
+  border-left-color: var(--sidebar-primary);
+  background-color: color-mix(in oklab, var(--sidebar-primary) 14%, transparent);
+  color: var(--sidebar-primary);
   font-weight: 700;
+  box-shadow: inset 0 0 24px -12px color-mix(in oklab, var(--sidebar-primary) 90%, transparent);
 }
+
 
 @utility nav-sub {
   background-color: rgb(0 0 0 / 10%);
