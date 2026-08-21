@@ -414,7 +414,7 @@ BEGIN
     FOR crit IN SELECT * FROM public.rule_criteria WHERE rule_id = rule.id LOOP
       field_value := COALESCE(rec ->> crit.field, '');
 
-      IF CASE crit.operator
+      IF (CASE crit.operator
            WHEN 'contem' THEN field_value ILIKE '%' || crit.value || '%'
            WHEN 'nao_contem' THEN field_value NOT ILIKE '%' || crit.value || '%'
            WHEN 'igual' THEN field_value = crit.value
@@ -424,7 +424,7 @@ BEGIN
            WHEN 'regex' THEN field_value ~ crit.value
            WHEN 'nao_regex' THEN field_value !~ crit.value
            ELSE false
-         END
+         END)
       THEN
         any_matched := true;
       ELSE

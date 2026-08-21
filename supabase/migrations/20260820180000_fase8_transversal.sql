@@ -131,10 +131,11 @@ DECLARE
   field text;
   value text;
   duplicated boolean;
+  rec jsonb := to_jsonb(NEW);
 BEGIN
   FOR rule IN SELECT * FROM public.field_unicity WHERE is_active AND item_type = 'asset' LOOP
     FOREACH field IN ARRAY rule.fields LOOP
-      EXECUTE format('SELECT ($1).%I::text', field) INTO value USING NEW;
+      value := rec ->> field;
       CONTINUE WHEN value IS NULL OR length(trim(value)) = 0;
 
       EXECUTE format(
