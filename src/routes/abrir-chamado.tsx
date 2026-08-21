@@ -71,8 +71,8 @@ function AbrirChamado() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="mx-auto max-w-2xl px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <main className="w-full max-w-2xl px-4 py-10">
         {created ? (
           <div className="panel space-y-4 p-8 text-center">
             <CheckCircle2 className="mx-auto size-10 text-success" />
@@ -87,12 +87,14 @@ function AbrirChamado() {
           </div>
         ) : (
           <>
-            <h1 className="font-display text-2xl font-semibold tracking-tight">
-              Abrir chamado de suporte
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Preencha o formulário abaixo. Não é necessário ter login.
-            </p>
+            <div className="text-center">
+              <h1 className="font-display text-2xl font-semibold tracking-tight">
+                Abrir chamado de suporte
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Preencha o formulário abaixo.
+              </p>
+            </div>
 
             <form onSubmit={handleSubmit} className="panel mt-6 space-y-5 p-6">
               <div className="grid gap-4 sm:grid-cols-2">
