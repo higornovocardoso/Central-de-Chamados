@@ -228,7 +228,16 @@ export function AppShell({
           {/* Barra superior */}
           <header className="topbar-glass sticky top-0 z-30 border-b border-border text-topbar-foreground">
             <div className="flex h-12 items-center gap-2 px-3">
-
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8 lg:hidden"
+                aria-label="Abrir menu"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Menu className="size-5" />
+              </Button>
 
               <Select
                 value={selectedId ?? entities[0]?.id ?? ROOT_TREE}
