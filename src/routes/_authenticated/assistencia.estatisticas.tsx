@@ -70,7 +70,11 @@ function Estatisticas() {
   const chamados = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tickets").select("*").order("created_at");
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("is_deleted", false)
+        .order("created_at");
       if (error) throw error;
       return data as unknown as Chamado[];
     },

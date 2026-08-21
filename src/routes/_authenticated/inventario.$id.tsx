@@ -145,6 +145,7 @@ function DetalheAtivo() {
       const { data: tickets } = await supabase
         .from("tickets")
         .select("id,title,status,created_at")
+        .eq("is_deleted", false)
         .in("id", ids);
       return tickets ?? [];
     },

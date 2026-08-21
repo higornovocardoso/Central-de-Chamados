@@ -106,6 +106,9 @@ function Painel() {
       const { data, error } = await supabase
         .from("tickets")
         .select("*")
+        // Sem isto o painel conta o que está na lixeira: a tela de Chamados
+        // esconde is_deleted, o painel não escondia, e os números divergiam.
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as TicketRow[];

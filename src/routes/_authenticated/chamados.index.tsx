@@ -10,7 +10,9 @@ import {
   LayoutGrid,
   List,
   Plus,
+  RotateCcw,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useRoles } from "@/hooks/useRoles";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
@@ -142,6 +145,9 @@ const QUICK_FILTERS = [
   { key: "requisicoes", label: "Requisições" },
 ];
 
+/** Chave do filtro que troca a lista inteira para o que está na lixeira. */
+const LIXEIRA = "lixeira";
+
 const COLUMNS = [
   { key: "id", label: "ID", sortable: true },
   { key: "type", label: "Tipo", sortable: true },
@@ -161,6 +167,7 @@ function ListaChamados() {
   const queryClient = useQueryClient();
   const searchParams = Route.useSearch();
   const { user, isStaff } = useRoles();
+  const { can } = usePermissions();
   const techniciansQuery = useTechnicians();
 
   const [criteria, setCriteria] = useState<Criterion[]>([]);
@@ -172,6 +179,9 @@ function ListaChamados() {
 
   const term = searchParams.busca ?? "";
   const quick = searchParams.filtro ?? "todos";
+  const naLixeira = quick === LIXEIRA;
+  const podeExcluir = can("ticket", "delete");
+  const podePurgar = can("ticket", "purge");
   const statusFilter = searchParams.status;
   const page = searchParams.pagina ?? 1;
   const pageSize = searchParams.tamanho ?? 15;
@@ -235,7 +245,8 @@ function ListaChamados() {
     const needle = term.trim().toLowerCase();
 
     return tickets.filter((t) => {
-      if (t.is_deleted) return false;
+      // A lista é uma coisa ou outra: ou a lixeira, ou o resto. Nunca as duas.
+      if (Boolean(t.is_deleted) !== naLixeira) return false;
 
       if (needle) {
         const haystack = `${t.title} ${ticketCode(t.id)} ${t.category} ${requesterOf(t)}`.toLowerCase();
@@ -276,7 +287,7 @@ function ListaChamados() {
 
       return true;
     });
-  }, [tickets, term, quick, statusFilter, criteria, user?.id, requesterOf, assigneeOf]);
+  }, [tickets, term, quick, naLixeira, statusFilter, criteria, user?.id, requesterOf, assigneeOf]);
 
   const sorted = useMemo(() => {
     const factor = sortDir === "asc" ? 1 : -1;
@@ -318,6 +329,8 @@ function ListaChamados() {
   const start = (currentPage - 1) * pageSize;
   const rows = sorted.slice(start, start + pageSize);
 
+  const lixeiraCount = useMemo(() => tickets.filter((t) => t.is_deleted).length, [tickets]);
+
   const allOnPageSelected = rows.length > 0 && rows.every((r) => selected.includes(r.id));
 
   const bulkUpdate = useMutation({
@@ -346,6 +359,49 @@ function ListaChamados() {
     onError: (e: Error) => toast.error("Falha na ação em massa", { description: e.message }),
   });
 
+  /**
+   * Restaurar é o inverso exato do que a tela do chamado faz ao excluir:
+   * desmarca is_deleted e limpa deleted_at. Exige o direito de atualizar.
+   */
+  const restaurar = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ is_deleted: false, deleted_at: null } as never)
+        .in("id", ids);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_r, ids) => {
+      toast.success(`${ids.length} chamado(s) restaurado(s).`);
+      setSelected([]);
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível restaurar", { description: e.message }),
+  });
+
+  /**
+   * Purgar apaga a linha de verdade, e não tem volta. O banco só deixa quem
+   * tem o direito "purge" — no GLPI é direito separado do de excluir, e aqui
+   * também: Supervisor manda para a lixeira, mas não esvazia.
+   */
+  const purgar = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("tickets").delete().in("id", ids);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_r, ids) => {
+      toast.success(`${ids.length} chamado(s) apagado(s) em definitivo.`);
+      setSelected([]);
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+    onError: (e: Error) =>
+      toast.error("Não foi possível apagar", {
+        description: e.message.includes("violates foreign key")
+          ? "Há registros ligados a este chamado."
+          : e.message,
+      }),
+  });
+
   function toggleSort(key: string) {
     if (sortKey === key) {
       setSearch({ ordem: key, dir: sortDir === "asc" ? "desc" : "asc" });
@@ -356,8 +412,12 @@ function ListaChamados() {
 
   return (
     <AppShell
-      title="Chamados"
-      subtitle={`${total} chamado(s) encontrado(s)`}
+      title={naLixeira ? "Lixeira" : "Chamados"}
+      subtitle={
+        naLixeira
+          ? `${total} chamado(s) na lixeira. Restaurar traz de volta; excluir em definitivo não tem volta.`
+          : `${total} chamado(s) encontrado(s)`
+      }
       actions={
         <div className="flex items-center gap-1">
           {/* Alternador de visualização do GLPI: o Kanban é um modo de ver a
@@ -496,9 +556,10 @@ function ListaChamados() {
             <button
               key={f.key}
               type="button"
-              onClick={() =>
-                setSearch({ filtro: f.key === "todos" ? undefined : f.key, status: undefined })
-              }
+              onClick={() => {
+                setSelected([]);
+                setSearch({ filtro: f.key === "todos" ? undefined : f.key, status: undefined });
+              }}
               className={`rounded px-2 py-1 text-xs transition-colors ${
                 quick === f.key && !statusFilter
                   ? "bg-primary text-primary-foreground"
@@ -508,6 +569,26 @@ function ListaChamados() {
               {f.label}
             </button>
           ))}
+          {podeExcluir && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelected([]);
+                setSearch({ filtro: LIXEIRA, status: undefined });
+              }}
+              className={`ml-1 inline-flex items-center gap-1 rounded border-l border-border pl-2 pr-2 py-1 text-xs transition-colors ${
+                naLixeira
+                  ? "bg-destructive text-destructive-foreground"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+              title="Chamados excluídos, que ainda dá para restaurar"
+            >
+              <Trash2 className="size-3.5" /> Lixeira
+              {lixeiraCount > 0 && (
+                <span className="ml-0.5 rounded bg-black/20 px-1 tabular-nums">{lixeiraCount}</span>
+              )}
+            </button>
+          )}
           {statusFilter && (
             <button
               type="button"
@@ -521,8 +602,48 @@ function ListaChamados() {
         </div>
       </div>
 
+      {/* Ações da lixeira: restaurar ou apagar de vez */}
+      {naLixeira && selected.length > 0 && (
+        <div className="panel mb-2 flex flex-wrap items-center gap-2 border-destructive/30 bg-destructive/10 p-2">
+          <span className="text-xs font-medium">{selected.length} selecionado(s)</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8"
+            onClick={() => restaurar.mutate(selected)}
+            disabled={restaurar.isPending}
+          >
+            <RotateCcw className="size-3.5" /> Restaurar
+          </Button>
+          {podePurgar && (
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-8"
+              onClick={() => {
+                const quantos = selected.length;
+                if (
+                  !window.confirm(
+                    `Apagar ${quantos} chamado(s) em definitivo? Isto não tem volta.`,
+                  )
+                ) {
+                  return;
+                }
+                purgar.mutate(selected);
+              }}
+              disabled={purgar.isPending}
+            >
+              <Trash2 className="size-3.5" /> Excluir definitivamente
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelected([])}>
+            Limpar seleção
+          </Button>
+        </div>
+      )}
+
       {/* Ações em massa */}
-      {isStaff && selected.length > 0 && (
+      {isStaff && !naLixeira && selected.length > 0 && (
         <div className="panel mb-2 flex flex-wrap items-center gap-2 bg-accent/40 p-2">
           <span className="text-xs font-medium">{selected.length} selecionado(s)</span>
           <Select value={bulkStatus} onValueChange={setBulkStatus}>
@@ -624,7 +745,9 @@ function ListaChamados() {
               {!ticketsQuery.isLoading && rows.length === 0 && (
                 <tr>
                   <td colSpan={COLUMNS.length + 1} className="p-8 text-center text-muted-foreground">
-                    Nenhum chamado encontrado com esses critérios.
+                    {naLixeira
+                      ? "A lixeira está vazia."
+                      : "Nenhum chamado encontrado com esses critérios."}
                   </td>
                 </tr>
               )}

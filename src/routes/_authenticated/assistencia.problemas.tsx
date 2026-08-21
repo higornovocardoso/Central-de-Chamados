@@ -112,6 +112,7 @@ function Problemas() {
       const { data } = await supabase
         .from("tickets")
         .select("id,title")
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(200);
       return data ?? [];

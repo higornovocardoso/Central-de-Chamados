@@ -50,7 +50,11 @@ function Relatorios() {
   const ticketsQuery = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data } = await supabase.from("tickets").select("*").order("created_at");
+      const { data } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("is_deleted", false)
+        .order("created_at");
       return (data ?? []) as (Record<string, unknown> & { id: string })[];
     },
   });

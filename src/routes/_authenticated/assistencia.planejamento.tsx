@@ -68,7 +68,10 @@ function Planejamento() {
   const chamados = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data } = await supabase.from("tickets").select("id,title");
+      const { data } = await supabase
+        .from("tickets")
+        .select("id,title")
+        .eq("is_deleted", false);
       return data ?? [];
     },
   });

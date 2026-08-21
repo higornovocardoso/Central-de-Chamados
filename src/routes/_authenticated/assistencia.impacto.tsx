@@ -52,9 +52,11 @@ function Impacto() {
   const chamados = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data } = await supabase.from("tickets").select("id,title").order("created_at", {
-        ascending: false,
-      });
+      const { data } = await supabase
+        .from("tickets")
+        .select("id,title")
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
