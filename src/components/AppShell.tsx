@@ -228,7 +228,7 @@ export function AppShell({
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Barra superior */}
-          <header className="sticky top-0 z-30 border-b border-border bg-topbar text-topbar-foreground">
+          <header className="topbar-glass sticky top-0 z-30 border-b border-border text-topbar-foreground">
             <div className="flex h-12 items-center gap-2 px-3">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
