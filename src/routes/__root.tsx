@@ -97,6 +97,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      // Ícone transparente de propósito: não ter ícone nenhum não apaga o que
+      // ficou no cache do navegador — um 404 não manda esquecer o anterior.
+      // Servindo este, o antigo é sobrescrito e a aba fica sem logo de fato.
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
