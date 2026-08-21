@@ -1,7 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, ShieldCheck, Trash2, UserCog } from "lucide-react";
+import {
+  KeyRound,
+  Loader2,
+  Mail,
+  Plus,
+  Search,
+  ShieldCheck,
+  Trash2,
+  UserCog,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -11,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -32,6 +44,11 @@ import {
   type UserGroupRow,
 } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
+import {
+  createSystemUser,
+  deleteSystemUser,
+  updateSystemUser,
+} from "@/lib/users.functions";
 
 export const Route = createFileRoute("/_authenticated/administracao/usuarios")({
   head: () => ({
@@ -54,6 +71,16 @@ function Usuarios() {
   const [term, setTerm] = useState("");
   const [selected, setSelected] = useState<Person | null>(null);
   const [newAuth, setNewAuth] = useState({ profile_id: "", entity_id: "", is_recursive: true });
+  const [createOpen, setCreateOpen] = useState(false);
+  const emptyNewUser = {
+    full_name: "",
+    email: "",
+    password: "",
+    profile_id: "",
+    entity_id: "",
+  };
+  const [newUser, setNewUser] = useState(emptyNewUser);
+  const [account, setAccount] = useState({ full_name: "", email: "", password: "" });
 
   const peopleQuery = useQuery({
     queryKey: ["profiles"],
@@ -182,7 +209,78 @@ function Usuarios() {
     onError: (e: Error) => toast.error("Não foi possível alterar", { description: e.message }),
   });
 
+  const createUser = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        full_name: newUser.full_name.trim(),
+        email: newUser.email.trim(),
+        password: newUser.password,
+        is_recursive: true,
+        ...(newUser.profile_id && newUser.entity_id
+          ? { profile_id: newUser.profile_id, entity_id: newUser.entity_id }
+          : {}),
+      };
+      return await createSystemUser({ data: payload });
+    },
+    onSuccess: () => {
+      toast.success("Usuário criado.", { description: "Ele já pode entrar com a senha definida." });
+      setCreateOpen(false);
+      setNewUser(emptyNewUser);
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["user_authorizations"] });
+      queryClient.invalidateQueries({ queryKey: ["technicians"] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível criar", { description: e.message }),
+  });
+
+  const saveAccount = useMutation({
+    mutationFn: async () => {
+      if (!selected) return;
+      await updateSystemUser({
+        data: {
+          user_id: selected.id,
+          ...(account.full_name.trim() && account.full_name.trim() !== selected.full_name
+            ? { full_name: account.full_name.trim() }
+            : {}),
+          ...(account.email.trim() && account.email.trim() !== selected.email
+            ? { email: account.email.trim() }
+            : {}),
+          ...(account.password ? { password: account.password } : {}),
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Conta atualizada.");
+      setAccount((a) => ({ ...a, password: "" }));
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível salvar", { description: e.message }),
+  });
+
+  const removeUser = useMutation({
+    mutationFn: async (id: string) => {
+      await deleteSystemUser({ data: { user_id: id } });
+    },
+    onSuccess: () => {
+      toast.success("Usuário excluído.");
+      setSelected(null);
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["user_authorizations"] });
+    },
+    onError: (e: Error) => toast.error("Não foi possível excluir", { description: e.message }),
+  });
+
   const selectedAuths = authorizations.filter((a) => a.user_id === selected?.id);
+  const withoutAuth = people.filter(
+    (p) => !authorizations.some((a) => a.user_id === p.id),
+  ).length;
+  const initialsOf = (p: Person) =>
+    (p.full_name || p.email)
+      .split(/[\s@.]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("");
 
   return (
     <AppShell
