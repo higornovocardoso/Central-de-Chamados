@@ -66,121 +66,124 @@
   --color-topbar-foreground: var(--topbar-foreground);
 }
 
-/* Tema claro — padrão do GLPI. */
+/* Tema claro — versão fria e clara do mesmo sistema. */
 :root {
-  /* Paleta do GLPI 10, valores exatos.
-     O GLPI é Tabler 1.0.0-beta9: a paleta clara dele importa o Tabler inteiro
-     e sobrescreve seis variáveis, listadas em css/palettes/_defaults.scss.
-     O primário é âmbar, não azul — é ele que marca o item ativo do menu. */
-  --radius: 0.25rem;
+  --radius: 0.5rem;
 
-  --background: #f5f7fb;
-  --foreground: #1e293b;
+  --background: #eef2f8;
+  --foreground: #0f1b2d;
   --surface: #ffffff;
-  --surface-foreground: #1e293b;
+  --surface-foreground: #0f1b2d;
   --card: #ffffff;
-  --card-foreground: #1e293b;
+  --card-foreground: #0f1b2d;
   --popover: #ffffff;
-  --popover-foreground: #1e293b;
+  --popover-foreground: #0f1b2d;
 
-  --primary: #fec95c;
-  --primary-foreground: #3d2f08;
+  --primary: #0e7490;
+  --primary-foreground: #ecfeff;
 
-  --secondary: #f1f5f9;
-  --secondary-foreground: #334155;
-  --muted: #f1f5f9;
-  --muted-foreground: #626976;
-  --accent: #e9eef7;
-  --accent-foreground: #3a5693;
+  --secondary: #e3e9f3;
+  --secondary-foreground: #26364f;
+  --muted: #e8edf5;
+  --muted-foreground: #5a6a83;
+  --accent: #dbe7f5;
+  --accent-foreground: #14526b;
 
-  --destructive: #d63939;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --success: #2fb344;
+  --success: #0f9d76;
   --success-foreground: #ffffff;
-  --warning: #f76707;
+  --warning: #d97706;
   --warning-foreground: #ffffff;
-  --info: #80abe4;
-  --info-foreground: #14243c;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
 
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --ring: #fec95c;
+  --border: #d7e0ec;
+  --input: #c2cede;
+  --ring: #0e7490;
 
-  /* Azul dos links do GLPI. Separado do primário, que é âmbar. */
-  --link: #3a5693;
+  --link: #1d63b8;
 
-  --chart-1: #206bc4;
-  --chart-2: #2fb344;
-  --chart-3: #f76707;
-  --chart-4: #d63939;
-  --chart-5: #ae3ec9;
+  --chart-1: #0ea5e9;
+  --chart-2: #14b8a6;
+  --chart-3: #6366f1;
+  --chart-4: #f43f5e;
+  --chart-5: #8b5cf6;
 
-  --topbar: #ffffff;
-  --topbar-foreground: #1e293b;
+  --topbar: #ffffffcc;
+  --topbar-foreground: #0f1b2d;
 
-  --sidebar: #2f3f64;
-  --sidebar-foreground: #f4f6fa;
-  --sidebar-primary: #fec95c;
-  --sidebar-primary-foreground: #2f3f64;
-  --sidebar-accent: #27344f;
-  --sidebar-accent-foreground: #fec95c;
-  --sidebar-border: #3b4c74;
-  --sidebar-ring: #fec95c;
+  --sidebar: #16223a;
+  --sidebar-foreground: #dce6f5;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #05121f;
+  --sidebar-accent: #1d2c48;
+  --sidebar-accent-foreground: #7dd3fc;
+  --sidebar-border: #24344f;
+  --sidebar-ring: #38bdf8;
+
+  --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent),
+    0 18px 40px -24px color-mix(in oklab, var(--primary) 60%, transparent);
 }
 
+/* Tema escuro — o padrão do sistema: azul-noite frio, vidro e brilho sutil. */
 .dark {
-  --background: #151b28;
-  --foreground: #e8edf5;
-  --surface: #1c2333;
-  --surface-foreground: #e8edf5;
-  --card: #1c2333;
-  --card-foreground: #e8edf5;
-  --popover: #1c2333;
-  --popover-foreground: #e8edf5;
+  --background: #070d18;
+  --foreground: #e6eefb;
+  --surface: #0e1729;
+  --surface-foreground: #e6eefb;
+  --card: #0e1729;
+  --card-foreground: #e6eefb;
+  --popover: #101c31;
+  --popover-foreground: #e6eefb;
 
-  --primary: #fec95c;
-  --primary-foreground: #2b2205;
+  --primary: #38bdf8;
+  --primary-foreground: #04121e;
 
-  --secondary: #262f42;
-  --secondary-foreground: #e8edf5;
-  --muted: #232b3b;
-  --muted-foreground: #97a3b8;
-  --accent: #2c3853;
-  --accent-foreground: #fed88c;
+  --secondary: #17233a;
+  --secondary-foreground: #d6e3f6;
+  --muted: #131f34;
+  --muted-foreground: #8ea3c2;
+  --accent: #1a2942;
+  --accent-foreground: #7dd3fc;
 
-  --destructive: #e05656;
-  --destructive-foreground: #1a0c0c;
-  --success: #45c45a;
-  --success-foreground: #08240d;
-  --warning: #fa8a3c;
-  --warning-foreground: #2a1403;
-  --info: #80abe4;
-  --info-foreground: #0d1826;
+  --destructive: #f43f5e;
+  --destructive-foreground: #14030a;
+  --success: #2dd4bf;
+  --success-foreground: #04211d;
+  --warning: #fbbf24;
+  --warning-foreground: #231603;
+  --info: #60a5fa;
+  --info-foreground: #05152c;
 
-  --border: #2c3547;
-  --input: #3a4459;
-  --ring: #fec95c;
+  --border: #1d2b45;
+  --input: #29395a;
+  --ring: #38bdf8;
 
-  --link: #8fa9de;
+  --link: #7dd3fc;
 
-  --chart-1: #4d8fd6;
-  --chart-2: #45c45a;
-  --chart-3: #fa8a3c;
-  --chart-4: #e05656;
-  --chart-5: #c266d9;
+  --chart-1: #38bdf8;
+  --chart-2: #2dd4bf;
+  --chart-3: #818cf8;
+  --chart-4: #fb7185;
+  --chart-5: #a78bfa;
 
-  --topbar: #1c2333;
-  --topbar-foreground: #e8edf5;
+  --topbar: #0b1524b3;
+  --topbar-foreground: #e6eefb;
 
-  --sidebar: #18202f;
-  --sidebar-foreground: #dbe3ef;
-  --sidebar-primary: #fec95c;
-  --sidebar-primary-foreground: #18202f;
-  --sidebar-accent: #222c3f;
-  --sidebar-accent-foreground: #fec95c;
-  --sidebar-border: #2b3549;
-  --sidebar-ring: #fec95c;
+  --sidebar: #08111f;
+  --sidebar-foreground: #c9d9ef;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #04121e;
+  --sidebar-accent: #12203a;
+  --sidebar-accent-foreground: #7dd3fc;
+  --sidebar-border: #17253d;
+  --sidebar-ring: #38bdf8;
+
+  --glow: 0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent),
+    0 22px 50px -28px color-mix(in oklab, var(--primary) 75%, transparent);
 }
+
 
 @layer base {
   * {
