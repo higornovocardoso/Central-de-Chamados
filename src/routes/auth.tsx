@@ -151,7 +151,7 @@ function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="voce@empresa.com"
-                  className="h-11 rounded-xl pl-9"
+                  className="h-11 rounded-lg pl-9"
                 />
               </div>
             </div>
