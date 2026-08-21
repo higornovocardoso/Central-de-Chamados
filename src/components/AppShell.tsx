@@ -200,9 +200,10 @@ export function AppShell({
 
 
               <Select
-                value={selectedId ?? ROOT_TREE}
+                value={selectedId ?? entities[0]?.id ?? ROOT_TREE}
                 onValueChange={(v) => setSelectedId(v === ROOT_TREE ? null : v)}
               >
+
                 <SelectTrigger
                   className="hidden h-8 w-[220px] text-xs sm:flex"
                   aria-label="Entidade"
