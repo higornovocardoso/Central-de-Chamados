@@ -104,7 +104,7 @@ function AuthPage() {
               Central de chamados de T.I.
             </h1>
             <p className="mt-2 max-w-xs text-sm text-white/70">
-              Atendimento, ativos e conhecimento da Compliance Contábil em um só lugar.
+              Atendimento, ativos e conhecimento em um só lugar.
             </p>
           </div>
 
