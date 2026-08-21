@@ -151,7 +151,8 @@ export function AppShell({
     user?.email?.split("@")[0] ||
     "Usuário";
   const entityName =
-    entities.find((e) => e.id === selectedId)?.name ?? "Entidade raiz (árvore)";
+    entities.find((e) => e.id === selectedId)?.name ?? entities[0]?.name ?? "—";
+
 
   const sidebar = (
     <SidebarNav
@@ -199,9 +200,10 @@ export function AppShell({
 
 
               <Select
-                value={selectedId ?? ROOT_TREE}
+                value={selectedId ?? entities[0]?.id ?? ROOT_TREE}
                 onValueChange={(v) => setSelectedId(v === ROOT_TREE ? null : v)}
               >
+
                 <SelectTrigger
                   className="hidden h-8 w-[220px] text-xs sm:flex"
                   aria-label="Entidade"
@@ -209,7 +211,7 @@ export function AppShell({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ROOT_TREE}>Entidade raiz (árvore)</SelectItem>
+
                   {entities.map((e) => (
                     <SelectItem key={e.id} value={e.id}>
                       {" ".repeat(e.level * 3)}
