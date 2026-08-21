@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   LayoutDashboard,
   TriangleAlert,
   LogOut,
