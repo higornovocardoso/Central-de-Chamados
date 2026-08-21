@@ -60,7 +60,11 @@ export default defineConfig(({ mode, command }) => {
           client: { files: ["**/server/**"], specifiers: ["server-only"] },
         },
       }),
-      ...(command === "build" ? [nitro({ preset: "netlify" })] : []),
+      // NITRO_PRESET permite compilar para outro alvo sem editar o config —
+      // usado para reproduzir erro de SSR localmente com "node-server".
+      ...(command === "build"
+        ? [nitro({ preset: process.env["NITRO_PRESET"] || "netlify" })]
+        : []),
       viteReact(),
     ],
   };

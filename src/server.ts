@@ -7,16 +7,17 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
-let serverEntryPromise: Promise<ServerEntry> | undefined;
+// Import estático de propósito. Com import() dinâmico o empacotador cria um
+// chunk-fachada que reexporta do chunk grande de SSR e, ao mesmo tempo, guarda
+// o runtime (__exportAll) que esse mesmo chunk precisa — um ciclo. Em Node o
+// chunk grande avalia primeiro e chama __exportAll antes da atribuição, o que
+// derruba todo pedido com "__exportAll is not a function". No Workers a ordem
+// de avaliação escondia o problema. Nada se ganha adiando: o servidor precisa
+// deste módulo em todo pedido.
+import * as serverEntryModule from "@tanstack/react-start/server-entry";
 
-async function getServerEntry(): Promise<ServerEntry> {
-  if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => (m.default ?? m) as ServerEntry,
-    );
-  }
-  return serverEntryPromise;
-}
+const serverEntry = ((serverEntryModule as { default?: ServerEntry }).default ??
+  serverEntryModule) as unknown as ServerEntry;
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
@@ -47,8 +48,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const response = await serverEntry.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
