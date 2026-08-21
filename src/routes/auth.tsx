@@ -183,7 +183,7 @@ function AuthPage() {
               </div>
             </div>
 
-            <Button type="submit" className="h-11 w-full rounded-xl text-sm" disabled={loading}>
+            <Button type="submit" className="h-11 w-full rounded-lg text-sm" disabled={loading}>
               {loading ? <Loader2 className="size-4 animate-spin" /> : null}
               Entrar
             </Button>
