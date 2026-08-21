@@ -309,7 +309,7 @@ export function AppShell({
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 px-3 py-4 lg:px-5">
+          <main key={location.pathname} className="rise-in min-w-0 flex-1 px-3 py-4 lg:px-5">
             {/*
               Sem permissões o menu fica só com o Painel, e antes disso não
               havia aviso nenhum: o sistema parecia vazio em vez de quebrado.
@@ -338,8 +338,10 @@ export function AppShell({
             {(title || actions) && (
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  {title && <h1 className="text-base font-semibold">{title}</h1>}
-                  {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+                  {title && (
+                    <h1 className="text-[1.0625rem] font-semibold tracking-tight">{title}</h1>
+                  )}
+                  {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
                 </div>
                 <div className="flex items-center gap-2">{actions}</div>
               </div>

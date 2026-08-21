@@ -15,7 +15,7 @@ const TabsList = React.forwardRef<
       // min-h em vez de h: com muitas abas a fila quebra em duas linhas, e a
       // altura fixa cortava a segunda pela metade. Alinhado à esquerda, como
       // as abas do GLPI.
-      "inline-flex min-h-9 flex-wrap items-center justify-start gap-y-1 rounded-lg bg-muted p-1 text-muted-foreground",
+      "inline-flex min-h-9 flex-wrap items-center justify-start gap-1 rounded-full border border-border bg-muted/70 p-1 text-muted-foreground backdrop-blur",
       className,
     )}
     {...props}
@@ -30,7 +30,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
+      "inline-flex items-center justify-center whitespace-nowrap rounded-full px-3.5 py-1 text-sm font-medium ring-offset-background cursor-pointer transition-all duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed data-[state=active]:bg-surface data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-primary/20",
       className,
     )}
     {...props}
