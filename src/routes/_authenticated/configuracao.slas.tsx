@@ -279,7 +279,7 @@ function NiveisDeServico() {
                           type="button"
                           onClick={() => setSelectedLevel(l)}
                           className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs ${
-                            l.id === selectedLevel?.id ? "bg-primary/10 text-primary" : ""
+                            l.id === selectedLevel?.id ? "bg-accent text-accent-foreground" : ""
                           }`}
                         >
                           <span className="flex-1 truncate font-medium">{String(l["name"])}</span>

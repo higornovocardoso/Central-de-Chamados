@@ -233,7 +233,7 @@ function Contratos() {
             </section>
           ) : (
             <Tabs defaultValue="ativos">
-              <TabsList className="h-8">
+              <TabsList className="min-h-8">
                 <TabsTrigger value="ativos" className="text-xs">
                   Ativos ({itemsQuery.data?.length ?? 0})
                 </TabsTrigger>

@@ -233,7 +233,7 @@ function Mudancas() {
             </section>
           ) : (
             <Tabs defaultValue="mudanca">
-              <TabsList className="h-8">
+              <TabsList className="min-h-8">
                 <TabsTrigger value="mudanca" className="text-xs">
                   Mudança
                 </TabsTrigger>

@@ -326,7 +326,7 @@ export function DataToolbar({
               key={s.id}
               className="inline-flex items-center gap-1 rounded border border-border bg-secondary px-1.5 py-0.5 text-xs"
             >
-              <button type="button" onClick={() => applySaved(s)} className="hover:text-primary">
+              <button type="button" onClick={() => applySaved(s)} className="hover:text-link">
                 {s["show_counter"] === true && <Star className="mr-1 inline size-3" />}
                 {String(s["name"])}
               </button>

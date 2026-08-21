@@ -40,7 +40,7 @@ const STATUS = [
 
 const STATUS_CLASS: Record<string, string> = {
   novo: "bg-info/15 text-info border-info/30",
-  em_analise: "bg-primary/15 text-primary border-primary/30",
+  em_analise: "bg-primary/25 text-foreground border-primary/50",
   aguardando: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
   solucionado: "bg-success/15 text-success border-success/30",
   fechado: "bg-secondary text-muted-foreground border-border",
@@ -277,7 +277,7 @@ function Problemas() {
             </section>
           ) : (
             <Tabs defaultValue="problema">
-              <TabsList className="h-8">
+              <TabsList className="min-h-8">
                 <TabsTrigger value="problema" className="text-xs">
                   Problema
                 </TabsTrigger>

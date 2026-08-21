@@ -40,7 +40,7 @@ import { applySearch, type MatchMode, type SearchCriterion } from "@/lib/search"
 
 type InventarioSearch = { tipo?: string | undefined };
 
-export const Route = createFileRoute("/_authenticated/inventario")({
+export const Route = createFileRoute("/_authenticated/inventario/")({
   validateSearch: (search: Record<string, unknown>): InventarioSearch => {
     const tipo = search["tipo"];
     return typeof tipo === "string" && (tipo === "todos" || ASSET_KINDS.includes(tipo as AssetKind))
@@ -340,7 +340,7 @@ function Inventario() {
                     <Link
                       to="/inventario/$id"
                       params={{ id: a.id }}
-                      className="font-medium text-primary hover:underline"
+                      className="font-medium text-link hover:underline"
                     >
                       {a.name}
                     </Link>

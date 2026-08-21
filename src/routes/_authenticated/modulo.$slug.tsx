@@ -95,7 +95,7 @@ function Modulo() {
         <p className="mt-2 text-[0.7rem] text-muted-foreground">
           Entra na etapa 2, junto com o restante das funcionalidades ITIL.
         </p>
-        <Link to="/chamados" className="mt-3 text-xs text-primary hover:underline">
+        <Link to="/chamados" className="mt-3 text-xs text-link hover:underline">
           Ir para os chamados
         </Link>
       </div>

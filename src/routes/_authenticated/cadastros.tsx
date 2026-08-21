@@ -98,7 +98,7 @@ function Cadastros() {
         value={active}
         onValueChange={(v) => navigate({ to: "/cadastros", search: { aba: v as AbaCadastro } })}
       >
-        <TabsList className="h-8">
+        <TabsList className="min-h-8">
           {CONFIGS.map((c) => (
             <TabsTrigger key={c.table} value={c.table} className="text-xs">
               {c.title}

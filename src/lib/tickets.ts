@@ -19,7 +19,7 @@ export const STATUS_LABEL: Record<TicketStatus, string> = {
 
 export const STATUS_CLASS: Record<TicketStatus, string> = {
   aberto: "bg-info/15 text-info border-info/30",
-  em_andamento: "bg-primary/15 text-primary border-primary/30",
+  em_andamento: "bg-primary/25 text-foreground border-primary/50",
   planejado: "bg-accent text-accent-foreground border-primary/30",
   aguardando: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
   resolvido: "bg-success/15 text-success border-success/30",
@@ -34,6 +34,16 @@ export const STATUS_DOT: Record<TicketStatus, string> = {
   aguardando: "bg-warning",
   resolvido: "bg-success",
   fechado: "bg-muted-foreground",
+};
+
+/** Matiz do cartão big-number do painel, um por status. */
+export const STATUS_TILE: Record<TicketStatus, string> = {
+  aberto: "tile-info",
+  em_andamento: "tile-primary",
+  planejado: "tile-purple",
+  aguardando: "tile-warning",
+  resolvido: "tile-success",
+  fechado: "tile-muted",
 };
 
 export const PRIORITY_LABEL: Record<TicketPriority, string> = {

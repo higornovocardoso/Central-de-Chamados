@@ -122,7 +122,7 @@ function Kanban() {
       breadcrumbTail="Kanban"
     >
       <Tabs value={board} onValueChange={(v) => setBoard(v as Board)}>
-        <TabsList className="mb-3 h-8">
+        <TabsList className="mb-3 min-h-8">
           <TabsTrigger value="ticket" className="text-xs">
             Chamados
           </TabsTrigger>
@@ -188,7 +188,7 @@ function Kanban() {
                         <Link
                           to="/chamados/$id"
                           params={{ id: card.id }}
-                          className="line-clamp-3 font-medium text-primary hover:underline"
+                          className="line-clamp-3 font-medium text-link hover:underline"
                         >
                           {String(card["title"])}
                         </Link>

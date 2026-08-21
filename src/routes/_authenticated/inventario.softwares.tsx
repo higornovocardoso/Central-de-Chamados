@@ -11,6 +11,14 @@ import { useEntityOptions } from "@/hooks/useEntityOptions";
 import { formatDay } from "@/lib/glpi";
 
 export const Route = createFileRoute("/_authenticated/inventario/softwares")({
+  // O menu do GLPI lista estes objetos separadamente; aqui eles
+  // dividem a mesma tela, então a aba vem pela URL.
+  validateSearch: (search: Record<string, unknown>): { aba: "versoes" | "licencas" } => {
+    const aba = String(search["aba"] ?? "");
+    return { aba: (["versoes", "licencas"] as const).includes(aba as never)
+      ? (aba as "versoes" | "licencas")
+      : "versoes" };
+  },
   head: () => ({
     meta: [
       { title: "Softwares — Helpdesk T.I." },
@@ -24,6 +32,8 @@ export const Route = createFileRoute("/_authenticated/inventario/softwares")({
 });
 
 function Softwares() {
+  const { aba } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { can } = usePermissions();
   const entities = useEntityOptions();
   const canWrite = can("software", "update");
@@ -150,8 +160,8 @@ function Softwares() {
               Escolha um software para ver versões e licenças.
             </section>
           ) : (
-            <Tabs defaultValue="versoes">
-              <TabsList className="h-8">
+            <Tabs value={aba} onValueChange={(v) => navigate({ search: { aba: v as never } })}>
+              <TabsList className="min-h-8">
                 <TabsTrigger value="versoes" className="text-xs">
                   Versões ({versionsQuery.data?.length ?? 0})
                 </TabsTrigger>

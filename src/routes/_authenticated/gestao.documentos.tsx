@@ -193,7 +193,7 @@ function Documentos() {
                     <button
                       type="button"
                       onClick={() => download(String(d["storage_path"]), String(d["filename"]))}
-                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                      className="inline-flex items-center gap-1.5 text-link hover:underline"
                     >
                       <Paperclip className="size-3.5" />
                       {String(d["name"])}

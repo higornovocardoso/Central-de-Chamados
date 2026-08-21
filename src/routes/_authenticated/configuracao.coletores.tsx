@@ -82,7 +82,7 @@ function Coletores() {
       breadcrumbTail="Coletores"
     >
       <Tabs defaultValue="coletores">
-        <TabsList className="h-8">
+        <TabsList className="min-h-8">
           <TabsTrigger value="coletores" className="text-xs">
             Coletores
           </TabsTrigger>

@@ -263,7 +263,7 @@ function DetalheAtivo() {
       <AppShell title="Ativo">
         <div className="panel p-10 text-center">
           <p className="text-xs text-muted-foreground">Ativo não encontrado.</p>
-          <Link to="/inventario" className="mt-3 inline-block text-xs text-primary hover:underline">
+          <Link to="/inventario" className="mt-3 inline-block text-xs text-link hover:underline">
             Voltar ao inventário
           </Link>
         </div>
@@ -323,7 +323,7 @@ function DetalheAtivo() {
       )}
 
       <Tabs defaultValue="ativo">
-        <TabsList className="h-8 flex-wrap">
+        <TabsList className="min-h-8">
           <TabsTrigger value="ativo" className="text-xs">
             Ativo
           </TabsTrigger>
@@ -731,7 +731,7 @@ function DetalheAtivo() {
                   <Link
                     to="/chamados/$id"
                     params={{ id: t.id }}
-                    className="flex-1 truncate text-primary hover:underline"
+                    className="flex-1 truncate text-link hover:underline"
                   >
                     {t.title}
                   </Link>

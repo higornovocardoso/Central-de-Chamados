@@ -222,7 +222,7 @@ function Projetos() {
             </section>
           ) : (
             <Tabs defaultValue="tarefas">
-              <TabsList className="h-8">
+              <TabsList className="min-h-8">
                 <TabsTrigger value="tarefas" className="text-xs">
                   Tarefas
                 </TabsTrigger>

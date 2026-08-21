@@ -293,7 +293,7 @@ function Perfis() {
                   type="button"
                   onClick={() => setSelectedId(p.id)}
                   className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
-                    p.id === selectedId ? "bg-primary/10 text-primary" : "hover:bg-accent/50"
+                    p.id === selectedId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
                   }`}
                 >
                   <ShieldCheck className="size-3.5 shrink-0" />
@@ -353,7 +353,7 @@ function Perfis() {
             </div>
 
             <Tabs defaultValue="ativos">
-              <TabsList className="h-8 flex-wrap">
+              <TabsList className="min-h-8">
                 {RIGHT_CATEGORIES.map((c) => (
                   <TabsTrigger key={c.key} value={c.key} className="text-xs">
                     {c.label}

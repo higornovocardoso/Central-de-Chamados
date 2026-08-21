@@ -6,6 +6,14 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useEntityOptions } from "@/hooks/useEntityOptions";
 
 export const Route = createFileRoute("/_authenticated/ferramentas/lembretes")({
+  // O menu do GLPI lista estes objetos separadamente; aqui eles
+  // dividem a mesma tela, então a aba vem pela URL.
+  validateSearch: (search: Record<string, unknown>): { aba: "lembretes" | "rss" } => {
+    const aba = String(search["aba"] ?? "");
+    return { aba: (["lembretes", "rss"] as const).includes(aba as never)
+      ? (aba as "lembretes" | "rss")
+      : "lembretes" };
+  },
   head: () => ({
     meta: [
       { title: "Lembretes e feeds — Helpdesk T.I." },
@@ -19,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/ferramentas/lembretes")({
 });
 
 function Lembretes() {
+  const { aba } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { can } = usePermissions();
   const entities = useEntityOptions();
 
@@ -28,8 +38,8 @@ function Lembretes() {
       subtitle="O que a equipe precisa lembrar, e o que vale acompanhar de fora."
       breadcrumbTail="Lembretes"
     >
-      <Tabs defaultValue="lembretes">
-        <TabsList className="h-8">
+      <Tabs value={aba} onValueChange={(v) => navigate({ search: { aba: v as never } })}>
+        <TabsList className="min-h-8">
           <TabsTrigger value="lembretes" className="text-xs">
             Lembretes
           </TabsTrigger>

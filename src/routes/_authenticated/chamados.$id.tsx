@@ -21,7 +21,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -396,7 +401,7 @@ function DetalheChamado() {
       <AppShell title="Chamado">
         <div className="panel p-10 text-center">
           <p className="text-xs text-muted-foreground">Chamado não encontrado.</p>
-          <Link to="/chamados" className="mt-3 inline-block text-xs text-primary hover:underline">
+          <Link to="/chamados" className="mt-3 inline-block text-xs text-link hover:underline">
             Voltar para a lista
           </Link>
         </div>
@@ -481,464 +486,424 @@ function DetalheChamado() {
         </div>
       )}
 
-      <Tabs defaultValue="chamado">
-        <TabsList className="h-8 flex-wrap">
-          <TabsTrigger value="chamado" className="text-xs">
-            Chamado
-          </TabsTrigger>
-          <TabsTrigger value="acompanhamentos" className="text-xs">
-            Acompanhamentos ({commentsQuery.data?.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="tarefas" className="text-xs">
-            Tarefas ({tasksQuery.data?.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="solucao" className="text-xs">
-            Solução
-          </TabsTrigger>
-          <TabsTrigger value="aprovacoes" className="text-xs">
-            Aprovações ({validationsQuery.data?.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="itens" className="text-xs">
-            Itens ({itemsQuery.data?.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="ligados" className="text-xs">
-            Chamados ligados ({linksQuery.data?.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="custos" className="text-xs">
-            Custos
-          </TabsTrigger>
-          <TabsTrigger value="estatisticas" className="text-xs">
-            Estatísticas
-          </TabsTrigger>
-          <TabsTrigger value="documentos" className="text-xs">
-            Documentos ({documentsQuery.data?.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="text-xs">
-            Histórico
-          </TabsTrigger>
-        </TabsList>
-
-        {/* ---------------- Chamado ---------------- */}
-        <TabsContent value="chamado" className="mt-3">
-          <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
-            <div className="space-y-3">
-              <section className="panel h-fit">
-                <header className="panel-header">Dados do chamado</header>
-                <div className="space-y-2.5 p-3">
-                  <Info label="Aberto em" value={formatDate(str(ticket, "created_at") || null)} />
-                  <Info
-                    label="Última atualização"
-                    value={formatDate(str(ticket, "updated_at") || null)}
-                  />
-                  <Info
-                    label="Solucionado em"
-                    value={formatDate(str(ticket, "resolved_at") || null)}
-                  />
-
-                  {canEdit ? (
-                    <div className="space-y-2.5 border-t border-border pt-2.5">
-                      {phase3 && (
-                        <Picker
-                          label="Tipo"
-                          value={form.type}
-                          onChange={(v) => setForm({ ...form, type: v as TicketType })}
-                        >
-                          {TICKET_TYPES.map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {TICKET_TYPE_LABEL[t]}
-                            </SelectItem>
-                          ))}
-                        </Picker>
-                      )}
-
-                      <Picker
-                        label="Status"
-                        value={form.status}
-                        onChange={(v) => setForm({ ...form, status: v as TicketStatus })}
-                      >
-                        {STATUS_ORDER.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {STATUS_LABEL[s]}
-                          </SelectItem>
-                        ))}
-                      </Picker>
-
-                      {phase3 && (
-                        <>
-                          <Picker
-                            label="Categoria"
-                            value={form.category_id}
-                            onChange={(v) => setForm({ ...form, category_id: v })}
-                          >
-                            <SelectItem value={NONE}>Sem categoria</SelectItem>
-                            {(lookups?.categories ?? []).map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {" ".repeat(c.level * 3)}
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </Picker>
-
-                          <Picker
-                            label="Origem da requisição"
-                            value={form.request_source_id}
-                            onChange={(v) => setForm({ ...form, request_source_id: v })}
-                          >
-                            <SelectItem value={NONE}>Não informada</SelectItem>
-                            {(lookups?.sources ?? []).map((s) => (
-                              <SelectItem key={s.id} value={s.id}>
-                                {s.name}
-                              </SelectItem>
-                            ))}
-                          </Picker>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <Picker
-                              label="Urgência"
-                              value={String(form.urgency)}
-                              onChange={(v) => setForm({ ...form, urgency: Number(v) })}
-                            >
-                              {LEVELS.map((l) => (
-                                <SelectItem key={l} value={String(l)}>
-                                  {levelLabel(l)}
-                                </SelectItem>
-                              ))}
-                            </Picker>
-                            <Picker
-                              label="Impacto"
-                              value={String(form.impact)}
-                              onChange={(v) => setForm({ ...form, impact: Number(v) })}
-                            >
-                              {LEVELS.map((l) => (
-                                <SelectItem key={l} value={String(l)}>
-                                  {levelLabel(l)}
-                                </SelectItem>
-                              ))}
-                            </Picker>
-                          </div>
-
-                          <div className="space-y-1 rounded border border-border bg-secondary/40 p-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Prioridade</span>
-                              <span className="inline-flex items-center gap-1.5 font-medium">
-                                <span
-                                  className={`size-2 rounded-full ${
-                                    LEVEL_DOT[
-                                      form.priority_manual
-                                        ? form.priority_level
-                                        : previewPriority(form.urgency, form.impact)
-                                    ]
-                                  }`}
-                                />
-                                {levelLabel(
-                                  form.priority_manual
-                                    ? form.priority_level
-                                    : previewPriority(form.urgency, form.impact),
-                                )}
-                              </span>
-                            </div>
-                            <label className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
-                              <Checkbox
-                                checked={form.priority_manual}
-                                disabled={!hasFlag("ticket_change_priority")}
-                                onCheckedChange={(v) =>
-                                  setForm({ ...form, priority_manual: v === true })
-                                }
-                              />
-                              Definir manualmente
-                            </label>
-                            {form.priority_manual && (
-                              <Select
-                                value={String(form.priority_level)}
-                                onValueChange={(v) =>
-                                  setForm({ ...form, priority_level: Number(v) })
-                                }
-                              >
-                                <SelectTrigger className="h-7 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {LEVELS.map((l) => (
-                                    <SelectItem key={l} value={String(l)}>
-                                      {levelLabel(l)}
-                                    </SelectItem>
-                                  ))}
-                                  {hasFlag("ticket_major_priority") && (
-                                    <SelectItem value="6">Maior</SelectItem>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            )}
-                          </div>
-                        </>
-                      )}
-
-                      <Picker
-                        label="Local"
-                        value={form.location_id}
-                        onChange={(v) => setForm({ ...form, location_id: v })}
-                      >
-                        <SelectItem value={NONE}>Nenhum</SelectItem>
-                        {(lookups?.locations ?? []).map((l) => (
-                          <SelectItem key={l.id} value={l.id}>
-                            {l.name}
-                          </SelectItem>
-                        ))}
-                      </Picker>
-
-                      <Picker
-                        label="Setor"
-                        value={form.sector_id}
-                        onChange={(v) => setForm({ ...form, sector_id: v })}
-                      >
-                        <SelectItem value={NONE}>Nenhum</SelectItem>
-                        {(lookups?.sectors ?? []).map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </Picker>
-
-                      <Button
-                        size="sm"
-                        className="h-8 w-full"
-                        onClick={() => saveTicket.mutate()}
-                        disabled={saveTicket.isPending}
-                      >
-                        Salvar
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2.5 border-t border-border pt-2.5">
-                      <Info label="Categoria" value={str(ticket, "category", "—")} />
-                      <Info label="Prioridade" value={levelLabel(priorityLevel)} />
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              <ActorsPanel
-                ticketId={id}
-                actors={actorsQuery.data ?? []}
-                people={peopleQuery.data ?? []}
-                groups={lookups?.groups ?? []}
-                suppliers={lookups?.suppliers ?? []}
-                technicians={techniciansQuery.data ?? []}
-                canEdit={canEdit && phase3}
-                personName={personName}
-                onChanged={() => invalidate("ticket_actors")}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <section className="panel">
-                <header className="panel-header">Descrição</header>
-                <p className="whitespace-pre-wrap p-3 text-xs leading-relaxed">
-                  {str(ticket, "description") || "Sem descrição."}
-                </p>
-              </section>
-
-              <FollowupsPanel
-                ticketId={id}
-                comments={commentsQuery.data ?? []}
-                personName={personName}
-                sources={lookups?.sources ?? []}
-                canSeePrivate={hasFlag("followup_see_private")}
-                phase3={phase3}
-                userId={user?.id ?? null}
-                onChanged={() => invalidate("comments")}
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ---------------- Acompanhamentos ---------------- */}
-        <TabsContent value="acompanhamentos" className="mt-3">
-          <FollowupsPanel
-            ticketId={id}
-            comments={commentsQuery.data ?? []}
-            personName={personName}
-            sources={lookups?.sources ?? []}
-            canSeePrivate={hasFlag("followup_see_private")}
-            phase3={phase3}
-            userId={user?.id ?? null}
-            onChanged={() => invalidate("comments")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Tarefas ---------------- */}
-        <TabsContent value="tarefas" className="mt-3">
-          <TasksPanel
-            ticketId={id}
-            tasks={tasksQuery.data ?? []}
-            categories={lookups?.taskCategories ?? []}
-            technicians={techniciansQuery.data ?? []}
-            personName={personName}
-            canEdit={can("task", "create") && phase3}
-            userId={user?.id ?? null}
-            onChanged={() => invalidate("ticket_tasks")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Solução ---------------- */}
-        <TabsContent value="solucao" className="mt-3">
-          <SolutionPanel
-            ticketId={id}
-            solutions={solutionsQuery.data ?? []}
-            types={lookups?.solutionTypes ?? []}
-            personName={personName}
-            canSolve={can("solution", "create") && phase3}
-            isRequester={str(ticket, "requester_id") === user?.id}
-            userId={user?.id ?? null}
-            onChanged={() => invalidate("ticket_solutions")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Aprovações ---------------- */}
-        <TabsContent value="aprovacoes" className="mt-3">
-          <ValidationsPanel
-            ticketId={id}
-            validations={validationsQuery.data ?? []}
-            percent={num(ticket, "validation_percent", 100)}
-            people={peopleQuery.data ?? []}
-            personName={personName}
-            canRequest={hasFlag("validation_request") && phase3}
-            userId={user?.id ?? null}
-            onChanged={() => invalidate("ticket_validations")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Itens ---------------- */}
-        <TabsContent value="itens" className="mt-3">
-          <ItemsPanel
-            ticketId={id}
-            items={(itemsQuery.data ?? []) as { id: string; asset_id: string }[]}
-            assets={lookups?.assets ?? []}
-            canEdit={canEdit && phase3}
-            onChanged={() => invalidate("ticket_items")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Chamados ligados ---------------- */}
-        <TabsContent value="ligados" className="mt-3">
-          <LinksPanel
-            ticketId={id}
-            links={linksQuery.data ?? []}
-            tickets={(allTicketsQuery.data ?? []) as { id: string; title: string }[]}
-            canEdit={canEdit && phase3}
-            onChanged={() => invalidate("ticket_links")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Custos ---------------- */}
-        <TabsContent value="custos" className="mt-3">
-          <CostsPanel
-            ticketId={id}
-            costs={costsQuery.data ?? []}
-            canEdit={can("financial_info", "update") && phase3}
-            onChanged={() => invalidate("ticket_costs")}
-          />
-        </TabsContent>
-
-        {/* ---------------- Estatísticas ---------------- */}
-        <TabsContent value="estatisticas" className="mt-3">
-          <div className="grid gap-3 md:grid-cols-2">
+      {/* Estrutura da tela de chamado do GLPI: a conversa é o conteúdo
+          principal, à esquerda, e os campos ficam no painel de apoio à
+          direita. Os dois lados rolam de forma independente. */}
+      <div className="itil-object">
+        <div className="itil-left-side space-y-3">
             <section className="panel">
-              <header className="panel-header">Datas</header>
-              <dl className="divide-y divide-border text-xs">
-                <Stat label="Abertura" value={formatDate(str(ticket, "created_at") || null)} />
-                <Stat
-                  label="Primeira resposta"
-                  value={formatDate(str(ticket, "first_response_at") || null)}
-                />
-                <Stat
+              <header className="panel-header">Descrição</header>
+              <p className="whitespace-pre-wrap p-3 text-xs leading-relaxed">
+                {str(ticket, "description") || "Sem descrição."}
+              </p>
+            </section>
+
+            <FollowupsPanel
+              ticketId={id}
+              comments={commentsQuery.data ?? []}
+              personName={personName}
+              sources={lookups?.sources ?? []}
+              canSeePrivate={hasFlag("followup_see_private")}
+              phase3={phase3}
+              userId={user?.id ?? null}
+              onChanged={() => invalidate("comments")}
+            />
+
+        <TasksPanel
+          ticketId={id}
+          tasks={tasksQuery.data ?? []}
+          categories={lookups?.taskCategories ?? []}
+          technicians={techniciansQuery.data ?? []}
+          personName={personName}
+          canEdit={can("task", "create") && phase3}
+          userId={user?.id ?? null}
+          onChanged={() => invalidate("ticket_tasks")}
+        />
+
+        <SolutionPanel
+          ticketId={id}
+          solutions={solutionsQuery.data ?? []}
+          types={lookups?.solutionTypes ?? []}
+          personName={personName}
+          canSolve={can("solution", "create") && phase3}
+          isRequester={str(ticket, "requester_id") === user?.id}
+          userId={user?.id ?? null}
+          onChanged={() => invalidate("ticket_solutions")}
+        />
+
+        <ValidationsPanel
+          ticketId={id}
+          validations={validationsQuery.data ?? []}
+          percent={num(ticket, "validation_percent", 100)}
+          people={peopleQuery.data ?? []}
+          personName={personName}
+          canRequest={hasFlag("validation_request") && phase3}
+          userId={user?.id ?? null}
+          onChanged={() => invalidate("ticket_validations")}
+        />
+        </div>
+
+        <aside className="itil-right-side space-y-3">
+            <section className="panel h-fit">
+              <header className="panel-header">Dados do chamado</header>
+              <div className="space-y-2.5 p-3">
+                <Info label="Aberto em" value={formatDate(str(ticket, "created_at") || null)} />
+                <Info
                   label="Última atualização"
                   value={formatDate(str(ticket, "updated_at") || null)}
                 />
-                <Stat label="Solução" value={formatDate(str(ticket, "resolved_at") || null)} />
-                <Stat label="Fechamento" value={formatDate(str(ticket, "closed_at") || null)} />
-              </dl>
-            </section>
-            <section className="panel">
-              <header className="panel-header">Acordo de nível de serviço</header>
-              <dl className="divide-y divide-border text-xs">
-                <Stat
-                  label="Prazo de resposta"
-                  value={formatDate(str(ticket, "response_due_at") || null)}
+                <Info
+                  label="Solucionado em"
+                  value={formatDate(str(ticket, "resolved_at") || null)}
                 />
-                <Stat
-                  label="Situação da resposta"
-                  value={responseSla.label}
-                  className={responseSla.className}
-                />
-                <Stat
-                  label="Prazo de solução"
-                  value={formatDate(str(ticket, "resolution_due_at") || null)}
-                />
-                <Stat
-                  label="Situação da solução"
-                  value={resolutionSla.label}
-                  className={resolutionSla.className}
-                />
-              </dl>
-            </section>
-          </div>
-        </TabsContent>
 
-        {/* ---------------- Documentos ---------------- */}
-        <TabsContent value="documentos" className="mt-3">
-          <DocumentsPanel
-            ticketId={id}
-            entityId={str(ticket, "entity_id")}
-            documents={(documentsQuery.data ?? []) as never[]}
-            canEdit={can("document", "create") && phase3}
-            userId={user?.id ?? null}
-            onChanged={() => invalidate("ticket_documents")}
-          />
-        </TabsContent>
+                {canEdit ? (
+                  <div className="space-y-2.5 border-t border-border pt-2.5">
+                    {phase3 && (
+                      <Picker
+                        label="Tipo"
+                        value={form.type}
+                        onChange={(v) => setForm({ ...form, type: v as TicketType })}
+                      >
+                        {TICKET_TYPES.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {TICKET_TYPE_LABEL[t]}
+                          </SelectItem>
+                        ))}
+                      </Picker>
+                    )}
 
-        {/* ---------------- Histórico ---------------- */}
-        <TabsContent value="historico" className="mt-3">
-          <section className="panel overflow-hidden">
-            <header className="panel-header">Histórico</header>
-            <div className="overflow-x-auto">
-              <table className="glpi-table">
-                <thead>
-                  <tr>
-                    <th>Data</th>
-                    <th>Autor</th>
-                    <th>Campo</th>
-                    <th>De</th>
-                    <th>Para</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="whitespace-nowrap text-muted-foreground">
-                      {formatDate(str(ticket, "created_at") || null)}
-                    </td>
-                    <td>{requesterName}</td>
-                    <td colSpan={3}>Chamado criado</td>
-                  </tr>
-                  {(historyQuery.data ?? []).map((h) => (
-                    <tr key={h.id}>
-                      <td className="whitespace-nowrap text-muted-foreground">
-                        {formatDate(h.created_at)}
-                      </td>
-                      <td>{personName(h.user_id)}</td>
-                      <td className="font-medium">{FIELD_LABEL[h.field] ?? h.field}</td>
-                      <td className="max-w-[200px] truncate text-muted-foreground">
-                        {h.old_value || "—"}
-                      </td>
-                      <td className="max-w-[200px] truncate">{h.new_value || "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    <Picker
+                      label="Status"
+                      value={form.status}
+                      onChange={(v) => setForm({ ...form, status: v as TicketStatus })}
+                    >
+                      {STATUS_ORDER.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {STATUS_LABEL[s]}
+                        </SelectItem>
+                      ))}
+                    </Picker>
+
+                    {phase3 && (
+                      <>
+                        <Picker
+                          label="Categoria"
+                          value={form.category_id}
+                          onChange={(v) => setForm({ ...form, category_id: v })}
+                        >
+                          <SelectItem value={NONE}>Sem categoria</SelectItem>
+                          {(lookups?.categories ?? []).map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {" ".repeat(c.level * 3)}
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </Picker>
+
+                        <Picker
+                          label="Origem da requisição"
+                          value={form.request_source_id}
+                          onChange={(v) => setForm({ ...form, request_source_id: v })}
+                        >
+                          <SelectItem value={NONE}>Não informada</SelectItem>
+                          {(lookups?.sources ?? []).map((s) => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.name}
+                            </SelectItem>
+                          ))}
+                        </Picker>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <Picker
+                            label="Urgência"
+                            value={String(form.urgency)}
+                            onChange={(v) => setForm({ ...form, urgency: Number(v) })}
+                          >
+                            {LEVELS.map((l) => (
+                              <SelectItem key={l} value={String(l)}>
+                                {levelLabel(l)}
+                              </SelectItem>
+                            ))}
+                          </Picker>
+                          <Picker
+                            label="Impacto"
+                            value={String(form.impact)}
+                            onChange={(v) => setForm({ ...form, impact: Number(v) })}
+                          >
+                            {LEVELS.map((l) => (
+                              <SelectItem key={l} value={String(l)}>
+                                {levelLabel(l)}
+                              </SelectItem>
+                            ))}
+                          </Picker>
+                        </div>
+
+                        <div className="space-y-1 rounded border border-border bg-secondary/40 p-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Prioridade</span>
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                              <span
+                                className={`size-2 rounded-full ${
+                                  LEVEL_DOT[
+                                    form.priority_manual
+                                      ? form.priority_level
+                                      : previewPriority(form.urgency, form.impact)
+                                  ]
+                                }`}
+                              />
+                              {levelLabel(
+                                form.priority_manual
+                                  ? form.priority_level
+                                  : previewPriority(form.urgency, form.impact),
+                              )}
+                            </span>
+                          </div>
+                          <label className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+                            <Checkbox
+                              checked={form.priority_manual}
+                              disabled={!hasFlag("ticket_change_priority")}
+                              onCheckedChange={(v) =>
+                                setForm({ ...form, priority_manual: v === true })
+                              }
+                            />
+                            Definir manualmente
+                          </label>
+                          {form.priority_manual && (
+                            <Select
+                              value={String(form.priority_level)}
+                              onValueChange={(v) =>
+                                setForm({ ...form, priority_level: Number(v) })
+                              }
+                            >
+                              <SelectTrigger className="h-7 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {LEVELS.map((l) => (
+                                  <SelectItem key={l} value={String(l)}>
+                                    {levelLabel(l)}
+                                  </SelectItem>
+                                ))}
+                                {hasFlag("ticket_major_priority") && (
+                                  <SelectItem value="6">Maior</SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    <Picker
+                      label="Local"
+                      value={form.location_id}
+                      onChange={(v) => setForm({ ...form, location_id: v })}
+                    >
+                      <SelectItem value={NONE}>Nenhum</SelectItem>
+                      {(lookups?.locations ?? []).map((l) => (
+                        <SelectItem key={l.id} value={l.id}>
+                          {l.name}
+                        </SelectItem>
+                      ))}
+                    </Picker>
+
+                    <Picker
+                      label="Setor"
+                      value={form.sector_id}
+                      onChange={(v) => setForm({ ...form, sector_id: v })}
+                    >
+                      <SelectItem value={NONE}>Nenhum</SelectItem>
+                      {(lookups?.sectors ?? []).map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </Picker>
+
+                    <Button
+                      size="sm"
+                      className="h-8 w-full"
+                      onClick={() => saveTicket.mutate()}
+                      disabled={saveTicket.isPending}
+                    >
+                      Salvar
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 border-t border-border pt-2.5">
+                    <Info label="Categoria" value={str(ticket, "category", "—")} />
+                    <Info label="Prioridade" value={levelLabel(priorityLevel)} />
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <ActorsPanel
+              ticketId={id}
+              actors={actorsQuery.data ?? []}
+              people={peopleQuery.data ?? []}
+              groups={lookups?.groups ?? []}
+              suppliers={lookups?.suppliers ?? []}
+              technicians={techniciansQuery.data ?? []}
+              canEdit={canEdit && phase3}
+              personName={personName}
+              onChanged={() => invalidate("ticket_actors")}
+            />
+
+          <Accordion type="multiple" className="rounded border border-border bg-card">
+            <AccordionItem value="itens">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Itens ({itemsQuery.data?.length ?? 0})
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+        <ItemsPanel
+          ticketId={id}
+          items={(itemsQuery.data ?? []) as { id: string; asset_id: string }[]}
+          assets={lookups?.assets ?? []}
+          canEdit={canEdit && phase3}
+          onChanged={() => invalidate("ticket_items")}
+        />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="ligados">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Chamados ligados ({linksQuery.data?.length ?? 0})
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+        <LinksPanel
+          ticketId={id}
+          links={linksQuery.data ?? []}
+          tickets={(allTicketsQuery.data ?? []) as { id: string; title: string }[]}
+          canEdit={canEdit && phase3}
+          onChanged={() => invalidate("ticket_links")}
+        />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="custos">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Custos
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+        <CostsPanel
+          ticketId={id}
+          costs={costsQuery.data ?? []}
+          canEdit={can("financial_info", "update") && phase3}
+          onChanged={() => invalidate("ticket_costs")}
+        />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="documentos">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Documentos ({documentsQuery.data?.length ?? 0})
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+        <DocumentsPanel
+          ticketId={id}
+          entityId={str(ticket, "entity_id")}
+          documents={(documentsQuery.data ?? []) as never[]}
+          canEdit={can("document", "create") && phase3}
+          userId={user?.id ?? null}
+          onChanged={() => invalidate("ticket_documents")}
+        />
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="estatisticas">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Estatísticas
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+        <div className="grid gap-3 md:grid-cols-2">
+          <section className="panel">
+            <header className="panel-header">Datas</header>
+            <dl className="divide-y divide-border text-xs">
+              <Stat label="Abertura" value={formatDate(str(ticket, "created_at") || null)} />
+              <Stat
+                label="Primeira resposta"
+                value={formatDate(str(ticket, "first_response_at") || null)}
+              />
+              <Stat
+                label="Última atualização"
+                value={formatDate(str(ticket, "updated_at") || null)}
+              />
+              <Stat label="Solução" value={formatDate(str(ticket, "resolved_at") || null)} />
+              <Stat label="Fechamento" value={formatDate(str(ticket, "closed_at") || null)} />
+            </dl>
           </section>
-        </TabsContent>
-      </Tabs>
+          <section className="panel">
+            <header className="panel-header">Acordo de nível de serviço</header>
+            <dl className="divide-y divide-border text-xs">
+              <Stat
+                label="Prazo de resposta"
+                value={formatDate(str(ticket, "response_due_at") || null)}
+              />
+              <Stat
+                label="Situação da resposta"
+                value={responseSla.label}
+                className={responseSla.className}
+              />
+              <Stat
+                label="Prazo de solução"
+                value={formatDate(str(ticket, "resolution_due_at") || null)}
+              />
+              <Stat
+                label="Situação da solução"
+                value={resolutionSla.label}
+                className={resolutionSla.className}
+              />
+            </dl>
+          </section>
+        </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="historico">
+              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
+                Histórico
+              </AccordionTrigger>
+              <AccordionContent className="px-1 pb-2">
+        <section className="panel overflow-hidden">
+          <header className="panel-header">Histórico</header>
+          <div className="overflow-x-auto">
+            <table className="glpi-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Autor</th>
+                  <th>Campo</th>
+                  <th>De</th>
+                  <th>Para</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="whitespace-nowrap text-muted-foreground">
+                    {formatDate(str(ticket, "created_at") || null)}
+                  </td>
+                  <td>{requesterName}</td>
+                  <td colSpan={3}>Chamado criado</td>
+                </tr>
+                {(historyQuery.data ?? []).map((h) => (
+                  <tr key={h.id}>
+                    <td className="whitespace-nowrap text-muted-foreground">
+                      {formatDate(h.created_at)}
+                    </td>
+                    <td>{personName(h.user_id)}</td>
+                    <td className="font-medium">{FIELD_LABEL[h.field] ?? h.field}</td>
+                    <td className="max-w-[200px] truncate text-muted-foreground">
+                      {h.old_value || "—"}
+                    </td>
+                    <td className="max-w-[200px] truncate">{h.new_value || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </aside>
+      </div>
     </AppShell>
   );
 }
@@ -2003,7 +1968,7 @@ function LinksPanel({
             <Link
               to="/chamados/$id"
               params={{ id: l.linked_ticket_id }}
-              className="flex-1 truncate text-primary hover:underline"
+              className="flex-1 truncate text-link hover:underline"
             >
               <Link2 className="mr-1 inline size-3" />
               {tickets.find((t) => t.id === l.linked_ticket_id)?.title ??
@@ -2309,7 +2274,7 @@ function DocumentsPanel({
             <button
               type="button"
               onClick={() => download(d.storage_path, d.filename)}
-              className="flex-1 truncate text-left text-primary hover:underline"
+              className="flex-1 truncate text-left text-link hover:underline"
             >
               {d.name}
             </button>

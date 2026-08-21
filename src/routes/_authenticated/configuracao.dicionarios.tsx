@@ -7,6 +7,14 @@ import type { LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 
 export const Route = createFileRoute("/_authenticated/configuracao/dicionarios")({
+  // O menu do GLPI lista estes objetos separadamente; aqui eles
+  // dividem a mesma tela, então a aba vem pela URL.
+  validateSearch: (search: Record<string, unknown>): { aba: "dicionarios" | "unicidade" } => {
+    const aba = String(search["aba"] ?? "");
+    return { aba: (["dicionarios", "unicidade"] as const).includes(aba as never)
+      ? (aba as "dicionarios" | "unicidade")
+      : "dicionarios" };
+  },
   head: () => ({
     meta: [
       { title: "Dicionários e unicidade — Helpdesk T.I." },
@@ -32,6 +40,8 @@ const ACTIONS = [
 ];
 
 function Dicionarios() {
+  const { aba } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { can } = usePermissions();
   const canWrite = can("dictionary", "update");
   const [selected, setSelected] = useState<LooseRow | null>(null);
@@ -42,8 +52,8 @@ function Dicionarios() {
       subtitle='Para "DELL INC.", "Dell Inc" e "dell" virarem a mesma coisa.'
       breadcrumbTail="Dicionários"
     >
-      <Tabs defaultValue="dicionarios">
-        <TabsList className="h-8">
+      <Tabs value={aba} onValueChange={(v) => navigate({ search: { aba: v as never } })}>
+        <TabsList className="min-h-8">
           <TabsTrigger value="dicionarios" className="text-xs">
             Dicionários
           </TabsTrigger>

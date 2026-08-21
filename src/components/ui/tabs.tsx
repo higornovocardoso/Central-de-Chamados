@@ -12,7 +12,10 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+      // min-h em vez de h: com muitas abas a fila quebra em duas linhas, e a
+      // altura fixa cortava a segunda pela metade. Alinhado à esquerda, como
+      // as abas do GLPI.
+      "inline-flex min-h-9 flex-wrap items-center justify-start gap-y-1 rounded-lg bg-muted p-1 text-muted-foreground",
       className,
     )}
     {...props}

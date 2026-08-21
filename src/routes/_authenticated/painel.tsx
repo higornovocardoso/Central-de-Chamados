@@ -13,7 +13,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Plus, TriangleAlert } from "lucide-react";
+import {
+  Archive,
+  CalendarClock,
+  CircleCheck,
+  CirclePause,
+  Inbox,
+  Maximize,
+  Plus,
+  RefreshCw,
+  TriangleAlert,
+  Wrench,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +33,7 @@ import {
   PRIORITY_DOT,
   PRIORITY_LABEL,
   STATUS_DOT,
+  STATUS_TILE,
   STATUS_LABEL,
   STATUS_ORDER,
   formatDate,
@@ -73,6 +85,16 @@ const CHART_COLORS = [
   "var(--chart-4)",
   "var(--chart-5)",
 ];
+
+/** Ícone em marca-d'água de cada cartão, como o main-icon do GLPI. */
+const STATUS_TILE_ICON = {
+  aberto: Inbox,
+  em_andamento: Wrench,
+  planejado: CalendarClock,
+  aguardando: CirclePause,
+  resolvido: CircleCheck,
+  fechado: Archive,
+} as const;
 
 function Painel() {
   const ticketsQuery = useQuery({
@@ -168,6 +190,12 @@ function Painel() {
     return days;
   }, [tickets]);
 
+  function toggleFullscreen() {
+    const el = document.documentElement;
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void el.requestFullscreen();
+  }
+
   const recent = tickets.slice(0, 8);
 
   return (
@@ -175,39 +203,58 @@ function Painel() {
       title="Painel"
       subtitle="Visão geral da central de serviços"
       actions={
-        <Button size="sm" className="h-8" asChild>
-          <Link to="/chamados/novo">
-            <Plus className="size-4" /> Criar chamado
-          </Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Barra do painel do GLPI. Só entram as ações que existem de
+              verdade — botão que não faz nada é pior que botão ausente. */}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            title="Atualizar"
+            aria-label="Atualizar"
+            onClick={() => ticketsQuery.refetch()}
+          >
+            <RefreshCw className={`size-4 ${ticketsQuery.isFetching ? "animate-spin" : ""}`} />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            title="Tela cheia"
+            aria-label="Tela cheia"
+            onClick={toggleFullscreen}
+          >
+            <Maximize className="size-4" />
+          </Button>
+          <Button size="sm" className="ml-1 h-8" asChild>
+            <Link to="/chamados/novo">
+              <Plus className="size-4" /> Criar chamado
+            </Link>
+          </Button>
+        </div>
       }
     >
-      {/* Contadores por status */}
-      <div className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        {counters.map((c) => (
-          <Link
-            key={c.status}
-            to="/chamados"
-            search={{ status: c.status }}
-            className="panel px-3 py-2.5 transition-colors hover:border-primary/50 hover:bg-accent/40"
-          >
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className={`size-2 rounded-full ${STATUS_DOT[c.status]}`} />
-              {c.label}
-            </span>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{c.value}</p>
-          </Link>
-        ))}
-        <Link
-          to="/chamados"
-          search={{ filtro: "atrasados" }}
-          className="panel border-destructive/40 px-3 py-2.5 transition-colors hover:bg-destructive/10"
-        >
-          <span className="flex items-center gap-1.5 text-xs text-destructive">
-            <TriangleAlert className="size-3.5" />
-            SLA estourado
-          </span>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-destructive">{late.length}</p>
+      {/* Contadores por status, no formato big-number do painel do GLPI */}
+      <div className="mb-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+        {counters.map((c) => {
+          const Icon = STATUS_TILE_ICON[c.status];
+          return (
+            <Link
+              key={c.status}
+              to="/chamados"
+              search={{ status: c.status }}
+              className={`tile ${STATUS_TILE[c.status]}`}
+            >
+              <Icon className="tile-icon size-8" aria-hidden="true" />
+              <span className="tile-number">{c.value}</span>
+              <span className="tile-label">{c.label}</span>
+            </Link>
+          );
+        })}
+        <Link to="/chamados" search={{ filtro: "atrasados" }} className="tile tile-danger">
+          <TriangleAlert className="tile-icon size-8" aria-hidden="true" />
+          <span className="tile-number">{late.length}</span>
+          <span className="tile-label">SLA estourado</span>
         </Link>
       </div>
 
@@ -353,7 +400,7 @@ function Painel() {
                       <Link
                         to="/chamados/$id"
                         params={{ id: t.id }}
-                        className="block truncate font-medium text-primary hover:underline"
+                        className="block truncate font-medium text-link hover:underline"
                       >
                         {t.title}
                       </Link>
@@ -406,7 +453,7 @@ function Painel() {
                     <Link
                       to="/chamados/$id"
                       params={{ id: t.id }}
-                      className="block truncate text-xs font-medium text-primary hover:underline"
+                      className="block truncate text-xs font-medium text-link hover:underline"
                     >
                       {t.title}
                     </Link>

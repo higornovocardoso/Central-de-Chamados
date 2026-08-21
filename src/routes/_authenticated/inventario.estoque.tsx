@@ -10,6 +10,14 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useEntityOptions } from "@/hooks/useEntityOptions";
 
 export const Route = createFileRoute("/_authenticated/inventario/estoque")({
+  // O menu do GLPI lista estes objetos separadamente; aqui eles
+  // dividem a mesma tela, então a aba vem pela URL.
+  validateSearch: (search: Record<string, unknown>): { aba: "cartuchos" | "consumiveis" } => {
+    const aba = String(search["aba"] ?? "");
+    return { aba: (["cartuchos", "consumiveis"] as const).includes(aba as never)
+      ? (aba as "cartuchos" | "consumiveis")
+      : "cartuchos" };
+  },
   head: () => ({
     meta: [
       { title: "Cartuchos e consumíveis — Helpdesk T.I." },
@@ -23,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/inventario/estoque")({
 });
 
 function Estoque() {
+  const { aba } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { can } = usePermissions();
   const entities = useEntityOptions();
   const canWrite = can("cartridge", "update") || can("consumable", "update");
@@ -93,8 +103,8 @@ function Estoque() {
       subtitle="Quanto ainda tem, e quando pedir mais."
       breadcrumbTail="Estoque"
     >
-      <Tabs defaultValue="cartuchos">
-        <TabsList className="h-8">
+      <Tabs value={aba} onValueChange={(v) => navigate({ search: { aba: v as never } })}>
+        <TabsList className="min-h-8">
           <TabsTrigger value="cartuchos" className="text-xs">
             Cartuchos
           </TabsTrigger>

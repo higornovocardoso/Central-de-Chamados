@@ -12,6 +12,14 @@ import { useGestaoOptions } from "@/hooks/useGestaoOptions";
 import { formatBytes } from "@/lib/inventory";
 
 export const Route = createFileRoute("/_authenticated/gestao/infra")({
+  // O menu do GLPI lista estes objetos separadamente; aqui eles
+  // dividem a mesma tela, então a aba vem pela URL.
+  validateSearch: (search: Record<string, unknown>): { aba: "datacenters" | "salas" | "clusters" } => {
+    const aba = String(search["aba"] ?? "");
+    return { aba: (["datacenters", "salas", "clusters"] as const).includes(aba as never)
+      ? (aba as "datacenters" | "salas" | "clusters")
+      : "datacenters" };
+  },
   head: () => ({
     meta: [
       { title: "Infraestrutura — Helpdesk T.I." },
@@ -25,6 +33,8 @@ export const Route = createFileRoute("/_authenticated/gestao/infra")({
 });
 
 function Infra() {
+  const { aba } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { can } = usePermissions();
   const entities = useEntityOptions();
   const options = useGestaoOptions();
@@ -68,8 +78,8 @@ function Infra() {
       subtitle="Onde as coisas ficam e como se agrupam: datacenter, sala, cluster, aplicação e banco."
       breadcrumbTail="Infraestrutura"
     >
-      <Tabs defaultValue="datacenters">
-        <TabsList className="h-8 flex-wrap">
+      <Tabs value={aba} onValueChange={(v) => navigate({ search: { aba: v as never } })}>
+        <TabsList className="min-h-8">
           <TabsTrigger value="datacenters" className="text-xs">
             Datacenters
           </TabsTrigger>

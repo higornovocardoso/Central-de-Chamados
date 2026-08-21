@@ -151,7 +151,7 @@ function Notificacoes() {
       breadcrumbTail="Notificações"
     >
       <Tabs defaultValue="notificacoes">
-        <TabsList className="h-8">
+        <TabsList className="min-h-8">
           <TabsTrigger value="notificacoes" className="text-xs">
             Notificações
           </TabsTrigger>

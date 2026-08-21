@@ -630,7 +630,7 @@ function ListaChamados() {
                       <Link
                         to="/chamados/$id"
                         params={{ id: t.id }}
-                        className="block truncate font-medium text-primary hover:underline"
+                        className="block truncate font-medium text-link hover:underline"
                       >
                         {t.title}
                       </Link>

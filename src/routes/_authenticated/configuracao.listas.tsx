@@ -219,7 +219,7 @@ function Listas() {
       breadcrumbTail="Listas suspensas"
     >
       <Tabs defaultValue="fabricantes">
-        <TabsList className="h-8 flex-wrap">
+        <TabsList className="min-h-8">
           {TABS.map((t) => (
             <TabsTrigger key={t.key} value={t.key} className="text-xs">
               {t.label}

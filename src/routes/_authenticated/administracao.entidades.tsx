@@ -273,7 +273,7 @@ function Entidades() {
           </DialogHeader>
 
           <Tabs defaultValue="geral">
-            <TabsList className="h-8">
+            <TabsList className="min-h-8">
               <TabsTrigger value="geral" className="text-xs">
                 Entidade
               </TabsTrigger>

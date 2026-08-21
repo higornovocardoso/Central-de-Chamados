@@ -174,6 +174,14 @@ export function AppShell({
   const crumbs = breadcrumbFor(location.pathname, breadcrumbTail);
   const perfil = profileName;
 
+  // O GLPI mostra o nome antes do e-mail, e a entidade logo abaixo.
+  const userName =
+    (user?.user_metadata?.["full_name"] as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "Usuário";
+  const entityName =
+    entities.find((e) => e.id === selectedId)?.name ?? "Entidade raiz (árvore)";
+
   const sidebar = (
     <SidebarNav
       collapsed={collapsed}
@@ -292,10 +300,19 @@ export function AppShell({
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="ghost" className="h-8 gap-1.5 px-2 text-xs">
-                      <User className="size-4" />
-                      <span className="hidden max-w-[140px] truncate sm:inline">
-                        {user?.email ?? "Usuário"}
+                    {/* Bloco do usuário do GLPI: avatar redondo, nome em cima
+                        e a entidade atual embaixo, em duas linhas. */}
+                    <Button size="sm" variant="ghost" className="h-10 gap-2 px-2 text-xs">
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                        <User className="size-4" />
+                      </span>
+                      <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
+                        <span className="max-w-[150px] truncate font-medium">
+                          {userName}
+                        </span>
+                        <span className="max-w-[150px] truncate text-[0.7rem] text-muted-foreground">
+                          {entityName}
+                        </span>
                       </span>
                       <ChevronDown className="size-3" />
                     </Button>
@@ -398,15 +415,35 @@ function SidebarNav({
   canRead: (right: string | undefined) => boolean;
   onNavigate: () => void;
 }) {
+  const [filter, setFilter] = useState("");
+  const needle = filter.trim().toLowerCase();
+
+  // "Find menu" do GLPI: filtra grupos e itens pelo rótulo. Com filtro ativo
+  // todos os grupos que casam ficam abertos, senão o filtro não serviria.
+  const matches = (text: string) => !needle || text.toLowerCase().includes(needle);
+
   return (
-    <nav className="space-y-0.5 px-2 text-sm">
+    <nav className="text-sm">
+      {!collapsed && (
+        <div className="px-2 pb-2">
+          <label className="relative block">
+            <span className="sr-only">Buscar no menu</span>
+            <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-sidebar-foreground/50" />
+            <input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Buscar no menu"
+              className="h-7 w-full rounded-sm border border-sidebar-border bg-black/20 pl-7 pr-2 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus:border-sidebar-primary focus:outline-none"
+            />
+          </label>
+        </div>
+      )}
+
       <NavLinkTo
         to="/painel"
         onClick={onNavigate}
-        className={`flex items-center gap-2 rounded px-2 py-1.5 transition-colors ${
-          pathname === "/painel"
-            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className={`nav-link ${pathname === "/painel" ? "nav-link-active" : ""} ${
+          collapsed ? "justify-center" : ""
         }`}
         title="Painel"
       >
@@ -416,10 +453,12 @@ function SidebarNav({
 
       {NAV_GROUPS.map((group) => {
         // Um grupo sem nenhum item legível some do menu, como no GLPI.
-        const links = group.links.filter((l) => canRead(l.right));
+        const readable = group.links.filter((l) => canRead(l.right));
+        const groupMatches = matches(group.label);
+        const links = readable.filter((l) => groupMatches || matches(l.label));
         if (links.length === 0) return null;
 
-        const open = openGroups.includes(group.id);
+        const open = needle ? true : openGroups.includes(group.id);
         const Icon = group.icon;
         const hasActive = links.some((l) => isLinkActive(l, pathname, search));
 
@@ -433,11 +472,7 @@ function SidebarNav({
                   params={first.params}
                   search={first.search}
                   onClick={onNavigate}
-                  className={`flex items-center justify-center rounded px-2 py-2 transition-colors ${
-                    hasActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/85 hover:bg-sidebar-accent"
-                  }`}
+                  className={`nav-link justify-center ${hasActive ? "nav-link-active" : ""}`}
                 >
                   <Icon className="size-4" />
                 </NavLinkTo>
@@ -452,11 +487,7 @@ function SidebarNav({
             <button
               type="button"
               onClick={() => onToggleGroup(group.id)}
-              className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left transition-colors ${
-                hasActive
-                  ? "text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              }`}
+              className={`nav-link ${hasActive || open ? "nav-link-active" : ""}`}
             >
               <Icon className="size-4 shrink-0" />
               <span className="flex-1 truncate">{group.label}</span>
@@ -465,7 +496,7 @@ function SidebarNav({
               />
             </button>
             {open && (
-              <ul className="mb-1 ml-[1.4rem] space-y-0.5 border-l border-sidebar-border pl-2">
+              <ul className="nav-sub">
                 {links.map((link) => {
                   const active = isLinkActive(link, pathname, search);
                   return (
@@ -475,15 +506,11 @@ function SidebarNav({
                         params={link.params}
                         search={link.search}
                         onClick={onNavigate}
-                        className={`flex items-center gap-1.5 rounded px-2 py-1 text-[0.78rem] transition-colors ${
-                          active
-                            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                        }`}
+                        className={`nav-sub-link ${active ? "nav-sub-active" : ""}`}
                       >
                         <span className="truncate">{link.label}</span>
                         {link.soon && (
-                          <span className="ml-auto rounded-sm bg-sidebar-accent px-1 text-[0.6rem] uppercase tracking-wide opacity-70">
+                          <span className="ml-auto rounded-sm bg-black/25 px-1 text-[0.6rem] uppercase tracking-wide opacity-70">
                             em breve
                           </span>
                         )}
