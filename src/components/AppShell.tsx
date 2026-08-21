@@ -92,10 +92,13 @@ export function AppShell({
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
   useEffect(() => {
-    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
+    // Em telas estreitas a mesma barra aparece recolhida (só ícones).
+    const narrow = window.matchMedia("(max-width: 63.99rem)").matches;
+    setCollapsed(narrow || localStorage.getItem(COLLAPSE_KEY) === "1");
     const stored = localStorage.getItem(OPEN_GROUPS_KEY);
     setOpenGroups(stored ? (JSON.parse(stored) as string[]) : ["assistencia"]);
   }, []);
+
 
   // Mantém aberto o grupo da tela atual, como o GLPI faz ao navegar.
   const activeGroup = useMemo(() => {
