@@ -107,7 +107,7 @@ function AbrirChamado() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="rise-in grid w-full max-w-5xl overflow-hidden rounded-lg border border-border bg-card shadow-2xl lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="rise-in grid w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl lg:grid-cols-[0.9fr_1.1fr]">
         {/* Vitrine — contexto do atendimento */}
         <section className="relative hidden flex-col items-center justify-center bg-[#131a2b] p-8 text-white lg:flex">
           <div
