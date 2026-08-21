@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { Download } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,7 @@ const REPORTS = [
 
 function Relatorios() {
   const { can } = usePermissions();
+  const acesso = useAcesso("report");
   const [report, setReport] = useState("chamados_status");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -206,14 +208,8 @@ function Relatorios() {
     URL.revokeObjectURL(url);
   }
 
-  if (!can("report", "read")) {
-    return (
-      <AppShell title="Relatórios">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso aos relatórios.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Relatórios" estado={acesso} mensagem="Seu perfil não tem acesso aos relatórios." />;
   }
 
   return (

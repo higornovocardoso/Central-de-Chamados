@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { RefreshCw, Send } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { DataToolbar } from "@/components/DataToolbar";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/Tag";
@@ -40,6 +41,7 @@ const STATE_LABEL: Record<string, string> = {
 
 function FilaDeEmails() {
   const { can } = usePermissions();
+  const acesso = useAcesso("mailqueue");
   const queryClient = useQueryClient();
   const [criteria, setCriteria] = useState<SearchCriterion[]>([]);
   const [mode, setMode] = useState<MatchMode>("and");
@@ -115,14 +117,8 @@ function FilaDeEmails() {
     [linhas],
   );
 
-  if (!can("mailqueue", "read")) {
-    return (
-      <AppShell title="Fila de e-mails">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso à fila de e-mails.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Fila de e-mails" estado={acesso} mensagem="Seu perfil não tem acesso à fila de e-mails." />;
   }
 
   return (

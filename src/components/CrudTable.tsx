@@ -97,16 +97,27 @@ export function CrudTable({
       for (const f of fields) {
         if (f.readOnly) continue;
         const value = form[f.key];
-        // Campo de texto vazio vira string vazia, não null: quase toda coluna
-        // de texto do esquema é NOT NULL DEFAULT '', e null estoura com 23502.
-        // Chave estrangeira e data continuam indo como null quando em branco.
+        const vazio = value === "" || value === undefined || value === null;
         const textual = f.type === "text" || f.type === "textarea";
+        const dataOuHora = f.type === "date" || f.type === "datetime" || f.type === "time";
+
+        if (vazio && dataOuHora) {
+          // Data em branco sai do payload para o DEFAULT da coluna valer.
+          // Mandar null estoura em coluna NOT NULL DEFAULT now(), que é o
+          // caso de start_date nas programações recorrentes. O preço é não
+          // dar para limpar uma data já preenchida por este formulário.
+          continue;
+        }
+
+        // Texto vazio vira string vazia, não null: quase toda coluna de texto
+        // do esquema é NOT NULL DEFAULT ''. Chave estrangeira em branco
+        // continua indo como null, que é o certo para uma referência ausente.
         payload[f.key] =
           f.type === "number"
             ? Number(value ?? 0)
             : f.type === "boolean"
               ? value === true
-              : value === "" || value === undefined
+              : vazio
                 ? textual
                   ? ""
                   : null

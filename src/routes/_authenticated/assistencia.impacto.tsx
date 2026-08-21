@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArrowRight, GitBranch } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { Tag } from "@/components/Tag";
 import { Label } from "@/components/ui/label";
 import {
@@ -45,6 +46,7 @@ const VINCULO_LABEL: Record<string, string> = {
 
 function Impacto() {
   const { can } = usePermissions();
+  const acesso = useAcesso("ticket");
   const [origem, setOrigem] = useState("");
 
   const chamados = useQuery({
@@ -135,14 +137,8 @@ function Impacto() {
 
   const nada = ligados.length === 0 && itil.length === 0 && itens.length === 0;
 
-  if (!can("ticket", "read")) {
-    return (
-      <AppShell title="Análise de impacto">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso aos chamados.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Análise de impacto" estado={acesso} mensagem="Seu perfil não tem acesso aos chamados." />;
   }
 
   return (

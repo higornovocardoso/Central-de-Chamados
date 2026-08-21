@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -68,6 +69,7 @@ const ATRIBUICAO = [
 
 function ConfiguracoesGerais() {
   const { can } = usePermissions();
+  const acesso = useAcesso("config");
   const { aba } = Route.useSearch();
   const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
@@ -128,14 +130,8 @@ function ConfiguracoesGerais() {
   const numero = (key: string) => Number(form[key] ?? 0);
   const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
 
-  if (!can("config", "read")) {
-    return (
-      <AppShell title="Configurações gerais">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso à configuração.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Configurações gerais" estado={acesso} mensagem="Seu perfil não tem acesso à configuração." />;
   }
 
   return (

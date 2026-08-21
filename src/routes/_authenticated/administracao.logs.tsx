@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { DataToolbar } from "@/components/DataToolbar";
 import { Tag } from "@/components/Tag";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ const ACTION_LABEL: Record<string, string> = {
 
 function Logs() {
   const { can } = usePermissions();
+  const acesso = useAcesso("log");
   const [criteria, setCriteria] = useState<SearchCriterion[]>([]);
   const [mode, setMode] = useState<MatchMode>("and");
   const [freeText, setFreeText] = useState("");
@@ -89,14 +91,8 @@ function Logs() {
   const logs = (logsQuery.data ?? []) as unknown as Record<string, unknown>[];
   const filtered = applySearch(logs, criteria, fields, mode, freeText);
 
-  if (!can("log", "read")) {
-    return (
-      <AppShell title="Logs">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso aos logs do sistema.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Logs" estado={acesso} mensagem="Seu perfil não tem acesso aos logs do sistema." />;
   }
 
   return (

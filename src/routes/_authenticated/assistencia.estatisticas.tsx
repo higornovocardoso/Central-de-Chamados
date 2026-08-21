@@ -15,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import {
   Select,
   SelectContent,
@@ -63,6 +64,7 @@ const CORES = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--char
 
 function Estatisticas() {
   const { can } = usePermissions();
+  const acesso = useAcesso("statistics");
   const [periodo, setPeriodo] = useState("90");
 
   const chamados = useQuery({
@@ -143,14 +145,8 @@ function Estatisticas() {
     return [...meses.values()];
   }, [noPeriodo, dias]);
 
-  if (!can("statistics", "read")) {
-    return (
-      <AppShell title="Estatísticas">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso às estatísticas.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Estatísticas" estado={acesso} mensagem="Seu perfil não tem acesso às estatísticas." />;
   }
 
   return (

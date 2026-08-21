@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/components/Tag";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ function inicioDaSemana(base: Date) {
 
 function Planejamento() {
   const { can } = usePermissions();
+  const acesso = useAcesso("planning");
   const [semana, setSemana] = useState(() => inicioDaSemana(new Date()));
 
   const tarefas = useQuery({
@@ -119,14 +121,8 @@ function Planejamento() {
     setSemana(d);
   }
 
-  if (!can("planning", "read")) {
-    return (
-      <AppShell title="Planejamento">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso ao planejamento.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Planejamento" estado={acesso} mensagem="Seu perfil não tem acesso ao planejamento." />;
   }
 
   return (

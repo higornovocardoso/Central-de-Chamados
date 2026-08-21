@@ -25,6 +25,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { DashboardSelector } from "@/components/DashboardSelector";
 import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -65,6 +66,7 @@ const CORES = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--char
 
 function PainelDeAtivos() {
   const { can } = usePermissions();
+  const acesso = useAcesso("computer");
 
   const ativos = useQuery({
     queryKey: ["assets_painel"],
@@ -123,14 +125,8 @@ function PainelDeAtivos() {
     [linhas, situacoes.data],
   );
 
-  if (!can("computer", "read")) {
-    return (
-      <AppShell title="Painel de ativos">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso ao inventário.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="Painel de ativos" estado={acesso} mensagem="Seu perfil não tem acesso ao inventário." />;
   }
 
   return (

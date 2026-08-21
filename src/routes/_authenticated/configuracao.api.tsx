@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { AvisoAcesso, useAcesso } from "@/components/AccessGate";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -32,6 +33,7 @@ const ENDPOINTS = [
 
 function Api() {
   const { can } = usePermissions();
+  const acesso = useAcesso("config");
   const [copied, setCopied] = useState("");
   const baseUrl = String(import.meta.env["VITE_SUPABASE_URL"] ?? "");
 
@@ -45,14 +47,8 @@ function Api() {
     }
   }
 
-  if (!can("config", "read")) {
-    return (
-      <AppShell title="API">
-        <div className="panel p-8 text-center text-xs text-muted-foreground">
-          Seu perfil não tem acesso à configuração.
-        </div>
-      </AppShell>
-    );
+  if (acesso !== "liberado") {
+    return <AvisoAcesso titulo="API" estado={acesso} mensagem="Seu perfil não tem acesso à configuração." />;
   }
 
   const exampleCurl = `curl "${baseUrl}/rest/v1/tickets?select=id,title,status&status=eq.aberto" \\
