@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   LayoutDashboard,
   TriangleAlert,
   LogOut,
@@ -272,16 +271,6 @@ export function AppShell({
               </form>
 
               <div className="ml-auto flex items-center gap-1 md:ml-0">
-                <Button size="icon" variant="ghost" className="size-8" asChild>
-                  <a
-                    href="https://glpi-project.org/documentation/"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Ajuda"
-                  >
-                    <CircleHelp className="size-4" />
-                  </a>
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     {/* Bloco do usuário: avatar com iniciais, nome em cima
