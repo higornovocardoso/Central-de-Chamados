@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   TriangleAlert,
   LogOut,
+  Menu,
   Plus,
   Search,
   User,
@@ -31,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileDialog } from "@/components/ProfileDialog";
@@ -91,6 +93,7 @@ export function AppShell({
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [term, setTerm] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
@@ -178,9 +181,9 @@ export function AppShell({
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex min-h-screen bg-background">
-        {/* Menu lateral — mesma barra em qualquer tamanho de tela */}
+        {/* Menu lateral — escondido no celular, abre pela folha lateral */}
         <aside
-          className={`sidebar-surface sidebar-rail sticky top-2 m-2 flex h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out ${
+          className={`sidebar-surface sidebar-rail sticky top-2 m-2 hidden h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out lg:flex ${
             collapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
@@ -199,14 +202,42 @@ export function AppShell({
               {!collapsed && "Recolher menu"}
             </button>
           </div>
-
         </aside>
+
+        {/* Folha lateral para celular/tablet */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-[16.5rem] border-sidebar-border bg-sidebar p-0">
+            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <div className="flex h-full flex-col">
+              <div className="flex-1 overflow-y-auto p-2 pb-3 pt-2">
+                <SidebarNav
+                  collapsed={false}
+                  openGroups={openGroups}
+                  onToggleGroup={toggleGroup}
+                  pathname={location.pathname}
+                  search={search}
+                  canRead={(right) => !right || can(right, "read")}
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Barra superior */}
           <header className="topbar-glass sticky top-0 z-30 border-b border-border text-topbar-foreground">
             <div className="flex h-12 items-center gap-2 px-3">
-
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8 lg:hidden"
+                aria-label="Abrir menu"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Menu className="size-5" />
+              </Button>
 
               <Select
                 value={selectedId ?? entities[0]?.id ?? ROOT_TREE}
