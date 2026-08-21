@@ -461,7 +461,7 @@ function SidebarNav({
             <button
               type="button"
               onClick={() => onToggleGroup(group.id)}
-              className={`nav-link ${hasActive || open ? "nav-link-active" : ""}`}
+              className={`nav-link ${hasActive ? "nav-link-active" : open ? "bg-white/5 text-white" : ""}`}
             >
               <Icon className="size-4 shrink-0" />
               <span className="flex-1 truncate">{group.label}</span>
