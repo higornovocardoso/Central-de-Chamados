@@ -137,7 +137,7 @@ function AuthPage() {
 
         {/* Formulário de acesso */}
         <section className="flex flex-col justify-center p-7 sm:p-9">
-          <div className="mb-6">
+          <div className="mb-6 text-center">
             <h2 className="text-xl font-semibold tracking-tight">Bem-vindo de volta</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Entre com sua conta para continuar.
