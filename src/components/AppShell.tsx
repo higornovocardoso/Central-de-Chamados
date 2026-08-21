@@ -398,17 +398,31 @@ function SidebarNav({
         </div>
       )}
 
-      <NavLinkTo
-        to="/painel"
-        onClick={onNavigate}
-        className={`nav-link ${pathname === "/painel" ? "nav-link-active" : ""} ${
-          collapsed ? "justify-center" : ""
-        }`}
-        title="Painel"
-      >
-        <LayoutDashboard className="size-4 shrink-0" />
-        {!collapsed && <span>Painel</span>}
-      </NavLinkTo>
+      {collapsed ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLinkTo
+              to="/painel"
+              onClick={onNavigate}
+              className={`nav-icon ${pathname === "/painel" ? "nav-icon-active" : ""}`}
+              title="Painel"
+            >
+              <LayoutDashboard className="size-[1.15rem] shrink-0" />
+            </NavLinkTo>
+          </TooltipTrigger>
+          <TooltipContent side="right">Painel</TooltipContent>
+        </Tooltip>
+      ) : (
+        <NavLinkTo
+          to="/painel"
+          onClick={onNavigate}
+          className={`nav-link ${pathname === "/painel" ? "nav-link-active" : ""}`}
+          title="Painel"
+        >
+          <LayoutDashboard className="size-4 shrink-0" />
+          <span>Painel</span>
+        </NavLinkTo>
+      )}
 
       {NAV_GROUPS.map((group) => {
         // Um grupo sem nenhum item legível some do menu, como no GLPI.
@@ -431,15 +445,16 @@ function SidebarNav({
                   params={first.params}
                   search={first.search}
                   onClick={onNavigate}
-                  className={`nav-link justify-center ${hasActive ? "nav-link-active" : ""}`}
+                  className={`nav-icon ${hasActive ? "nav-icon-active" : ""}`}
                 >
-                  <Icon className="size-4" />
+                  <Icon className="size-[1.15rem]" />
                 </NavLinkTo>
               </TooltipTrigger>
               <TooltipContent side="right">{group.label}</TooltipContent>
             </Tooltip>
           );
         }
+
 
         return (
           <div key={group.id}>
