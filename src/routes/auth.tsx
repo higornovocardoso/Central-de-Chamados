@@ -1,12 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import {
+  BookOpen,
+  Eye,
+  EyeOff,
+  Gauge,
+  LifeBuoy,
+  Loader2,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  Timer,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -22,17 +32,37 @@ export const Route = createFileRoute("/auth")({
         property: "og:description",
         content: "Acesse o Helpdesk de T.I. para abrir e acompanhar chamados de suporte.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
 });
+
+const HIGHLIGHTS = [
+  {
+    icon: Gauge,
+    title: "Painel em tempo real",
+    text: "Chamados abertos, pendências e carga por técnico em uma só tela.",
+  },
+  {
+    icon: Timer,
+    title: "SLA sob controle",
+    text: "Prazos de atendimento e solução calculados automaticamente.",
+  },
+  {
+    icon: BookOpen,
+    title: "Base de conhecimento",
+    text: "Soluções recorrentes documentadas e prontas para reaproveitar.",
+  },
+];
 
 function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -46,139 +76,147 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error("Não foi possível entrar", { description: error.message });
-      return;
-    }
-    navigate({ to: "/painel", replace: true });
-  }
-
-  async function signUp(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: name },
-      },
-    });
-    setLoading(false);
-    if (error) {
-      toast.error("Não foi possível criar a conta", { description: error.message });
-      return;
-    }
-    if (!data.session) {
-      toast.success("Conta criada", {
-        description: "Confirme seu e-mail para acessar o sistema.",
+      toast.error("Não foi possível entrar", {
+        description:
+          error.message === "Invalid login credentials"
+            ? "E-mail ou senha incorretos."
+            : error.message,
       });
       return;
     }
     navigate({ to: "/painel", replace: true });
   }
 
-  async function google() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Falha no login com Google");
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: "/painel", replace: true });
-  }
-
   return (
-    <div className="grid-lines flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="panel p-6">
-          <Tabs defaultValue="entrar">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="entrar">Entrar</TabsTrigger>
-              <TabsTrigger value="criar">Criar conta</TabsTrigger>
-            </TabsList>
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <div className="rise-in grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-card shadow-2xl lg:grid-cols-[1.05fr_1fr]">
+        {/* Vitrine do sistema — dá contexto sem poluir o formulário */}
+        <section className="relative hidden flex-col justify-between bg-[#131a2b] p-8 text-white lg:flex">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-primary/40 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-20 -left-10 size-56 rounded-full bg-[#8b5cf6]/25 blur-3xl"
+          />
 
-            <TabsContent value="entrar" className="mt-6">
-              <form onSubmit={signIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail corporativo</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="voce@empresa.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="senha">Senha</Label>
-                  <Input
-                    id="senha"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  Entrar
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="criar" className="mt-6">
-              <form onSubmit={signUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome completo</Label>
-                  <Input
-                    id="nome"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Maria Silva"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email2">E-mail corporativo</Label>
-                  <Input
-                    id="email2"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="senha2">Senha</Label>
-                  <Input
-                    id="senha2"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  Criar conta
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-
-          <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            ou
-            <span className="h-px flex-1 bg-border" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[0.68rem] font-medium text-white/80">
+              <ShieldCheck className="size-3.5" /> Acesso restrito à equipe
+            </span>
+            <h1 className="mt-4 text-2xl font-semibold leading-tight">
+              Central de chamados de T.I.
+            </h1>
+            <p className="mt-2 max-w-xs text-sm text-white/70">
+              Atendimento, ativos e conhecimento da Compliance Contábil em um só lugar.
+            </p>
           </div>
 
-          <Button variant="secondary" className="w-full" onClick={google}>
-            Continuar com Google
-          </Button>
-        </div>
+          <ul className="relative mt-8 space-y-4">
+            {HIGHLIGHTS.map((item, index) => (
+              <li
+                key={item.title}
+                className="rise-in flex gap-3"
+                style={{ animationDelay: `${120 + index * 90}ms` }}
+              >
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
+                  <item.icon className="size-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-medium">{item.title}</span>
+                  <span className="block text-xs text-white/65">{item.text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="relative mt-8 text-[0.7rem] text-white/50">
+            Precisa apenas registrar um problema? Use o formulário público, sem login.
+          </p>
+        </section>
+
+        {/* Formulário de acesso */}
+        <section className="flex flex-col justify-center p-7 sm:p-9">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold tracking-tight">Bem-vindo de volta</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Entre com sua conta para continuar.
+            </p>
+          </div>
+
+          <form onSubmit={signIn} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs">
+                E-mail corporativo
+              </Label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@empresa.com"
+                  className="h-11 rounded-xl pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="senha" className="text-xs">
+                Senha
+              </Label>
+              <div className="relative">
+                <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="senha"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="h-11 rounded-xl pl-9 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" className="h-11 w-full rounded-xl text-sm" disabled={loading}>
+              {loading ? <Loader2 className="size-4 animate-spin" /> : null}
+              Entrar
+            </Button>
+          </form>
+
+          <div className="mt-6 rounded-2xl border border-border bg-secondary/60 p-3.5">
+            <p className="flex items-start gap-2 text-xs text-muted-foreground">
+              <LifeBuoy className="mt-0.5 size-4 shrink-0 text-primary" />
+              <span>
+                Não tem acesso? Peça ao administrador de T.I. para criar sua conta. Para registrar
+                um chamado sem login, use o{" "}
+                <a href="/abrir-chamado" className="font-medium text-primary hover:underline">
+                  formulário dos colaboradores
+                </a>
+                .
+              </span>
+            </p>
+          </div>
+
+          <p className="mt-5 text-center text-[0.7rem] text-muted-foreground">
+            Compliance Contábil · Suporte de T.I.
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
