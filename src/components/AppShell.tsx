@@ -89,6 +89,7 @@ export function AppShell({
   const { entities, selectedId, setSelectedId } = useEntity();
   const location = useRouterState({ select: (s) => s.location });
   const [collapsed, setCollapsed] = useState(false);
+  const [hoverOpen, setHoverOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [term, setTerm] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
