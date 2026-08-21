@@ -21,7 +21,7 @@ export const STATUS_CLASS: Record<TicketStatus, string> = {
   aberto: "bg-info/15 text-info border-info/30",
   em_andamento: "bg-primary/25 text-foreground border-primary/50",
   planejado: "bg-accent text-accent-foreground border-primary/30",
-  aguardando: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
+  aguardando: "bg-warning/20 text-warning-foreground border-warning/40",
   resolvido: "bg-success/15 text-success border-success/30",
   fechado: "bg-secondary text-muted-foreground border-border",
 };
@@ -56,7 +56,7 @@ export const PRIORITY_LABEL: Record<TicketPriority, string> = {
 export const PRIORITY_CLASS: Record<TicketPriority, string> = {
   baixa: "bg-secondary text-muted-foreground border-border",
   media: "bg-info/15 text-info border-info/30",
-  alta: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
+  alta: "bg-warning/20 text-warning-foreground border-warning/40",
   critica: "bg-destructive/15 text-destructive border-destructive/40",
 };
 

@@ -9,10 +9,8 @@ import {
   TriangleAlert,
   LogOut,
   Menu,
-  Moon,
   Plus,
   Search,
-  Sun,
   User,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
@@ -61,31 +59,6 @@ const ROOT_TREE = "__tree__";
 
 const COLLAPSE_KEY = "glpi.sidebar.collapsed";
 const OPEN_GROUPS_KEY = "glpi.sidebar.groups";
-const THEME_KEY = "glpi.theme";
-
-function useTheme() {
-  const [dark, setDark] = useState(true);
-
-  useEffect(() => {
-    // O sistema abre no tema escuro frio; o claro fica disponível no botão.
-    const stored = localStorage.getItem(THEME_KEY);
-    const next = stored !== "light";
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-  }, []);
-
-
-  function toggle() {
-    setDark((prev) => {
-      const next = !prev;
-      document.documentElement.classList.toggle("dark", next);
-      localStorage.setItem(THEME_KEY, next ? "dark" : "light");
-      return next;
-    });
-  }
-
-  return { dark, toggle };
-}
 
 function isLinkActive(link: NavLink, pathname: string, search: Record<string, unknown>) {
   const base = link.to.replace("/$slug", "");
@@ -111,7 +84,6 @@ export function AppShell({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { dark, toggle } = useTheme();
   const { user, profileName, can, error: permissionsError } = usePermissions();
   const { entities, selectedId, setSelectedId } = useEntity();
   const location = useRouterState({ select: (s) => s.location });
@@ -270,15 +242,6 @@ export function AppShell({
               </form>
 
               <div className="ml-auto flex items-center gap-1 md:ml-0">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="size-8"
-                  onClick={toggle}
-                  aria-label={dark ? "Tema claro" : "Tema escuro"}
-                >
-                  {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-                </Button>
                 <Button size="icon" variant="ghost" className="size-8" asChild>
                   <a
                     href="https://glpi-project.org/documentation/"
