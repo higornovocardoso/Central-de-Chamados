@@ -1,0 +1,11 @@
+# O Prettier exige LF. Sem isto o Windows faz checkout com CRLF e o
+# `npm run lint` acusa um erro por linha do projeto inteiro.
+* text=auto eol=lf
+
+# Binários não passam por conversão de fim de linha.
+*.png binary
+*.jpg binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
