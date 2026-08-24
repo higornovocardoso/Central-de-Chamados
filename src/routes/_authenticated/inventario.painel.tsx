@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -62,7 +62,13 @@ const BLOCOS: { kind: AssetKind; icone: typeof Laptop; matiz: string }[] = [
   { kind: "gabinete", matiz: "tile-success", icone: HardDrive },
 ];
 
-const CORES = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+const CORES = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function PainelDeAtivos() {
   const { can } = usePermissions();
@@ -96,37 +102,48 @@ function PainelDeAtivos() {
     },
   });
 
-  const linhas = (ativos.data ?? []) as LooseRow[];
+  // Sem o useMemo o fallback [] cria um array novo a cada render, o que
+  // invalida agrupar() e refaz os dois gráficos sem nenhum dado ter mudado.
+  const linhas = useMemo(() => (ativos.data ?? []) as LooseRow[], [ativos.data]);
 
   const contar = (kind: AssetKind) => linhas.filter((a) => a["kind"] === kind).length;
 
   /** Agrupa por uma chave estrangeira, resolvendo o nome pela lista de apoio. */
-  const agrupar = (campo: string, apoio: LooseRow[] | undefined, semNome: string) => {
-    const nomes = new Map((apoio ?? []).map((r) => [r.id, String(r["name"])]));
-    const mapa = new Map<string, number>();
-    for (const a of linhas) {
-      const id = a[campo];
-      const nome = id ? (nomes.get(String(id)) ?? semNome) : semNome;
-      mapa.set(nome, (mapa.get(nome) ?? 0) + 1);
-    }
-    return [...mapa.entries()]
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 8);
-  };
+  const agrupar = useCallback(
+    (campo: string, apoio: LooseRow[] | undefined, semNome: string) => {
+      const nomes = new Map((apoio ?? []).map((r) => [r.id, String(r["name"])]));
+      const mapa = new Map<string, number>();
+      for (const a of linhas) {
+        const id = a[campo];
+        const nome = id ? (nomes.get(String(id)) ?? semNome) : semNome;
+        mapa.set(nome, (mapa.get(nome) ?? 0) + 1);
+      }
+      return [...mapa.entries()]
+        .map(([name, total]) => ({ name, total }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 8);
+    },
+    [linhas],
+  );
 
   const porFabricante = useMemo(
     () => agrupar("manufacturer_id", fabricantes.data as LooseRow[] | undefined, "Sem fabricante"),
-    [linhas, fabricantes.data],
+    [agrupar, fabricantes.data],
   );
 
   const porSituacao = useMemo(
     () => agrupar("state_id", situacoes.data as LooseRow[] | undefined, "Sem situação"),
-    [linhas, situacoes.data],
+    [agrupar, situacoes.data],
   );
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Painel de ativos" estado={acesso} mensagem="Seu perfil não tem acesso ao inventário." />;
+    return (
+      <AvisoAcesso
+        titulo="Painel de ativos"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso ao inventário."
+      />
+    );
   }
 
   return (
@@ -175,7 +192,11 @@ function Grafico({ titulo, dados }: { titulo: string; dados: { name: string; tot
       <header className="panel-header">{titulo}</header>
       <div className="h-64 p-2">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
+          <BarChart
+            data={dados}
+            layout="vertical"
+            margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
             <XAxis
               type="number"

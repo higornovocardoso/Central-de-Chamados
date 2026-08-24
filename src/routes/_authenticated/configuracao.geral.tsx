@@ -49,7 +49,11 @@ type Campo = { key: string; label: string; hint?: string };
 
 const NOTIFICACAO: Campo[] = [
   { key: "admin_name", label: "Nome do administrador" },
-  { key: "admin_email", label: "E-mail do administrador", hint: "Recebe cópia dos chamados abertos" },
+  {
+    key: "admin_email",
+    label: "E-mail do administrador",
+    hint: "Recebe cópia dos chamados abertos",
+  },
   { key: "sender_name", label: "Nome do remetente" },
   { key: "sender_email", label: "E-mail do remetente" },
   { key: "reply_to", label: "Responder para" },
@@ -90,6 +94,11 @@ function ConfiguracoesGerais() {
   const lista = (entidades.data ?? []) as LooseRow[];
   const atual = lista.find((e) => e.id === entidadeId) ?? lista[0];
 
+  // A dependência é só o id, de propósito. Observar o objeto `atual` inteiro
+  // faria o formulário ser reescrito a cada refetch em segundo plano,
+  // apagando o que o usuário estivesse digitando. Trocar de entidade, que é
+  // quando o formulário deve mesmo ser recarregado, muda o id.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (atual) {
       setEntidadeId(atual.id);
@@ -131,7 +140,13 @@ function ConfiguracoesGerais() {
   const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Configurações gerais" estado={acesso} mensagem="Seu perfil não tem acesso à configuração." />;
+    return (
+      <AvisoAcesso
+        titulo="Configurações gerais"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso à configuração."
+      />
+    );
   }
 
   return (
