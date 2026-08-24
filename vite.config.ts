@@ -6,14 +6,10 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 /**
- * Configuração própria, sem o @lovable.dev/vite-tanstack-config.
+ * A ordem dos plugins importa: tailwind, caminhos do tsconfig, TanStack Start,
+ * nitro e por último o react. Trocar a ordem quebra a transformação das rotas.
  *
- * A ordem dos plugins é a mesma que o pacote do Lovable usava — tailwind,
- * caminhos do tsconfig, TanStack Start, nitro e por último o react —, porque
- * trocar a ordem quebra a transformação das rotas.
- *
- * O nitro entra só no build: em desenvolvimento o próprio vite serve.
- * O alvo é netlify (Functions), no lugar do cloudflare que o Lovable usava.
+ * O nitro entra só no build; em desenvolvimento o próprio vite serve.
  */
 export default defineConfig(({ mode, command }) => {
   // As VITE_* viram literais no bundle. Sem isto o cliente fica sem a URL e a
