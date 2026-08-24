@@ -1,7 +1,8 @@
 -- Teste de isolamento entre empresas.
 --
--- Monta duas empresas de mentira com um usuário cada, põe um chamado e um
--- ativo, e verifica que nenhum dos dois enxerga ou grava no dado do outro.
+-- Monta duas empresas de mentira, com um usuário e um domínio de e-mail cada,
+-- e verifica que nenhuma enxerga ou grava no dado da outra — pelo lado de quem
+-- está logado e pelo lado do formulário público.
 -- Apaga tudo ao final, inclusive quando algum passo falha no meio.
 --
 -- Rodar depois de qualquer alteração em política de segurança, em gatilho de
@@ -12,10 +13,15 @@
 -- Todas as linhas precisam vir com passou = true. Uma linha falsa significa
 -- que uma empresa consegue ver ou alterar dado de outra.
 --
--- O cenário mais forte é "lendo TODOS os chamados do sistema": ele consulta a
--- tabela inteira, sem filtro, e exige que o usuário da empresa de teste veja
--- apenas o próprio. Isso prova o isolamento contra os dados reais que já estão
--- no banco, não só contra os dois registros que o teste criou.
+-- O cenário mais forte do lado logado é "lendo TODOS os chamados do sistema":
+-- consulta a tabela inteira, sem filtro, e exige que o usuário da empresa de
+-- teste veja apenas o próprio. Isso prova o isolamento contra os dados reais
+-- que já estão no banco, não só contra os registros que o teste criou.
+--
+-- Os três últimos cenários cobrem o formulário público, onde o domínio do
+-- e-mail decide a empresa. O mais importante é o do entity_id forjado: prova
+-- que mandar na requisição o entity_id de outra empresa não adianta, porque a
+-- política do banco confere o domínio de novo.
 --
 -- Os UUIDs são fixos e reconhecíveis para que a limpeza seja determinística:
 -- se uma execução anterior morreu no meio, a próxima remove o lixo antes de
@@ -38,6 +44,7 @@ declare
   n int;
   msg text;
 begin
+  delete from public.entity_email_domains where entity_id in (ent_a, ent_b);
   delete from public.assets               where entity_id in (ent_a, ent_b);
   delete from public.tickets              where entity_id in (ent_a, ent_b);
   delete from public.user_authorizations  where user_id   in (usr_a, usr_b);
@@ -51,9 +58,13 @@ begin
     select ap.id into perfil from public.access_profiles ap order by ap.id limit 1;
   end if;
 
-  insert into public.entities (id, name, parent_id, level, path) values
-    (ent_a, 'TESTE Empresa A', null, 0, '/' || ent_a || '/'),
-    (ent_b, 'TESTE Empresa B', null, 0, '/' || ent_b || '/');
+  insert into public.entities (id, name, parent_id, level, path, accepts_public_tickets) values
+    (ent_a, 'TESTE Empresa A', null, 0, '/' || ent_a || '/', true),
+    (ent_b, 'TESTE Empresa B', null, 0, '/' || ent_b || '/', true);
+
+  insert into public.entity_email_domains (entity_id, domain) values
+    (ent_a, 'teste-empresa-a.invalid'),
+    (ent_b, 'teste-empresa-b.invalid');
 
   insert into auth.users (id, email, raw_user_meta_data) values
     (usr_a, 'teste-a@isolamento.invalid', '{"full_name":"TESTE Usuario A"}'::jsonb),
@@ -111,9 +122,45 @@ begin
   cenario := 'usuario da B lendo ativo da A';
   esperado := '0'; obtido := n::text; passou := (n = 0); return next;
 
+  -- Formulario publico: o dominio do e-mail decide a empresa.
+  perform set_config('role', 'anon', true);
+  perform set_config('request.jwt.claims', null, true);
+
+  begin
+    insert into public.tickets (entity_id, title, reporter_name, reporter_email, status)
+    values (ent_a, 'TESTE publico correto', 'Fulano', 'fulano@teste-empresa-a.invalid', 'aberto');
+    obtido := 'gravou'; passou := true;
+  exception when others then
+    obtido := 'bloqueado'; passou := false;
+  end;
+  cenario := 'publico com dominio da propria empresa';
+  esperado := 'gravou'; return next;
+
+  begin
+    insert into public.tickets (entity_id, title, reporter_name, reporter_email, status)
+    values (ent_a, 'TESTE dominio forjado', 'Invasor', 'invasor@dominio-desconhecido.invalid', 'aberto');
+    obtido := 'gravou'; passou := false;
+  exception when others then
+    obtido := 'bloqueado'; passou := true;
+  end;
+  cenario := 'publico com dominio nao cadastrado';
+  esperado := 'bloqueado'; return next;
+
+  -- O ataque que importa: dominio da A, mas entity_id apontando para a B.
+  begin
+    insert into public.tickets (entity_id, title, reporter_name, reporter_email, status)
+    values (ent_b, 'TESTE entity forjado', 'Invasor', 'fulano@teste-empresa-a.invalid', 'aberto');
+    obtido := 'gravou'; passou := false;
+  exception when others then
+    obtido := 'bloqueado'; passou := true;
+  end;
+  cenario := 'publico com entity_id forjado para outra empresa';
+  esperado := 'bloqueado'; return next;
+
   perform set_config('role', papel_original, true);
   perform set_config('request.jwt.claims', null, true);
 
+  delete from public.entity_email_domains where entity_id in (ent_a, ent_b);
   delete from public.assets               where entity_id in (ent_a, ent_b);
   delete from public.tickets              where entity_id in (ent_a, ent_b);
   delete from public.user_authorizations  where user_id   in (usr_a, usr_b);
@@ -127,6 +174,7 @@ exception when others then
   get stacked diagnostics msg = message_text;
   perform set_config('role', papel_original, true);
   perform set_config('request.jwt.claims', null, true);
+  delete from public.entity_email_domains where entity_id in (ent_a, ent_b);
   delete from public.assets               where entity_id in (ent_a, ent_b);
   delete from public.tickets              where entity_id in (ent_a, ent_b);
   delete from public.user_authorizations  where user_id   in (usr_a, usr_b);

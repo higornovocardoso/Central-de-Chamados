@@ -18,12 +18,35 @@ export const publicTicketSchema = z.object({
 
 const schema = publicTicketSchema;
 
+/** Mensagem única para domínio desconhecido, reaproveitada nos dois pontos. */
+const DOMINIO_NAO_AUTORIZADO =
+  "Este e-mail não está autorizado a abrir chamados. Use o endereço da sua empresa, " +
+  "ou fale com o suporte para cadastrá-lo.";
+
 export const createPublicTicket = createServerFn({ method: "POST" })
   .validator((data: unknown) => schema.parse(data))
   .handler(async ({ data }) => {
     const url = process.env["SUPABASE_URL"]!;
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const id = crypto.randomUUID();
+
+    // O domínio do e-mail decide de qual empresa é o chamado. Sem isto o
+    // entity_id cairia no default da coluna e todo chamado de fora iria parar
+    // na mesma empresa, seja qual for o solicitante.
+    const rota = await fetch(`${url}/rest/v1/rpc/entidade_por_email_publico`, {
+      method: "POST",
+      headers: { apikey: key, "Content-Type": "application/json" },
+      body: JSON.stringify({ _email: data.reporter_email }),
+    });
+
+    if (!rota.ok) {
+      throw new Error(`Falha ao identificar a empresa (${rota.status})`);
+    }
+
+    const entity_id = (await rota.json()) as string | null;
+    if (!entity_id) {
+      throw new Error(DOMINIO_NAO_AUTORIZADO);
+    }
 
     // Insere como visitante (papel anon). Sem "return=representation": o papel
     // anon pode criar chamados, mas não pode lê-los de volta.
@@ -34,10 +57,16 @@ export const createPublicTicket = createServerFn({ method: "POST" })
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
-      body: JSON.stringify({ ...data, id, status: "aberto" }),
+      body: JSON.stringify({ ...data, id, entity_id, status: "aberto" }),
     });
 
     if (!response.ok) {
+      // A política do banco confere a mesma regra de domínio. Chegar aqui com
+      // 401 ou 403 significa que a entidade parou de aceitar chamado de fora
+      // entre a consulta acima e a gravação.
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(DOMINIO_NAO_AUTORIZADO);
+      }
       throw new Error(`Falha ao registrar chamado (${response.status})`);
     }
 
