@@ -60,7 +60,13 @@ const PERIODOS = [
   { value: "365", label: "Último ano" },
 ];
 
-const CORES = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+const CORES = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function Estatisticas() {
   const { can } = usePermissions();
@@ -117,7 +123,8 @@ function Estatisticas() {
 
   const porCategoria = useMemo(() => {
     const mapa = new Map<string, number>();
-    for (const t of noPeriodo) mapa.set(t.category || "Sem categoria", (mapa.get(t.category || "Sem categoria") ?? 0) + 1);
+    for (const t of noPeriodo)
+      mapa.set(t.category || "Sem categoria", (mapa.get(t.category || "Sem categoria") ?? 0) + 1);
     return [...mapa.entries()]
       .map(([name, total]) => ({ name, total }))
       .sort((a, b) => b.total - a.total)
@@ -127,8 +134,7 @@ function Estatisticas() {
   /** Evolução por mês: abertos contra solucionados, em áreas, como no GLPI. */
   const evolucao = useMemo(() => {
     const meses = new Map<string, { mes: string; abertos: number; solucionados: number }>();
-    const chave = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const chave = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     for (let i = Math.floor(dias / 30); i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
@@ -150,7 +156,13 @@ function Estatisticas() {
   }, [noPeriodo, dias]);
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Estatísticas" estado={acesso} mensagem="Seu perfil não tem acesso às estatísticas." />;
+    return (
+      <AvisoAcesso
+        titulo="Estatísticas"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso às estatísticas."
+      />
+    );
   }
 
   return (
@@ -189,7 +201,9 @@ function Estatisticas() {
           <span className="tile-number">{tempoMedio === null ? "—" : tempoMedio.toFixed(1)}</span>
           <span className="tile-label">Horas até a solução, em média</span>
         </div>
-        <div className={`tile ${dentroDoPrazo !== null && dentroDoPrazo < 80 ? "tile-danger" : "tile-success"}`}>
+        <div
+          className={`tile ${dentroDoPrazo !== null && dentroDoPrazo < 80 ? "tile-danger" : "tile-success"}`}
+        >
           <span className="tile-number">{dentroDoPrazo === null ? "—" : `${dentroDoPrazo}%`}</span>
           <span className="tile-label">Dentro do prazo de SLA</span>
         </div>
@@ -202,7 +216,10 @@ function Estatisticas() {
             <AreaChart data={evolucao} margin={{ top: 8, right: 16, bottom: 4, left: -18 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="mes" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              />
               <ChartTooltip
                 contentStyle={{
                   background: "var(--popover)",
@@ -255,7 +272,11 @@ function Barras({ titulo, dados }: { titulo: string; dados: { name: string; tota
       <header className="panel-header">{titulo}</header>
       <div className="h-64 p-2">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={dados} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
+          <BarChart
+            data={dados}
+            layout="vertical"
+            margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
             <XAxis
               type="number"

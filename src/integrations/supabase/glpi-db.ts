@@ -121,7 +121,6 @@ export type UserAuthorizationRow = {
   created_at: string;
 };
 
-
 // --- Fase 3: chamado ITIL -------------------------------------------------
 
 export type ItilCategoryRow = {

@@ -161,9 +161,7 @@ function Relatorios() {
           const year = String(end.getFullYear());
           map.set(year, (map.get(year) ?? 0) + 1);
         }
-        return [...map.entries()]
-          .sort()
-          .map(([label, value]) => ({ label, value: String(value) }));
+        return [...map.entries()].sort().map(([label, value]) => ({ label, value: String(value) }));
       }
       case "financeiro": {
         const byKind = new Map<string, number>();
@@ -213,7 +211,13 @@ function Relatorios() {
   }
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Relatórios" estado={acesso} mensagem="Seu perfil não tem acesso aos relatórios." />;
+    return (
+      <AvisoAcesso
+        titulo="Relatórios"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso aos relatórios."
+      />
+    );
   }
 
   return (

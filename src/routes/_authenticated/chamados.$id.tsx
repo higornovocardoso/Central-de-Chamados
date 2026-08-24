@@ -164,17 +164,25 @@ function DetalheChamado() {
   const lookupsQuery = useQuery({
     queryKey: ["itil_lookups"],
     queryFn: async () => {
-      const [categories, taskCategories, solutionTypes, sources, groups, suppliers, assets, locations] =
-        await Promise.all([
-          db.from("itil_categories").select("*").order("path"),
-          db.from("task_categories").select("*").order("name"),
-          db.from("solution_types").select("*").order("name"),
-          db.from("request_sources").select("*").order("name"),
-          db.from("user_groups").select("id,name").order("name"),
-          supabase.from("suppliers").select("id,name").order("name"),
-          supabase.from("assets").select("id,name,asset_tag").order("name"),
-          supabase.from("locations").select("id,name").order("name"),
-        ]);
+      const [
+        categories,
+        taskCategories,
+        solutionTypes,
+        sources,
+        groups,
+        suppliers,
+        assets,
+        locations,
+      ] = await Promise.all([
+        db.from("itil_categories").select("*").order("path"),
+        db.from("task_categories").select("*").order("name"),
+        db.from("solution_types").select("*").order("name"),
+        db.from("request_sources").select("*").order("name"),
+        db.from("user_groups").select("id,name").order("name"),
+        supabase.from("suppliers").select("id,name").order("name"),
+        supabase.from("assets").select("id,name,asset_tag").order("name"),
+        supabase.from("locations").select("id,name").order("name"),
+      ]);
       return {
         categories: (categories.data ?? []) as ItilCategoryRow[],
         taskCategories: taskCategories.data ?? [],
@@ -366,7 +374,10 @@ function DetalheChamado() {
       patch["location_id"] = form.location_id === NONE ? null : form.location_id;
 
       // O types.ts gerado ainda não conhece as colunas da fase 3.
-      const { error } = await supabase.from("tickets").update(patch as never).eq("id", id);
+      const { error } = await supabase
+        .from("tickets")
+        .update(patch as never)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -416,10 +427,7 @@ function DetalheChamado() {
   const type = str(ticket, "type", "incidente") as TicketType;
   const priorityLevel = num(ticket, "priority_level", 3);
   const validationState = str(ticket, "validation_state", "nao_sujeito") as
-    | "nao_sujeito"
-    | "aguardando"
-    | "aprovado"
-    | "recusado";
+    "nao_sujeito" | "aguardando" | "aprovado" | "recusado";
   const resolutionSla = slaState(
     str(ticket, "resolution_due_at") || null,
     str(ticket, "resolved_at") || null,
@@ -527,203 +535,198 @@ function DetalheChamado() {
         </div>
 
         <aside className="itil-right-side space-y-3">
-            <section className="panel h-fit">
-              <header className="panel-header">Dados do chamado</header>
-              <div className="space-y-2.5 p-3">
-                <Info label="Aberto em" value={formatDate(str(ticket, "created_at") || null)} />
-                <Info
-                  label="Última atualização"
-                  value={formatDate(str(ticket, "updated_at") || null)}
-                />
-                <Info
-                  label="Solucionado em"
-                  value={formatDate(str(ticket, "resolved_at") || null)}
-                />
+          <section className="panel h-fit">
+            <header className="panel-header">Dados do chamado</header>
+            <div className="space-y-2.5 p-3">
+              <Info label="Aberto em" value={formatDate(str(ticket, "created_at") || null)} />
+              <Info
+                label="Última atualização"
+                value={formatDate(str(ticket, "updated_at") || null)}
+              />
+              <Info label="Solucionado em" value={formatDate(str(ticket, "resolved_at") || null)} />
 
-                {canEdit ? (
-                  <div className="space-y-2.5 border-t border-border pt-2.5">
-                    {phase3 && (
+              {canEdit ? (
+                <div className="space-y-2.5 border-t border-border pt-2.5">
+                  {phase3 && (
+                    <Picker
+                      label="Tipo"
+                      value={form.type}
+                      onChange={(v) => setForm({ ...form, type: v as TicketType })}
+                    >
+                      {TICKET_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {TICKET_TYPE_LABEL[t]}
+                        </SelectItem>
+                      ))}
+                    </Picker>
+                  )}
+
+                  <Picker
+                    label="Status"
+                    value={form.status}
+                    onChange={(v) => setForm({ ...form, status: v as TicketStatus })}
+                  >
+                    {STATUS_ORDER.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {STATUS_LABEL[s]}
+                      </SelectItem>
+                    ))}
+                  </Picker>
+
+                  {phase3 && (
+                    <>
                       <Picker
-                        label="Tipo"
-                        value={form.type}
-                        onChange={(v) => setForm({ ...form, type: v as TicketType })}
+                        label="Categoria"
+                        value={form.category_id}
+                        onChange={(v) => setForm({ ...form, category_id: v })}
                       >
-                        {TICKET_TYPES.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {TICKET_TYPE_LABEL[t]}
+                        <SelectItem value={NONE}>Sem categoria</SelectItem>
+                        {(lookups?.categories ?? []).map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {" ".repeat(c.level * 3)}
+                            {c.name}
                           </SelectItem>
                         ))}
                       </Picker>
-                    )}
 
-                    <Picker
-                      label="Status"
-                      value={form.status}
-                      onChange={(v) => setForm({ ...form, status: v as TicketStatus })}
-                    >
-                      {STATUS_ORDER.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                        </SelectItem>
-                      ))}
-                    </Picker>
+                      <Picker
+                        label="Origem da requisição"
+                        value={form.request_source_id}
+                        onChange={(v) => setForm({ ...form, request_source_id: v })}
+                      >
+                        <SelectItem value={NONE}>Não informada</SelectItem>
+                        {(lookups?.sources ?? []).map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </Picker>
 
-                    {phase3 && (
-                      <>
+                      <div className="grid grid-cols-2 gap-2">
                         <Picker
-                          label="Categoria"
-                          value={form.category_id}
-                          onChange={(v) => setForm({ ...form, category_id: v })}
+                          label="Urgência"
+                          value={String(form.urgency)}
+                          onChange={(v) => setForm({ ...form, urgency: Number(v) })}
                         >
-                          <SelectItem value={NONE}>Sem categoria</SelectItem>
-                          {(lookups?.categories ?? []).map((c) => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {" ".repeat(c.level * 3)}
-                              {c.name}
+                          {LEVELS.map((l) => (
+                            <SelectItem key={l} value={String(l)}>
+                              {levelLabel(l)}
                             </SelectItem>
                           ))}
                         </Picker>
-
                         <Picker
-                          label="Origem da requisição"
-                          value={form.request_source_id}
-                          onChange={(v) => setForm({ ...form, request_source_id: v })}
+                          label="Impacto"
+                          value={String(form.impact)}
+                          onChange={(v) => setForm({ ...form, impact: Number(v) })}
                         >
-                          <SelectItem value={NONE}>Não informada</SelectItem>
-                          {(lookups?.sources ?? []).map((s) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.name}
+                          {LEVELS.map((l) => (
+                            <SelectItem key={l} value={String(l)}>
+                              {levelLabel(l)}
                             </SelectItem>
                           ))}
                         </Picker>
+                      </div>
 
-                        <div className="grid grid-cols-2 gap-2">
-                          <Picker
-                            label="Urgência"
-                            value={String(form.urgency)}
-                            onChange={(v) => setForm({ ...form, urgency: Number(v) })}
-                          >
-                            {LEVELS.map((l) => (
-                              <SelectItem key={l} value={String(l)}>
-                                {levelLabel(l)}
-                              </SelectItem>
-                            ))}
-                          </Picker>
-                          <Picker
-                            label="Impacto"
-                            value={String(form.impact)}
-                            onChange={(v) => setForm({ ...form, impact: Number(v) })}
-                          >
-                            {LEVELS.map((l) => (
-                              <SelectItem key={l} value={String(l)}>
-                                {levelLabel(l)}
-                              </SelectItem>
-                            ))}
-                          </Picker>
-                        </div>
-
-                        <div className="space-y-1 rounded border border-border bg-secondary/40 p-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">Prioridade</span>
-                            <span className="inline-flex items-center gap-1.5 font-medium">
-                              <span
-                                className={`size-2 rounded-full ${
-                                  LEVEL_DOT[
-                                    form.priority_manual
-                                      ? form.priority_level
-                                      : previewPriority(form.urgency, form.impact)
-                                  ]
-                                }`}
-                              />
-                              {levelLabel(
-                                form.priority_manual
-                                  ? form.priority_level
-                                  : previewPriority(form.urgency, form.impact),
-                              )}
-                            </span>
-                          </div>
-                          <label className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
-                            <Checkbox
-                              checked={form.priority_manual}
-                              disabled={!hasFlag("ticket_change_priority")}
-                              onCheckedChange={(v) =>
-                                setForm({ ...form, priority_manual: v === true })
-                              }
+                      <div className="space-y-1 rounded border border-border bg-secondary/40 p-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Prioridade</span>
+                          <span className="inline-flex items-center gap-1.5 font-medium">
+                            <span
+                              className={`size-2 rounded-full ${
+                                LEVEL_DOT[
+                                  form.priority_manual
+                                    ? form.priority_level
+                                    : previewPriority(form.urgency, form.impact)
+                                ]
+                              }`}
                             />
-                            Definir manualmente
-                          </label>
-                          {form.priority_manual && (
-                            <Select
-                              value={String(form.priority_level)}
-                              onValueChange={(v) =>
-                                setForm({ ...form, priority_level: Number(v) })
-                              }
-                            >
-                              <SelectTrigger className="h-7 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {LEVELS.map((l) => (
-                                  <SelectItem key={l} value={String(l)}>
-                                    {levelLabel(l)}
-                                  </SelectItem>
-                                ))}
-                                {hasFlag("ticket_major_priority") && (
-                                  <SelectItem value="6">Maior</SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          )}
+                            {levelLabel(
+                              form.priority_manual
+                                ? form.priority_level
+                                : previewPriority(form.urgency, form.impact),
+                            )}
+                          </span>
                         </div>
-                      </>
-                    )}
+                        <label className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+                          <Checkbox
+                            checked={form.priority_manual}
+                            disabled={!hasFlag("ticket_change_priority")}
+                            onCheckedChange={(v) =>
+                              setForm({ ...form, priority_manual: v === true })
+                            }
+                          />
+                          Definir manualmente
+                        </label>
+                        {form.priority_manual && (
+                          <Select
+                            value={String(form.priority_level)}
+                            onValueChange={(v) => setForm({ ...form, priority_level: Number(v) })}
+                          >
+                            <SelectTrigger className="h-7 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {LEVELS.map((l) => (
+                                <SelectItem key={l} value={String(l)}>
+                                  {levelLabel(l)}
+                                </SelectItem>
+                              ))}
+                              {hasFlag("ticket_major_priority") && (
+                                <SelectItem value="6">Maior</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    </>
+                  )}
 
-                    <Picker
-                      label="Local"
-                      value={form.location_id}
-                      onChange={(v) => setForm({ ...form, location_id: v })}
-                    >
-                      <SelectItem value={NONE}>Nenhum</SelectItem>
-                      {(lookups?.locations ?? []).map((l) => (
-                        <SelectItem key={l.id} value={l.id}>
-                          {l.name}
-                        </SelectItem>
-                      ))}
-                    </Picker>
+                  <Picker
+                    label="Local"
+                    value={form.location_id}
+                    onChange={(v) => setForm({ ...form, location_id: v })}
+                  >
+                    <SelectItem value={NONE}>Nenhum</SelectItem>
+                    {(lookups?.locations ?? []).map((l) => (
+                      <SelectItem key={l.id} value={l.id}>
+                        {l.name}
+                      </SelectItem>
+                    ))}
+                  </Picker>
 
-                    <Button
-                      size="sm"
-                      className="h-8 w-full"
-                      onClick={() => saveTicket.mutate()}
-                      disabled={saveTicket.isPending}
-                    >
-                      Salvar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2.5 border-t border-border pt-2.5">
-                    <Info label="Categoria" value={str(ticket, "category", "—")} />
-                    <Info label="Prioridade" value={levelLabel(priorityLevel)} />
-                  </div>
-                )}
-              </div>
-            </section>
+                  <Button
+                    size="sm"
+                    className="h-8 w-full"
+                    onClick={() => saveTicket.mutate()}
+                    disabled={saveTicket.isPending}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2.5 border-t border-border pt-2.5">
+                  <Info label="Categoria" value={str(ticket, "category", "—")} />
+                  <Info label="Prioridade" value={levelLabel(priorityLevel)} />
+                </div>
+              )}
+            </div>
+          </section>
 
-            <ActorsPanel
-              ticketId={id}
-              requesterId={str(ticket, "requester_id") || null}
-              reporterName={str(ticket, "reporter_name") || ""}
-              reporterEmail={str(ticket, "reporter_email") || ""}
-              actors={actorsQuery.data ?? []}
-              people={peopleQuery.data ?? []}
-              groups={lookups?.groups ?? []}
-              suppliers={lookups?.suppliers ?? []}
-              technicians={techniciansQuery.data ?? []}
-              canEdit={canEdit && phase3}
-              personName={personName}
-              onChanged={() => invalidate("ticket_actors")}
-              onRequesterChanged={() => invalidate("ticket_actors", "ticket")}
-            />
+          <ActorsPanel
+            ticketId={id}
+            requesterId={str(ticket, "requester_id") || null}
+            reporterName={str(ticket, "reporter_name") || ""}
+            reporterEmail={str(ticket, "reporter_email") || ""}
+            actors={actorsQuery.data ?? []}
+            people={peopleQuery.data ?? []}
+            groups={lookups?.groups ?? []}
+            suppliers={lookups?.suppliers ?? []}
+            technicians={techniciansQuery.data ?? []}
+            canEdit={canEdit && phase3}
+            personName={personName}
+            onChanged={() => invalidate("ticket_actors")}
+            onRequesterChanged={() => invalidate("ticket_actors", "ticket")}
+          />
 
           <Accordion type="multiple" className="rounded border border-border bg-card">
             <AccordionItem value="tarefas">
@@ -732,14 +735,14 @@ function DetalheChamado() {
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
                 <TasksPanel
-                ticketId={id}
-                tasks={tasksQuery.data ?? []}
-                categories={lookups?.taskCategories ?? []}
-                technicians={techniciansQuery.data ?? []}
-                personName={personName}
-                canEdit={can("task", "create") && phase3}
-                userId={user?.id ?? null}
-                onChanged={() => invalidate("ticket_tasks")}
+                  ticketId={id}
+                  tasks={tasksQuery.data ?? []}
+                  categories={lookups?.taskCategories ?? []}
+                  technicians={techniciansQuery.data ?? []}
+                  personName={personName}
+                  canEdit={can("task", "create") && phase3}
+                  userId={user?.id ?? null}
+                  onChanged={() => invalidate("ticket_tasks")}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -749,14 +752,14 @@ function DetalheChamado() {
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
                 <SolutionPanel
-                ticketId={id}
-                solutions={solutionsQuery.data ?? []}
-                types={lookups?.solutionTypes ?? []}
-                personName={personName}
-                canSolve={can("solution", "create") && phase3}
-                isRequester={str(ticket, "requester_id") === user?.id}
-                userId={user?.id ?? null}
-                onChanged={() => invalidate("ticket_solutions")}
+                  ticketId={id}
+                  solutions={solutionsQuery.data ?? []}
+                  types={lookups?.solutionTypes ?? []}
+                  personName={personName}
+                  canSolve={can("solution", "create") && phase3}
+                  isRequester={str(ticket, "requester_id") === user?.id}
+                  userId={user?.id ?? null}
+                  onChanged={() => invalidate("ticket_solutions")}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -766,14 +769,14 @@ function DetalheChamado() {
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
                 <ValidationsPanel
-                ticketId={id}
-                validations={validationsQuery.data ?? []}
-                percent={num(ticket, "validation_percent", 100)}
-                people={peopleQuery.data ?? []}
-                personName={personName}
-                canRequest={hasFlag("validation_request") && phase3}
-                userId={user?.id ?? null}
-                onChanged={() => invalidate("ticket_validations")}
+                  ticketId={id}
+                  validations={validationsQuery.data ?? []}
+                  percent={num(ticket, "validation_percent", 100)}
+                  people={peopleQuery.data ?? []}
+                  personName={personName}
+                  canRequest={hasFlag("validation_request") && phase3}
+                  userId={user?.id ?? null}
+                  onChanged={() => invalidate("ticket_validations")}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -782,13 +785,13 @@ function DetalheChamado() {
                 Itens ({itemsQuery.data?.length ?? 0})
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
-        <ItemsPanel
-          ticketId={id}
-          items={(itemsQuery.data ?? []) as { id: string; asset_id: string }[]}
-          assets={lookups?.assets ?? []}
-          canEdit={canEdit && phase3}
-          onChanged={() => invalidate("ticket_items")}
-        />
+                <ItemsPanel
+                  ticketId={id}
+                  items={(itemsQuery.data ?? []) as { id: string; asset_id: string }[]}
+                  assets={lookups?.assets ?? []}
+                  canEdit={canEdit && phase3}
+                  onChanged={() => invalidate("ticket_items")}
+                />
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="ligados">
@@ -796,13 +799,13 @@ function DetalheChamado() {
                 Chamados ligados ({linksQuery.data?.length ?? 0})
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
-        <LinksPanel
-          ticketId={id}
-          links={linksQuery.data ?? []}
-          tickets={(allTicketsQuery.data ?? []) as { id: string; title: string }[]}
-          canEdit={canEdit && phase3}
-          onChanged={() => invalidate("ticket_links")}
-        />
+                <LinksPanel
+                  ticketId={id}
+                  links={linksQuery.data ?? []}
+                  tickets={(allTicketsQuery.data ?? []) as { id: string; title: string }[]}
+                  canEdit={canEdit && phase3}
+                  onChanged={() => invalidate("ticket_links")}
+                />
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="custos">
@@ -810,12 +813,12 @@ function DetalheChamado() {
                 Custos
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
-        <CostsPanel
-          ticketId={id}
-          costs={costsQuery.data ?? []}
-          canEdit={can("financial_info", "update") && phase3}
-          onChanged={() => invalidate("ticket_costs")}
-        />
+                <CostsPanel
+                  ticketId={id}
+                  costs={costsQuery.data ?? []}
+                  canEdit={can("financial_info", "update") && phase3}
+                  onChanged={() => invalidate("ticket_costs")}
+                />
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="documentos">
@@ -823,14 +826,14 @@ function DetalheChamado() {
                 Documentos ({documentsQuery.data?.length ?? 0})
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
-        <DocumentsPanel
-          ticketId={id}
-          entityId={str(ticket, "entity_id")}
-          documents={(documentsQuery.data ?? []) as never[]}
-          canEdit={can("document", "create") && phase3}
-          userId={user?.id ?? null}
-          onChanged={() => invalidate("ticket_documents")}
-        />
+                <DocumentsPanel
+                  ticketId={id}
+                  entityId={str(ticket, "entity_id")}
+                  documents={(documentsQuery.data ?? []) as never[]}
+                  canEdit={can("document", "create") && phase3}
+                  userId={user?.id ?? null}
+                  onChanged={() => invalidate("ticket_documents")}
+                />
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="estatisticas">
@@ -838,47 +841,56 @@ function DetalheChamado() {
                 Estatísticas
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
-        <div className="grid gap-3 md:grid-cols-2">
-          <section className="panel">
-            <header className="panel-header">Datas</header>
-            <dl className="divide-y divide-border text-xs">
-              <Stat label="Abertura" value={formatDate(str(ticket, "created_at") || null)} />
-              <Stat
-                label="Primeira resposta"
-                value={formatDate(str(ticket, "first_response_at") || null)}
-              />
-              <Stat
-                label="Última atualização"
-                value={formatDate(str(ticket, "updated_at") || null)}
-              />
-              <Stat label="Solução" value={formatDate(str(ticket, "resolved_at") || null)} />
-              <Stat label="Fechamento" value={formatDate(str(ticket, "closed_at") || null)} />
-            </dl>
-          </section>
-          <section className="panel">
-            <header className="panel-header">Acordo de nível de serviço</header>
-            <dl className="divide-y divide-border text-xs">
-              <Stat
-                label="Prazo de resposta"
-                value={formatDate(str(ticket, "response_due_at") || null)}
-              />
-              <Stat
-                label="Situação da resposta"
-                value={responseSla.label}
-                className={responseSla.className}
-              />
-              <Stat
-                label="Prazo de solução"
-                value={formatDate(str(ticket, "resolution_due_at") || null)}
-              />
-              <Stat
-                label="Situação da solução"
-                value={resolutionSla.label}
-                className={resolutionSla.className}
-              />
-            </dl>
-          </section>
-        </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <section className="panel">
+                    <header className="panel-header">Datas</header>
+                    <dl className="divide-y divide-border text-xs">
+                      <Stat
+                        label="Abertura"
+                        value={formatDate(str(ticket, "created_at") || null)}
+                      />
+                      <Stat
+                        label="Primeira resposta"
+                        value={formatDate(str(ticket, "first_response_at") || null)}
+                      />
+                      <Stat
+                        label="Última atualização"
+                        value={formatDate(str(ticket, "updated_at") || null)}
+                      />
+                      <Stat
+                        label="Solução"
+                        value={formatDate(str(ticket, "resolved_at") || null)}
+                      />
+                      <Stat
+                        label="Fechamento"
+                        value={formatDate(str(ticket, "closed_at") || null)}
+                      />
+                    </dl>
+                  </section>
+                  <section className="panel">
+                    <header className="panel-header">Acordo de nível de serviço</header>
+                    <dl className="divide-y divide-border text-xs">
+                      <Stat
+                        label="Prazo de resposta"
+                        value={formatDate(str(ticket, "response_due_at") || null)}
+                      />
+                      <Stat
+                        label="Situação da resposta"
+                        value={responseSla.label}
+                        className={responseSla.className}
+                      />
+                      <Stat
+                        label="Prazo de solução"
+                        value={formatDate(str(ticket, "resolution_due_at") || null)}
+                      />
+                      <Stat
+                        label="Situação da solução"
+                        value={resolutionSla.label}
+                        className={resolutionSla.className}
+                      />
+                    </dl>
+                  </section>
+                </div>
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="historico">
@@ -886,44 +898,44 @@ function DetalheChamado() {
                 Histórico
               </AccordionTrigger>
               <AccordionContent className="px-1 pb-2">
-        <section className="panel overflow-hidden">
-          <header className="panel-header">Histórico</header>
-          <div className="overflow-x-auto">
-            <table className="glpi-table">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Autor</th>
-                  <th>Campo</th>
-                  <th>De</th>
-                  <th>Para</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="whitespace-nowrap text-muted-foreground">
-                    {formatDate(str(ticket, "created_at") || null)}
-                  </td>
-                  <td>{requesterName}</td>
-                  <td colSpan={3}>Chamado criado</td>
-                </tr>
-                {(historyQuery.data ?? []).map((h) => (
-                  <tr key={h.id}>
-                    <td className="whitespace-nowrap text-muted-foreground">
-                      {formatDate(h.created_at)}
-                    </td>
-                    <td>{personName(h.user_id)}</td>
-                    <td className="font-medium">{FIELD_LABEL[h.field] ?? h.field}</td>
-                    <td className="max-w-[200px] truncate text-muted-foreground">
-                      {h.old_value || "—"}
-                    </td>
-                    <td className="max-w-[200px] truncate">{h.new_value || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                <section className="panel overflow-hidden">
+                  <header className="panel-header">Histórico</header>
+                  <div className="overflow-x-auto">
+                    <table className="glpi-table">
+                      <thead>
+                        <tr>
+                          <th>Data</th>
+                          <th>Autor</th>
+                          <th>Campo</th>
+                          <th>De</th>
+                          <th>Para</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="whitespace-nowrap text-muted-foreground">
+                            {formatDate(str(ticket, "created_at") || null)}
+                          </td>
+                          <td>{requesterName}</td>
+                          <td colSpan={3}>Chamado criado</td>
+                        </tr>
+                        {(historyQuery.data ?? []).map((h) => (
+                          <tr key={h.id}>
+                            <td className="whitespace-nowrap text-muted-foreground">
+                              {formatDate(h.created_at)}
+                            </td>
+                            <td>{personName(h.user_id)}</td>
+                            <td className="font-medium">{FIELD_LABEL[h.field] ?? h.field}</td>
+                            <td className="max-w-[200px] truncate text-muted-foreground">
+                              {h.old_value || "—"}
+                            </td>
+                            <td className="max-w-[200px] truncate">{h.new_value || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -1142,7 +1154,10 @@ function ActorsPanel({
       if (modoReq === "conta" && !reqUser) throw new Error("Escolha o usuário.");
       if (modoReq === "avulso" && !reqNome.trim()) throw new Error("Informe o nome.");
 
-      const { error } = await db.from("tickets").update(patch as never).eq("id", ticketId);
+      const { error } = await db
+        .from("tickets")
+        .update(patch as never)
+        .eq("id", ticketId);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
@@ -1446,32 +1461,32 @@ function FollowupsPanel({
     <section className={composerOnly ? "panel overflow-hidden" : "panel overflow-hidden"}>
       {!composerOnly && <header className="panel-header">Acompanhamentos</header>}
       {!composerOnly && (
-      <ul className="divide-y divide-border">
-        {comments.length === 0 && (
-          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
-            Nenhum acompanhamento registrado.
-          </li>
-        )}
-        {comments.map((c) => {
-          const priv = c["is_private"] === true;
-          return (
-            <li key={c.id} className={`px-3 py-2.5 ${priv ? "bg-warning/5" : ""}`}>
-              <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
-                <span className="flex items-center gap-1.5 font-medium text-foreground">
-                  {personName(c.author_id)}
-                  {priv && (
-                    <span className="inline-flex items-center gap-1 rounded-sm border border-warning/40 px-1 text-[0.6rem] uppercase text-warning">
-                      <Lock className="size-2.5" /> privado
-                    </span>
-                  )}
-                </span>
-                <span>{formatDate(c.created_at)}</span>
-              </div>
-              <p className="mt-1 whitespace-pre-wrap text-xs">{c.body}</p>
+        <ul className="divide-y divide-border">
+          {comments.length === 0 && (
+            <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+              Nenhum acompanhamento registrado.
             </li>
-          );
-        })}
-      </ul>
+          )}
+          {comments.map((c) => {
+            const priv = c["is_private"] === true;
+            return (
+              <li key={c.id} className={`px-3 py-2.5 ${priv ? "bg-warning/5" : ""}`}>
+                <div className="flex items-center justify-between text-[0.7rem] text-muted-foreground">
+                  <span className="flex items-center gap-1.5 font-medium text-foreground">
+                    {personName(c.author_id)}
+                    {priv && (
+                      <span className="inline-flex items-center gap-1 rounded-sm border border-warning/40 px-1 text-[0.6rem] uppercase text-warning">
+                        <Lock className="size-2.5" /> privado
+                      </span>
+                    )}
+                  </span>
+                  <span>{formatDate(c.created_at)}</span>
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-xs">{c.body}</p>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       <form
@@ -1582,7 +1597,8 @@ function TasksPanel({
       });
       onChanged();
     },
-    onError: (e: Error) => toast.error("Não foi possível criar a tarefa", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Não foi possível criar a tarefa", { description: e.message }),
   });
 
   const setState = useMutation({
@@ -1611,7 +1627,12 @@ function TasksPanel({
       <header className="panel-header">
         Tarefas
         {canEdit && (
-          <Button size="sm" variant="outline" className="ml-auto h-7" onClick={() => setOpen(!open)}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-auto h-7"
+            onClick={() => setOpen(!open)}
+          >
             <Plus className="size-3.5" /> Nova tarefa
           </Button>
         )}
@@ -1717,9 +1738,7 @@ function TasksPanel({
                   <Lock className="size-2.5" /> privada
                 </span>
               )}
-              <span>
-                {categories.find((c) => c.id === t.category_id)?.name ?? "Sem categoria"}
-              </span>
+              <span>{categories.find((c) => c.id === t.category_id)?.name ?? "Sem categoria"}</span>
               {t.assigned_user_id && <span>· {personName(t.assigned_user_id)}</span>}
               {t.duration_minutes > 0 && <span>· {formatDuration(t.duration_minutes)}</span>}
               {t.planned_start && <span>· planejada para {formatDate(t.planned_start)}</span>}
@@ -1968,7 +1987,8 @@ function ValidationsPanel({
       setComment("");
       onChanged();
     },
-    onError: (e: Error) => toast.error("Não foi possível pedir aprovação", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Não foi possível pedir aprovação", { description: e.message }),
   });
 
   const answerValidation = useMutation({
@@ -2309,7 +2329,9 @@ function LinksPanel({
               </SelectTrigger>
               <SelectContent>
                 {tickets
-                  .filter((t) => t.id !== ticketId && !links.some((l) => l.linked_ticket_id === t.id))
+                  .filter(
+                    (t) => t.id !== ticketId && !links.some((l) => l.linked_ticket_id === t.id),
+                  )
                   .map((t) => (
                     <SelectItem key={t.id} value={t.id}>
                       {ticketCode(t.id)} — {t.title}
@@ -2409,9 +2431,7 @@ function CostsPanel({
                 <td className="text-right tabular-nums">{formatMoney(Number(c.cost_time))}</td>
                 <td className="text-right tabular-nums">{formatMoney(Number(c.cost_fixed))}</td>
                 <td className="text-right tabular-nums">{formatMoney(Number(c.cost_material))}</td>
-                <td className="text-right font-medium tabular-nums">
-                  {formatMoney(totalCost(c))}
-                </td>
+                <td className="text-right font-medium tabular-nums">{formatMoney(totalCost(c))}</td>
                 <td>
                   {canEdit && (
                     <Button
@@ -2501,7 +2521,14 @@ function DocumentsPanel({
 }: {
   ticketId: string;
   entityId: string;
-  documents: { id: string; name: string; filename: string; size_bytes: number; storage_path: string; created_at: string }[];
+  documents: {
+    id: string;
+    name: string;
+    filename: string;
+    size_bytes: number;
+    storage_path: string;
+    created_at: string;
+  }[];
   canEdit: boolean;
   userId: string | null;
   onChanged: () => void;

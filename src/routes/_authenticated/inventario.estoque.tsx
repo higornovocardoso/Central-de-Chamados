@@ -14,9 +14,11 @@ export const Route = createFileRoute("/_authenticated/inventario/estoque")({
   // dividem a mesma tela, então a aba vem pela URL.
   validateSearch: (search: Record<string, unknown>): { aba: "cartuchos" | "consumiveis" } => {
     const aba = String(search["aba"] ?? "");
-    return { aba: (["cartuchos", "consumiveis"] as const).includes(aba as never)
-      ? (aba as "cartuchos" | "consumiveis")
-      : "cartuchos" };
+    return {
+      aba: (["cartuchos", "consumiveis"] as const).includes(aba as never)
+        ? (aba as "cartuchos" | "consumiveis")
+        : "cartuchos",
+    };
   },
   head: () => ({
     meta: [
@@ -203,8 +205,8 @@ function Estoque() {
             ]}
           />
           <p className="mt-2 text-[0.7rem] text-muted-foreground">
-            A ação automática "Alertas de inventário" varre os dois estoques uma vez por dia e
-            conta quantos itens estão no limite.
+            A ação automática "Alertas de inventário" varre os dois estoques uma vez por dia e conta
+            quantos itens estão no limite.
           </p>
         </TabsContent>
       </Tabs>

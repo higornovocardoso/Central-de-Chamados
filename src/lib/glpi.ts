@@ -84,22 +84,29 @@ export type SlaState = {
   remainingMs: number | null;
 };
 
-export function slaState(
-  dueAt: string | null,
-  doneAt: string | null,
-  closed: boolean,
-): SlaState {
-  if (!dueAt) return { label: "Sem SLA", className: "text-muted-foreground", late: false, remainingMs: null };
+export function slaState(dueAt: string | null, doneAt: string | null, closed: boolean): SlaState {
+  if (!dueAt)
+    return { label: "Sem SLA", className: "text-muted-foreground", late: false, remainingMs: null };
   const due = new Date(dueAt).getTime();
   const ref = doneAt ? new Date(doneAt).getTime() : Date.now();
   const diff = due - ref;
   if (doneAt || closed) {
     return diff >= 0
       ? { label: "Dentro do prazo", className: "text-success", late: false, remainingMs: diff }
-      : { label: `Estourado em ${humanize(-diff)}`, className: "text-destructive", late: true, remainingMs: diff };
+      : {
+          label: `Estourado em ${humanize(-diff)}`,
+          className: "text-destructive",
+          late: true,
+          remainingMs: diff,
+        };
   }
   if (diff < 0) {
-    return { label: `Atrasado ${humanize(-diff)}`, className: "text-destructive", late: true, remainingMs: diff };
+    return {
+      label: `Atrasado ${humanize(-diff)}`,
+      className: "text-destructive",
+      late: true,
+      remainingMs: diff,
+    };
   }
   return {
     label: `Faltam ${humanize(diff)}`,

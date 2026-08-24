@@ -257,7 +257,6 @@ function Inventario() {
         ) : null
       }
     >
-
       <DataToolbar
         itemType="asset"
         title="Inventário de ativos"
@@ -342,15 +341,20 @@ function Inventario() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     {ASSET_KIND_LABEL[a.kind]} · {a.brand || "—"} {a.model} · série{" "}
                     {a.serial_number || "—"} · {nameOf(lookups.data?.locations, a.location_id)} ·{" "}
-                    {a.assigned_name ? `resp. ${a.assigned_name}` : "sem responsável"} · garantia até{" "}
-                    {formatDay(a.warranty_end)}
+                    {a.assigned_name ? `resp. ${a.assigned_name}` : "sem responsável"} · garantia
+                    até {formatDay(a.warranty_end)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Tag className={ASSET_STATUS_CLASS[a.status]}>{ASSET_STATUS_LABEL[a.status]}</Tag>
                   {isStaff && (
                     <>
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(a)} aria-label="Editar">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openEdit(a)}
+                        aria-label="Editar"
+                      >
                         <Pencil className="size-4" />
                       </Button>
                       <Button
@@ -377,7 +381,10 @@ function Inventario() {
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome *">
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
             </Field>
             <Field label="Patrimônio">
               <Input
@@ -386,7 +393,10 @@ function Inventario() {
               />
             </Field>
             <Field label="Tipo">
-              <Select value={form.kind} onValueChange={(v) => setForm({ ...form, kind: v as AssetKind })}>
+              <Select
+                value={form.kind}
+                onValueChange={(v) => setForm({ ...form, kind: v as AssetKind })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -417,10 +427,16 @@ function Inventario() {
               </Select>
             </Field>
             <Field label="Marca">
-              <Input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} />
+              <Input
+                value={form.brand}
+                onChange={(e) => setForm({ ...form, brand: e.target.value })}
+              />
             </Field>
             <Field label="Modelo">
-              <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} />
+              <Input
+                value={form.model}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+              />
             </Field>
             <Field label="Número de série">
               <Input

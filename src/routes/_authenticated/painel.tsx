@@ -384,7 +384,11 @@ function Painel() {
           </div>
         </Panel>
 
-        <Panel title="Chamados críticos e atrasados" hint="Prioridade alta ou SLA vencido" delay={80}>
+        <Panel
+          title="Chamados críticos e atrasados"
+          hint="Prioridade alta ou SLA vencido"
+          delay={80}
+        >
           <div className="overflow-x-auto">
             <table className="glpi-table">
               <thead>

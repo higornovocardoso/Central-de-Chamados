@@ -309,7 +309,9 @@ function Mudancas() {
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
-                      <Label className="text-[0.7rem] text-muted-foreground">Início planejado</Label>
+                      <Label className="text-[0.7rem] text-muted-foreground">
+                        Início planejado
+                      </Label>
                       <Input
                         type="datetime-local"
                         value={form.planned_start}

@@ -259,9 +259,7 @@ export function DataToolbar({
               size="sm"
               variant="outline"
               className="h-8"
-              onClick={() =>
-                onCriteriaChange([...criteria, newCriterion(fields[0]?.key ?? "")])
-              }
+              onClick={() => onCriteriaChange([...criteria, newCriterion(fields[0]?.key ?? "")])}
             >
               <Plus className="size-3.5" /> Adicionar critério
             </Button>

@@ -6,14 +6,14 @@ perfil e separação por entidade.
 
 ## Stack
 
-| Camada | Tecnologia |
-| --- | --- |
-| Framework | TanStack Start (SSR) + TanStack Router |
-| Interface | React 19, Tailwind CSS v4, shadcn/ui |
-| Dados | TanStack Query |
-| Backend | Supabase (Postgres, Auth, RLS) |
-| Build | Vite 8, Nitro |
-| Hospedagem | Netlify (Functions) |
+| Camada     | Tecnologia                             |
+| ---------- | -------------------------------------- |
+| Framework  | TanStack Start (SSR) + TanStack Router |
+| Interface  | React 19, Tailwind CSS v4, shadcn/ui   |
+| Dados      | TanStack Query                         |
+| Backend    | Supabase (Postgres, Auth, RLS)         |
+| Build      | Vite 8, Nitro                          |
+| Hospedagem | Netlify (Functions)                    |
 
 ## Requisitos
 
@@ -31,11 +31,11 @@ cp .env.example .env
 
 Os valores saem do painel do Supabase, em Configurações > API:
 
-| Variável | Descrição |
-| --- | --- |
-| `VITE_SUPABASE_URL` | URL do projeto |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável (anon) |
-| `VITE_SUPABASE_PROJECT_ID` | Identificador do projeto |
+| Variável                        | Descrição                |
+| ------------------------------- | ------------------------ |
+| `VITE_SUPABASE_URL`             | URL do projeto           |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável (anon)  |
+| `VITE_SUPABASE_PROJECT_ID`      | Identificador do projeto |
 
 As três existem também sem o prefixo `VITE_`, para uso no servidor. As chaves
 `VITE_*` são embutidas no bundle e ficam visíveis no navegador — por isso apenas
@@ -52,14 +52,14 @@ O servidor sobe em http://localhost:8080.
 
 ## Scripts
 
-| Comando | O que faz |
-| --- | --- |
-| `npm run dev` | Servidor de desenvolvimento com recarga automática |
-| `npm run build` | Build de produção (estático em `dist/`, SSR em função Netlify) |
-| `npm run preview` | Serve o build de produção localmente |
-| `npm run lint` | ESLint com regras do Prettier |
-| `npm run format` | Aplica o Prettier em todo o projeto |
-| `npx tsc --noEmit` | Verificação de tipos |
+| Comando            | O que faz                                                      |
+| ------------------ | -------------------------------------------------------------- |
+| `npm run dev`      | Servidor de desenvolvimento com recarga automática             |
+| `npm run build`    | Build de produção (estático em `dist/`, SSR em função Netlify) |
+| `npm run preview`  | Serve o build de produção localmente                           |
+| `npm run lint`     | ESLint com regras do Prettier                                  |
+| `npm run format`   | Aplica o Prettier em todo o projeto                            |
+| `npx tsc --noEmit` | Verificação de tipos                                           |
 
 ## Estrutura
 

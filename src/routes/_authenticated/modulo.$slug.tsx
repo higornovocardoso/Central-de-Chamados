@@ -65,7 +65,8 @@ const MODULES: Record<string, { title: string; description: string; note?: strin
   },
   perfis: {
     title: "Perfis",
-    description: "Perfis de acesso e as permissões de cada um sobre chamados, ativos e configurações.",
+    description:
+      "Perfis de acesso e as permissões de cada um sobre chamados, ativos e configurações.",
   },
   categorias: {
     title: "Categorias de chamado",
@@ -83,7 +84,8 @@ const MODULES: Record<string, { title: string; description: string; note?: strin
   },
   configuracoes: {
     title: "Configurações gerais",
-    description: "Nome da instalação, logotipo, fuso horário, notificações por e-mail e preferências.",
+    description:
+      "Nome da instalação, logotipo, fuso horário, notificações por e-mail e preferências.",
   },
 };
 

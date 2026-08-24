@@ -49,21 +49,61 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: HardDrive,
     links: [
       { label: "Painel de ativos", to: "/inventario/painel", right: "dashboard" },
-      { label: "Computadores", to: "/inventario", search: { tipo: "computador" }, right: "computer" },
+      {
+        label: "Computadores",
+        to: "/inventario",
+        search: { tipo: "computador" },
+        right: "computer",
+      },
       { label: "Monitores", to: "/inventario", search: { tipo: "monitor" }, right: "monitor" },
-      { label: "Software", to: "/inventario/softwares", search: { aba: "versoes" }, right: "software" },
-      { label: "Equipamentos de rede", to: "/inventario", search: { tipo: "rede" }, right: "networkequipment" },
+      {
+        label: "Software",
+        to: "/inventario/softwares",
+        search: { aba: "versoes" },
+        right: "software",
+      },
+      {
+        label: "Equipamentos de rede",
+        to: "/inventario",
+        search: { tipo: "rede" },
+        right: "networkequipment",
+      },
       { label: "Componentes", to: "/inventario/componentes", right: "component" },
-      { label: "Periféricos", to: "/inventario", search: { tipo: "periferico" }, right: "peripheral" },
+      {
+        label: "Periféricos",
+        to: "/inventario",
+        search: { tipo: "periferico" },
+        right: "peripheral",
+      },
       { label: "Impressoras", to: "/inventario", search: { tipo: "impressora" }, right: "printer" },
-      { label: "Cartuchos", to: "/inventario/estoque", search: { aba: "cartuchos" }, right: "cartridge" },
-      { label: "Consumíveis", to: "/inventario/estoque", search: { aba: "consumiveis" }, right: "consumable" },
+      {
+        label: "Cartuchos",
+        to: "/inventario/estoque",
+        search: { aba: "cartuchos" },
+        right: "cartridge",
+      },
+      {
+        label: "Consumíveis",
+        to: "/inventario/estoque",
+        search: { aba: "consumiveis" },
+        right: "consumable",
+      },
       { label: "Telefones", to: "/inventario", search: { tipo: "telefonia" }, right: "phone" },
       { label: "Racks", to: "/inventario", search: { tipo: "rack" }, right: "rack" },
       { label: "Gabinetes", to: "/inventario", search: { tipo: "gabinete" }, right: "enclosure" },
       { label: "PDUs", to: "/inventario", search: { tipo: "pdu" }, right: "pdu" },
-      { label: "Dispositivos passivos", to: "/inventario", search: { tipo: "passivo" }, right: "passivedevice" },
-      { label: "Não gerenciados", to: "/inventario", search: { tipo: "nao_gerenciado" }, right: "unmanaged" },
+      {
+        label: "Dispositivos passivos",
+        to: "/inventario",
+        search: { tipo: "passivo" },
+        right: "passivedevice",
+      },
+      {
+        label: "Não gerenciados",
+        to: "/inventario",
+        search: { tipo: "nao_gerenciado" },
+        right: "unmanaged",
+      },
       { label: "Cabos", to: "/inventario", search: { tipo: "cabo" }, right: "cable" },
       { label: "Cartões SIM", to: "/inventario", search: { tipo: "sim_card" }, right: "sim" },
       { label: "Global", to: "/inventario", search: { tipo: "todos" }, right: "computer" },
@@ -89,7 +129,12 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Gestão",
     icon: Building2,
     links: [
-      { label: "Licenças", to: "/inventario/softwares", search: { aba: "licencas" }, right: "license" },
+      {
+        label: "Licenças",
+        to: "/inventario/softwares",
+        search: { aba: "licencas" },
+        right: "license",
+      },
       { label: "Orçamentos", to: "/gestao/orcamentos", right: "budget" },
       { label: "Fornecedores", to: "/gestao/fornecedores", right: "supplier" },
       { label: "Contatos", to: "/gestao/contatos", right: "contact" },
@@ -97,11 +142,26 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Documentos", to: "/gestao/documentos", right: "document" },
       { label: "Linhas telefônicas", to: "/gestao/linhas", right: "line" },
       { label: "Certificados", to: "/gestao/certificados", right: "certificate" },
-      { label: "Datacenters", to: "/gestao/infra", search: { aba: "datacenters" }, right: "datacenter" },
+      {
+        label: "Datacenters",
+        to: "/gestao/infra",
+        search: { aba: "datacenters" },
+        right: "datacenter",
+      },
       { label: "Clusters", to: "/gestao/infra", search: { aba: "clusters" }, right: "cluster" },
       { label: "Domínios", to: "/gestao/dominios", right: "domain" },
-      { label: "Appliances", to: "/gestao/infra", search: { aba: "appliances" }, right: "appliance" },
-      { label: "Bancos de dados", to: "/gestao/infra", search: { aba: "bancos" }, right: "database" },
+      {
+        label: "Appliances",
+        to: "/gestao/infra",
+        search: { aba: "appliances" },
+        right: "appliance",
+      },
+      {
+        label: "Bancos de dados",
+        to: "/gestao/infra",
+        search: { aba: "bancos" },
+        right: "database",
+      },
     ],
   },
   {
@@ -110,8 +170,18 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: Wrench,
     links: [
       { label: "Projetos", to: "/ferramentas/projetos", right: "project" },
-      { label: "Lembretes", to: "/ferramentas/lembretes", search: { aba: "lembretes" }, right: "reminder" },
-      { label: "Feeds RSS", to: "/ferramentas/lembretes", search: { aba: "rss" }, right: "rssfeed" },
+      {
+        label: "Lembretes",
+        to: "/ferramentas/lembretes",
+        search: { aba: "lembretes" },
+        right: "reminder",
+      },
+      {
+        label: "Feeds RSS",
+        to: "/ferramentas/lembretes",
+        search: { aba: "rss" },
+        right: "rssfeed",
+      },
       { label: "Base de conhecimento", to: "/base-conhecimento", right: "knowledgebase" },
       { label: "Reservas", to: "/ferramentas/reservas", right: "reservation" },
       { label: "Relatórios", to: "/ferramentas/relatorios", right: "report" },
@@ -128,7 +198,12 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Grupos", to: "/administracao/grupos", right: "group" },
       { label: "Entidades", to: "/administracao/entidades", right: "entity" },
       { label: "Regras", to: "/administracao/regras", right: "business_rule" },
-      { label: "Dicionários", to: "/configuracao/dicionarios", search: { aba: "dicionarios" }, right: "dictionary" },
+      {
+        label: "Dicionários",
+        to: "/configuracao/dicionarios",
+        search: { aba: "dicionarios" },
+        right: "dictionary",
+      },
       { label: "Perfis", to: "/administracao/perfis", right: "profile" },
       soon("Fila de e-mails", "fila-de-emails", "mailqueue"),
       { label: "Logs", to: "/administracao/logs", right: "log" },
@@ -145,8 +220,17 @@ export const NAV_GROUPS: NavGroup[] = [
       soon("Notificações", "notificacoes", "notification"),
       { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
       { label: "Configurações gerais", to: "/configuracao/geral", right: "config" },
-      { label: "Unicidade de campos", to: "/configuracao/dicionarios", search: { aba: "unicidade" }, right: "field_unicity" },
-      { label: "Ações automáticas", to: "/configuracao/acoes-automaticas", right: "automatic_action" },
+      {
+        label: "Unicidade de campos",
+        to: "/configuracao/dicionarios",
+        search: { aba: "unicidade" },
+        right: "field_unicity",
+      },
+      {
+        label: "Ações automáticas",
+        to: "/configuracao/acoes-automaticas",
+        right: "automatic_action",
+      },
       soon("Autenticação", "autenticacao", "config"),
       soon("Coletores de e-mail", "coletores", "collector"),
       { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
@@ -230,7 +314,14 @@ const GROUP_OF_SEGMENT: Record<string, string> = {
 export type Crumb = { label: string; to?: string | undefined };
 
 /** Segmentos que agrupam telas mas não têm página própria. */
-const NO_INDEX_ROUTE = new Set(["administracao", "modulo", "configuracao", "gestao", "assistencia", "ferramentas"]);
+const NO_INDEX_ROUTE = new Set([
+  "administracao",
+  "modulo",
+  "configuracao",
+  "gestao",
+  "assistencia",
+  "ferramentas",
+]);
 
 /**
  * Caminho no formato do GLPI: Início > Grupo > Tela.

@@ -1,10 +1,5 @@
 export type TicketStatus =
-  | "aberto"
-  | "em_andamento"
-  | "planejado"
-  | "aguardando"
-  | "resolvido"
-  | "fechado";
+  "aberto" | "em_andamento" | "planejado" | "aguardando" | "resolvido" | "fechado";
 export type TicketPriority = "baixa" | "media" | "alta" | "critica";
 
 /** Nomes do GLPI. Os valores do banco continuam os mesmos. */
@@ -90,12 +85,7 @@ export const STATUS_ORDER: TicketStatus[] = [
 export const PRIORITY_ORDER: TicketPriority[] = ["critica", "alta", "media", "baixa"];
 
 /** Status que ainda contam como chamado em aberto. */
-export const OPEN_STATUSES: TicketStatus[] = [
-  "aberto",
-  "em_andamento",
-  "planejado",
-  "aguardando",
-];
+export const OPEN_STATUSES: TicketStatus[] = ["aberto", "em_andamento", "planejado", "aguardando"];
 
 export function isOpenStatus(status: TicketStatus) {
   return OPEN_STATUSES.includes(status);

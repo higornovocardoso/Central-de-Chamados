@@ -32,12 +32,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useRoles } from "@/hooks/useRoles";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
-import {
-  LEVEL_DOT,
-  TICKET_TYPE_LABEL,
-  levelLabel,
-  type TicketType,
-} from "@/lib/itil";
+import { LEVEL_DOT, TICKET_TYPE_LABEL, levelLabel, type TicketType } from "@/lib/itil";
 import {
   PRIORITY_DOT,
   PRIORITY_LABEL,
@@ -218,7 +213,6 @@ function ListaChamados() {
     },
   });
 
-
   const nameById = useMemo(() => {
     const map = new Map<string, string>();
     for (const p of profilesQuery.data ?? []) map.set(p.id, p.full_name || p.email);
@@ -249,7 +243,8 @@ function ListaChamados() {
       if (Boolean(t.is_deleted) !== naLixeira) return false;
 
       if (needle) {
-        const haystack = `${t.title} ${ticketCode(t.id)} ${t.category} ${requesterOf(t)}`.toLowerCase();
+        const haystack =
+          `${t.title} ${ticketCode(t.id)} ${t.category} ${requesterOf(t)}`.toLowerCase();
         if (!haystack.includes(needle)) return false;
       }
 
@@ -291,7 +286,12 @@ function ListaChamados() {
 
   const sorted = useMemo(() => {
     const factor = sortDir === "asc" ? 1 : -1;
-    const priorityRank: Record<TicketPriority, number> = { critica: 4, alta: 3, media: 2, baixa: 1 };
+    const priorityRank: Record<TicketPriority, number> = {
+      critica: 4,
+      alta: 3,
+      media: 2,
+      baixa: 1,
+    };
     const statusRank: Record<TicketStatus, number> = {
       aberto: 1,
       em_andamento: 2,
@@ -345,7 +345,10 @@ function ListaChamados() {
       if (bulkAssignee) patch.assignee_id = bulkAssignee === "__none__" ? null : bulkAssignee;
       if (Object.keys(patch).length === 0) throw new Error("Escolha o que alterar.");
       // O status "planejado" só existe no enum depois da migration da fase 3.
-      const { error } = await supabase.from("tickets").update(patch as never).in("id", selected);
+      const { error } = await supabase
+        .from("tickets")
+        .update(patch as never)
+        .in("id", selected);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -481,9 +484,7 @@ function ListaChamados() {
                 <Select
                   value={c.field}
                   onValueChange={(v) =>
-                    setCriteria((prev) =>
-                      prev.map((x) => (x.id === c.id ? { ...x, field: v } : x)),
-                    )
+                    setCriteria((prev) => prev.map((x) => (x.id === c.id ? { ...x, field: v } : x)))
                   }
                 >
                   <SelectTrigger className="h-8 w-[150px] text-xs">
@@ -623,9 +624,7 @@ function ListaChamados() {
               onClick={() => {
                 const quantos = selected.length;
                 if (
-                  !window.confirm(
-                    `Apagar ${quantos} chamado(s) em definitivo? Isto não tem volta.`,
-                  )
+                  !window.confirm(`Apagar ${quantos} chamado(s) em definitivo? Isto não tem volta.`)
                 ) {
                   return;
                 }
@@ -683,7 +682,12 @@ function ListaChamados() {
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" className="h-8" onClick={() => bulkUpdate.mutate()} disabled={bulkUpdate.isPending}>
+          <Button
+            size="sm"
+            className="h-8"
+            onClick={() => bulkUpdate.mutate()}
+            disabled={bulkUpdate.isPending}
+          >
             Aplicar
           </Button>
           <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelected([])}>
@@ -737,14 +741,20 @@ function ListaChamados() {
             <tbody>
               {ticketsQuery.isLoading && (
                 <tr>
-                  <td colSpan={COLUMNS.length + 1} className="p-6 text-center text-muted-foreground">
+                  <td
+                    colSpan={COLUMNS.length + 1}
+                    className="p-6 text-center text-muted-foreground"
+                  >
                     Carregando chamados...
                   </td>
                 </tr>
               )}
               {!ticketsQuery.isLoading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={COLUMNS.length + 1} className="p-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={COLUMNS.length + 1}
+                    className="p-8 text-center text-muted-foreground"
+                  >
                     {naLixeira
                       ? "A lixeira está vazia."
                       : "Nenhum chamado encontrado com esses critérios."}
@@ -800,7 +810,9 @@ function ListaChamados() {
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         {t.priority_level ? (
                           <>
-                            <span className={`size-2 rounded-full ${LEVEL_DOT[t.priority_level]}`} />
+                            <span
+                              className={`size-2 rounded-full ${LEVEL_DOT[t.priority_level]}`}
+                            />
                             {levelLabel(t.priority_level)}
                           </>
                         ) : (
@@ -825,7 +837,9 @@ function ListaChamados() {
         {/* Paginação */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-2 py-1.5 text-xs">
           <span className="text-muted-foreground">
-            {total === 0 ? "Nenhum item" : `Exibindo ${start + 1}–${Math.min(start + pageSize, total)} de ${total}`}
+            {total === 0
+              ? "Nenhum item"
+              : `Exibindo ${start + 1}–${Math.min(start + pageSize, total)} de ${total}`}
           </span>
           <div className="flex items-center gap-2">
             <Select

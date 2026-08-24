@@ -194,21 +194,30 @@ export function CrudTable({
             <tbody>
               {listQuery.isLoading && (
                 <tr>
-                  <td colSpan={columns.length + 1} className="p-6 text-center text-muted-foreground">
+                  <td
+                    colSpan={columns.length + 1}
+                    className="p-6 text-center text-muted-foreground"
+                  >
                     Carregando...
                   </td>
                 </tr>
               )}
               {listQuery.isError && (
                 <tr>
-                  <td colSpan={columns.length + 1} className="p-6 text-center text-muted-foreground">
+                  <td
+                    colSpan={columns.length + 1}
+                    className="p-6 text-center text-muted-foreground"
+                  >
                     A tabela ainda não existe no banco. Aplique a migration da fase 4.
                   </td>
                 </tr>
               )}
               {!listQuery.isLoading && !listQuery.isError && rows.length === 0 && (
                 <tr>
-                  <td colSpan={columns.length + 1} className="p-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={columns.length + 1}
+                    className="p-8 text-center text-muted-foreground"
+                  >
                     {emptyText}
                   </td>
                 </tr>

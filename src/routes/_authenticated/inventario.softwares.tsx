@@ -15,9 +15,11 @@ export const Route = createFileRoute("/_authenticated/inventario/softwares")({
   // dividem a mesma tela, então a aba vem pela URL.
   validateSearch: (search: Record<string, unknown>): { aba: "versoes" | "licencas" } => {
     const aba = String(search["aba"] ?? "");
-    return { aba: (["versoes", "licencas"] as const).includes(aba as never)
-      ? (aba as "versoes" | "licencas")
-      : "versoes" };
+    return {
+      aba: (["versoes", "licencas"] as const).includes(aba as never)
+        ? (aba as "versoes" | "licencas")
+        : "versoes",
+    };
   },
   head: () => ({
     meta: [
@@ -89,10 +91,7 @@ function Softwares() {
   const installsQuery = useQuery({
     queryKey: ["software_installs_all"],
     queryFn: async () => {
-      const { data, error } = await looseDb
-        .from("software_installations")
-        .select("*")
-        .order("id");
+      const { data, error } = await looseDb.from("software_installations").select("*").order("id");
       if (error) throw new Error(error.message);
       return data ?? [];
     },
@@ -216,7 +215,12 @@ function Softwares() {
                     },
                     { key: "expire_date", label: "Validade", type: "date" },
                     { key: "license_type", label: "Tipo", type: "text", formOnly: true },
-                    { key: "serial_number", label: "Número de série", type: "text", formOnly: true },
+                    {
+                      key: "serial_number",
+                      label: "Número de série",
+                      type: "text",
+                      formOnly: true,
+                    },
                     {
                       key: "allow_overquota",
                       label: "Permite estouro de cota",

@@ -88,7 +88,8 @@ function Calendarios() {
       });
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar_segments", selected?.id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["calendar_segments", selected?.id] }),
     onError: (e: Error) => toast.error("Não foi possível adicionar", { description: e.message }),
   });
 
@@ -97,7 +98,8 @@ function Calendarios() {
       const { error } = await looseDb.from("calendar_segments").delete().eq("id", id);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar_segments", selected?.id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["calendar_segments", selected?.id] }),
   });
 
   const addHoliday = useMutation({
@@ -124,7 +126,8 @@ function Calendarios() {
       const { error } = await looseDb.from("calendar_holidays").delete().eq("id", id);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["calendar_holidays", selected?.id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["calendar_holidays", selected?.id] }),
   });
 
   return (
@@ -142,10 +145,21 @@ function Calendarios() {
             selectedId={selected?.id ?? null}
             onSelect={setSelected}
             emptyText="Nenhum calendário cadastrado."
-            defaults={{ name: "", entity_id: entities[0]?.value ?? "", is_default: false, comment: "" }}
+            defaults={{
+              name: "",
+              entity_id: entities[0]?.value ?? "",
+              is_default: false,
+              comment: "",
+            }}
             fields={[
               { key: "name", label: "Nome", type: "text", required: true },
-              { key: "entity_id", label: "Entidade", type: "select", options: entities, formOnly: true },
+              {
+                key: "entity_id",
+                label: "Entidade",
+                type: "select",
+                options: entities,
+                formOnly: true,
+              },
               { key: "is_default", label: "Padrão", type: "boolean" },
               { key: "comment", label: "Comentário", type: "textarea" },
             ]}
@@ -241,10 +255,13 @@ function Calendarios() {
                     <li key={h.id} className="flex items-center gap-2 px-3 py-1.5 text-xs">
                       <span className="flex-1 truncate">{String(h["name"])}</span>
                       <span className="tabular-nums text-muted-foreground">
-                        {new Date(`${String(h["start_date"])}T12:00:00`).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                        })}
+                        {new Date(`${String(h["start_date"])}T12:00:00`).toLocaleDateString(
+                          "pt-BR",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                          },
+                        )}
                       </span>
                       {h["is_recurring"] === true && (
                         <span className="rounded-sm bg-secondary px-1 text-[0.6rem] uppercase text-muted-foreground">

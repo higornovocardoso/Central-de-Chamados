@@ -1,15 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  BookOpen,
-  Eye,
-  EyeOff,
-  Gauge,
-  Loader2,
-  LockKeyhole,
-  Mail,
-  Timer,
-} from "lucide-react";
+import { BookOpen, Eye, EyeOff, Gauge, Loader2, LockKeyhole, Mail, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,8 +13,7 @@ export const Route = createFileRoute("/auth")({
       { title: "Entrar" },
       {
         name: "description",
-        content:
-          "Acesse para abrir, acompanhar e resolver chamados de suporte técnico.",
+        content: "Acesse para abrir, acompanhar e resolver chamados de suporte técnico.",
       },
       { property: "og:title", content: "Entrar" },
       {
@@ -100,9 +90,7 @@ function AuthPage() {
           />
 
           <div className="relative text-center">
-            <h1 className="text-2xl font-semibold leading-tight">
-              Central de chamados de T.I.
-            </h1>
+            <h1 className="text-2xl font-semibold leading-tight">Central de chamados de T.I.</h1>
             <p className="mt-2 max-w-xs text-sm text-white/70">
               Atendimento, ativos e conhecimento em um só lugar.
             </p>
@@ -188,7 +176,6 @@ function AuthPage() {
               Entrar
             </Button>
           </form>
-
         </section>
       </div>
     </main>

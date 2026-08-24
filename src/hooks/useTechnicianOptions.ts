@@ -15,7 +15,10 @@ export function useTechnicianOptions(): Option[] {
   const people = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,email").order("full_name");
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,full_name,email")
+        .order("full_name");
       return data ?? [];
     },
   });

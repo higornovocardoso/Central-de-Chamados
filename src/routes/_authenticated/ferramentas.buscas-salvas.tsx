@@ -46,10 +46,7 @@ function BuscasSalvas() {
   const buscas = useQuery({
     queryKey: ["saved_searches_todas"],
     queryFn: async () => {
-      const { data, error } = await looseDb
-        .from("saved_searches")
-        .select("*")
-        .order("item_type");
+      const { data, error } = await looseDb.from("saved_searches").select("*").order("item_type");
       if (error) throw new Error(error.message);
       return data ?? [];
     },

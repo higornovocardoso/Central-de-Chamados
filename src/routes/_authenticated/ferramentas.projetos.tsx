@@ -60,7 +60,10 @@ function Projetos() {
   const peopleQuery = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,email").order("full_name");
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,full_name,email")
+        .order("full_name");
       return data ?? [];
     },
   });
@@ -269,7 +272,12 @@ function Projetos() {
                       formOnly: true,
                     },
                     { key: "planned_start", label: "Início", type: "date", formOnly: true },
-                    { key: "planned_hours", label: "Horas previstas", type: "number", formOnly: true },
+                    {
+                      key: "planned_hours",
+                      label: "Horas previstas",
+                      type: "number",
+                      formOnly: true,
+                    },
                     {
                       key: "assigned_user_id",
                       label: "Responsável",

@@ -1,16 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import {
-  CheckCircle2,
-  Clock3,
-  Headset,
-  Loader2,
-  Mail,
-  Send,
-  Building2,
-  User,
-} from "lucide-react";
+import { CheckCircle2, Clock3, Headset, Loader2, Mail, Send, Building2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -152,8 +143,9 @@ function AbrirChamado() {
               <CheckCircle2 className="mx-auto size-10 text-success" />
               <h2 className="text-xl font-semibold tracking-tight">Chamado enviado!</h2>
               <p className="text-sm text-muted-foreground">
-                Seu protocolo é <strong className="text-foreground">{ticketCode(created)}</strong>. A
-                equipe de T.I. já recebeu a solicitação e entrará em contato pelo e-mail informado.
+                Seu protocolo é <strong className="text-foreground">{ticketCode(created)}</strong>.
+                A equipe de T.I. já recebeu a solicitação e entrará em contato pelo e-mail
+                informado.
               </p>
               <Button
                 variant="secondary"
@@ -253,7 +245,10 @@ function AbrirChamado() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Prioridade</Label>
-                    <Select value={priority} onValueChange={(v) => setPriority(v as TicketPriority)}>
+                    <Select
+                      value={priority}
+                      onValueChange={(v) => setPriority(v as TicketPriority)}
+                    >
                       <SelectTrigger className="h-11 rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
@@ -281,12 +276,12 @@ function AbrirChamado() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="h-11 w-full rounded-lg text-sm"
-                >
-                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                <Button type="submit" disabled={saving} className="h-11 w-full rounded-lg text-sm">
+                  {saving ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
                   {saving ? "Enviando..." : "Enviar chamado"}
                 </Button>
               </form>

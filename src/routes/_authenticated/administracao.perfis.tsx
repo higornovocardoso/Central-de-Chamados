@@ -51,12 +51,7 @@ export const Route = createFileRoute("/_authenticated/administracao/perfis")({
 });
 
 /** Só as colunas booleanas da matriz — as que a caixa de seleção altera. */
-type BooleanRightColumn =
-  | "can_read"
-  | "can_update"
-  | "can_create"
-  | "can_delete"
-  | "can_purge";
+type BooleanRightColumn = "can_read" | "can_update" | "can_create" | "can_delete" | "can_purge";
 
 const ACTION_COLUMN: Record<RightAction, BooleanRightColumn> = {
   read: "can_read",
@@ -172,7 +167,8 @@ function Perfis() {
       invalidateDetail();
       queryClient.invalidateQueries({ queryKey: ["my_permissions"] });
     },
-    onError: (e: Error) => toast.error("Não foi possível alterar o direito", { description: e.message }),
+    onError: (e: Error) =>
+      toast.error("Não foi possível alterar o direito", { description: e.message }),
   });
 
   const setFlag = useMutation({

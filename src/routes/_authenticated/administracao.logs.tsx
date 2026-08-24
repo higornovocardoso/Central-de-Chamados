@@ -75,7 +75,11 @@ function Logs() {
 
   const fields = useMemo(
     () => [
-      { key: "action", label: "Ação", accessor: (r: Record<string, unknown>) => ACTION_LABEL[String(r["action"])] ?? r["action"] },
+      {
+        key: "action",
+        label: "Ação",
+        accessor: (r: Record<string, unknown>) => ACTION_LABEL[String(r["action"])] ?? r["action"],
+      },
       { key: "item_type", label: "Objeto" },
       { key: "detail", label: "Detalhe" },
       { key: "severity", label: "Gravidade" },
@@ -92,7 +96,13 @@ function Logs() {
   const filtered = applySearch(logs, criteria, fields, mode, freeText);
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Logs" estado={acesso} mensagem="Seu perfil não tem acesso aos logs do sistema." />;
+    return (
+      <AvisoAcesso
+        titulo="Logs"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso aos logs do sistema."
+      />
+    );
   }
 
   return (
@@ -184,8 +194,8 @@ function Logs() {
 
       <p className="mt-2 text-[0.7rem] text-muted-foreground">
         Mostra os 500 registros mais recentes. Alterações em perfis, autorizações e entidades são
-        gravadas automaticamente por gatilho; o histórico campo a campo de cada chamado e ativo
-        fica na aba Histórico do próprio registro.
+        gravadas automaticamente por gatilho; o histórico campo a campo de cada chamado e ativo fica
+        na aba Histórico do próprio registro.
       </p>
     </AppShell>
   );

@@ -100,7 +100,13 @@ function Recorrentes() {
           { key: "is_active", label: "Ativo", type: "boolean" },
           { key: "next_run_at", label: "Próxima criação", type: "datetime", readOnly: true },
           { key: "last_created_at", label: "Última criação", type: "datetime", readOnly: true },
-          { key: "impact", label: "Impacto", type: "select", options: LEVEL_OPTIONS, formOnly: true },
+          {
+            key: "impact",
+            label: "Impacto",
+            type: "select",
+            options: LEVEL_OPTIONS,
+            formOnly: true,
+          },
           {
             key: "anticipation_minutes",
             label: "Criar com antecedência (min)",

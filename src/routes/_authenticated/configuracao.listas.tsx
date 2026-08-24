@@ -55,162 +55,168 @@ function Listas() {
   const manufacturerOptions = asOptions(supportQuery.data?.manufacturers ?? []);
 
   /** Cada aba é um cadastro simples; a diferença está só nos campos. */
-  const TABS: { key: string; label: string; table: string; fields: CrudField[]; defaults: Record<string, unknown>; orderBy?: string }[] =
-    [
-      {
-        key: "fabricantes",
-        label: "Fabricantes",
-        table: "manufacturers",
-        defaults: { name: "", comment: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "comment", label: "Comentário", type: "text" },
-        ],
-      },
-      {
-        key: "modelos",
-        label: "Modelos",
-        table: "asset_models",
-        defaults: { name: "", kind: "computador", manufacturer_id: "", product_number: "" },
-        fields: [
-          { key: "name", label: "Modelo", type: "text", required: true },
-          { key: "kind", label: "Tipo de ativo", type: "select", options: KIND_OPTIONS },
-          {
-            key: "manufacturer_id",
-            label: "Fabricante",
-            type: "select",
-            options: manufacturerOptions,
-          },
-          { key: "product_number", label: "Código do produto", type: "text" },
-        ],
-      },
-      {
-        key: "tipos",
-        label: "Tipos",
-        table: "asset_types",
-        defaults: { name: "", kind: "computador", comment: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "kind", label: "Aplica-se a", type: "select", options: KIND_OPTIONS },
-          { key: "comment", label: "Comentário", type: "text", formOnly: true },
-        ],
-      },
-      {
-        key: "estados",
-        label: "Estados",
-        table: "asset_states",
-        defaults: { name: "", is_visible_inventory: true, comment: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "is_visible_inventory", label: "Visível no inventário", type: "boolean" },
-          { key: "comment", label: "Comentário", type: "text", formOnly: true },
-        ],
-      },
-      {
-        key: "componentes",
-        label: "Componentes",
-        table: "components",
-        defaults: { name: "", kind: "memoria", manufacturer_id: "", specification: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "kind", label: "Categoria", type: "select", options: COMPONENT_OPTIONS },
-          {
-            key: "manufacturer_id",
-            label: "Fabricante",
-            type: "select",
-            options: manufacturerOptions,
-          },
-          { key: "specification", label: "Especificação", type: "text" },
-        ],
-      },
-      {
-        key: "sistemas",
-        label: "Sistemas operacionais",
-        table: "operating_systems",
-        defaults: { name: "", comment: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "comment", label: "Comentário", type: "text" },
-        ],
-      },
-      {
-        key: "categorias-software",
-        label: "Categorias de software",
-        table: "software_categories",
-        defaults: { name: "", comment: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "comment", label: "Comentário", type: "text" },
-        ],
-      },
-      {
-        key: "vlans",
-        label: "VLANs",
-        table: "vlans",
-        defaults: { name: "", tag: 0, entity_id: entities[0]?.value ?? "", comment: "" },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "tag", label: "Tag", type: "number" },
-          { key: "comment", label: "Comentário", type: "text" },
-          {
-            key: "entity_id",
-            label: "Entidade",
-            type: "select",
-            options: entities,
-            formOnly: true,
-          },
-        ],
-      },
-      {
-        key: "redes",
-        label: "Redes IP",
-        table: "ip_networks",
-        defaults: {
-          name: "",
-          address: "",
-          netmask: "",
-          gateway: "",
-          vlan_id: "",
-          entity_id: entities[0]?.value ?? "",
+  const TABS: {
+    key: string;
+    label: string;
+    table: string;
+    fields: CrudField[];
+    defaults: Record<string, unknown>;
+    orderBy?: string;
+  }[] = [
+    {
+      key: "fabricantes",
+      label: "Fabricantes",
+      table: "manufacturers",
+      defaults: { name: "", comment: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "comment", label: "Comentário", type: "text" },
+      ],
+    },
+    {
+      key: "modelos",
+      label: "Modelos",
+      table: "asset_models",
+      defaults: { name: "", kind: "computador", manufacturer_id: "", product_number: "" },
+      fields: [
+        { key: "name", label: "Modelo", type: "text", required: true },
+        { key: "kind", label: "Tipo de ativo", type: "select", options: KIND_OPTIONS },
+        {
+          key: "manufacturer_id",
+          label: "Fabricante",
+          type: "select",
+          options: manufacturerOptions,
         },
-        fields: [
-          { key: "name", label: "Nome", type: "text", required: true },
-          { key: "address", label: "Endereço", type: "text" },
-          { key: "netmask", label: "Máscara", type: "text" },
-          { key: "gateway", label: "Gateway", type: "text" },
-          {
-            key: "vlan_id",
-            label: "VLAN",
-            type: "select",
-            options: asOptions(supportQuery.data?.vlans ?? []),
-            formOnly: true,
-          },
-          {
-            key: "entity_id",
-            label: "Entidade",
-            type: "select",
-            options: entities,
-            formOnly: true,
-          },
-        ],
+        { key: "product_number", label: "Código do produto", type: "text" },
+      ],
+    },
+    {
+      key: "tipos",
+      label: "Tipos",
+      table: "asset_types",
+      defaults: { name: "", kind: "computador", comment: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "kind", label: "Aplica-se a", type: "select", options: KIND_OPTIONS },
+        { key: "comment", label: "Comentário", type: "text", formOnly: true },
+      ],
+    },
+    {
+      key: "estados",
+      label: "Estados",
+      table: "asset_states",
+      defaults: { name: "", is_visible_inventory: true, comment: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "is_visible_inventory", label: "Visível no inventário", type: "boolean" },
+        { key: "comment", label: "Comentário", type: "text", formOnly: true },
+      ],
+    },
+    {
+      key: "componentes",
+      label: "Componentes",
+      table: "components",
+      defaults: { name: "", kind: "memoria", manufacturer_id: "", specification: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "kind", label: "Categoria", type: "select", options: COMPONENT_OPTIONS },
+        {
+          key: "manufacturer_id",
+          label: "Fabricante",
+          type: "select",
+          options: manufacturerOptions,
+        },
+        { key: "specification", label: "Especificação", type: "text" },
+      ],
+    },
+    {
+      key: "sistemas",
+      label: "Sistemas operacionais",
+      table: "operating_systems",
+      defaults: { name: "", comment: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "comment", label: "Comentário", type: "text" },
+      ],
+    },
+    {
+      key: "categorias-software",
+      label: "Categorias de software",
+      table: "software_categories",
+      defaults: { name: "", comment: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "comment", label: "Comentário", type: "text" },
+      ],
+    },
+    {
+      key: "vlans",
+      label: "VLANs",
+      table: "vlans",
+      defaults: { name: "", tag: 0, entity_id: entities[0]?.value ?? "", comment: "" },
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "tag", label: "Tag", type: "number" },
+        { key: "comment", label: "Comentário", type: "text" },
+        {
+          key: "entity_id",
+          label: "Entidade",
+          type: "select",
+          options: entities,
+          formOnly: true,
+        },
+      ],
+    },
+    {
+      key: "redes",
+      label: "Redes IP",
+      table: "ip_networks",
+      defaults: {
+        name: "",
+        address: "",
+        netmask: "",
+        gateway: "",
+        vlan_id: "",
+        entity_id: entities[0]?.value ?? "",
       },
-      {
-        key: "tomadas",
-        label: "Tomadas de rede",
-        table: "sockets",
-        defaults: { name: "", location_id: "", comment: "" },
-        fields: [
-          { key: "name", label: "Identificação", type: "text", required: true },
-          {
-            key: "location_id",
-            label: "Local",
-            type: "select",
-            options: asOptions(supportQuery.data?.locations ?? []),
-          },
-          { key: "comment", label: "Comentário", type: "text" },
-        ],
-      },
-    ];
+      fields: [
+        { key: "name", label: "Nome", type: "text", required: true },
+        { key: "address", label: "Endereço", type: "text" },
+        { key: "netmask", label: "Máscara", type: "text" },
+        { key: "gateway", label: "Gateway", type: "text" },
+        {
+          key: "vlan_id",
+          label: "VLAN",
+          type: "select",
+          options: asOptions(supportQuery.data?.vlans ?? []),
+          formOnly: true,
+        },
+        {
+          key: "entity_id",
+          label: "Entidade",
+          type: "select",
+          options: entities,
+          formOnly: true,
+        },
+      ],
+    },
+    {
+      key: "tomadas",
+      label: "Tomadas de rede",
+      table: "sockets",
+      defaults: { name: "", location_id: "", comment: "" },
+      fields: [
+        { key: "name", label: "Identificação", type: "text", required: true },
+        {
+          key: "location_id",
+          label: "Local",
+          type: "select",
+          options: asOptions(supportQuery.data?.locations ?? []),
+        },
+        { key: "comment", label: "Comentário", type: "text" },
+      ],
+    },
+  ];
 
   return (
     <AppShell

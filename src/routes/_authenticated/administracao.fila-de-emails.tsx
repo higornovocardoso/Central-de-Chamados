@@ -118,7 +118,13 @@ function FilaDeEmails() {
   );
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Fila de e-mails" estado={acesso} mensagem="Seu perfil não tem acesso à fila de e-mails." />;
+    return (
+      <AvisoAcesso
+        titulo="Fila de e-mails"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso à fila de e-mails."
+      />
+    );
   }
 
   return (
@@ -240,8 +246,8 @@ function FilaDeEmails() {
 
       <p className="mt-2 text-[0.7rem] text-muted-foreground">
         Quem entrega as mensagens é a edge function <code>send-notifications</code>. Sem os segredos{" "}
-        <code>RESEND_API_KEY</code> e <code>NOTIFY_FROM</code> configurados, ela responde que o envio
-        está desligado e a fila fica intacta — nada se perde.
+        <code>RESEND_API_KEY</code> e <code>NOTIFY_FROM</code> configurados, ela responde que o
+        envio está desligado e a fila fica intacta — nada se perde.
       </p>
     </AppShell>
   );

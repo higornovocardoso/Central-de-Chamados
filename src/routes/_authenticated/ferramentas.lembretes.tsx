@@ -10,9 +10,11 @@ export const Route = createFileRoute("/_authenticated/ferramentas/lembretes")({
   // dividem a mesma tela, então a aba vem pela URL.
   validateSearch: (search: Record<string, unknown>): { aba: "lembretes" | "rss" } => {
     const aba = String(search["aba"] ?? "");
-    return { aba: (["lembretes", "rss"] as const).includes(aba as never)
-      ? (aba as "lembretes" | "rss")
-      : "lembretes" };
+    return {
+      aba: (["lembretes", "rss"] as const).includes(aba as never)
+        ? (aba as "lembretes" | "rss")
+        : "lembretes",
+    };
   },
   head: () => ({
     meta: [
@@ -103,7 +105,12 @@ function Lembretes() {
               { key: "url", label: "Endereço", type: "text", required: true },
               { key: "is_active", label: "Ativo", type: "boolean" },
               { key: "is_public", label: "Público", type: "boolean" },
-              { key: "refresh_minutes", label: "Atualiza a cada (min)", type: "number", formOnly: true },
+              {
+                key: "refresh_minutes",
+                label: "Atualiza a cada (min)",
+                type: "number",
+                formOnly: true,
+              },
               { key: "max_items", label: "Máximo de itens", type: "number", formOnly: true },
               {
                 key: "entity_id",

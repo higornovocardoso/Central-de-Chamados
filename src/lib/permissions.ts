@@ -98,12 +98,25 @@ async function legacyPermissions(): Promise<Permissions> {
     for (const key of keys) rights[key] = value;
   };
 
-  grant(["ticket", "followup", "task", "solution", "knowledgebase", "faq"], isTech ? FULL : READ_ONLY);
+  grant(
+    ["ticket", "followup", "task", "solution", "knowledgebase", "faq"],
+    isTech ? FULL : READ_ONLY,
+  );
   grant(["computer", "monitor", "printer", "phone", "software"], isTech ? FULL : READ_ONLY);
   grant(["supplier", "contract", "document"], isTech ? FULL : READ_ONLY);
   if (isAdmin) {
     grant(
-      ["user", "group", "entity", "profile", "config", "sla", "dropdown", "calendar", "notification"],
+      [
+        "user",
+        "group",
+        "entity",
+        "profile",
+        "config",
+        "sla",
+        "dropdown",
+        "calendar",
+        "notification",
+      ],
       FULL,
     );
   }

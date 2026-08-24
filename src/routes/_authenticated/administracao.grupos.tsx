@@ -193,11 +193,13 @@ function Grupos() {
   });
 
   const updateMember = useMutation({
-    mutationFn: async (input: { id: string; field: "is_manager" | "is_delegate"; value: boolean }) => {
+    mutationFn: async (input: {
+      id: string;
+      field: "is_manager" | "is_delegate";
+      value: boolean;
+    }) => {
       const patch =
-        input.field === "is_manager"
-          ? { is_manager: input.value }
-          : { is_delegate: input.value };
+        input.field === "is_manager" ? { is_manager: input.value } : { is_delegate: input.value };
       const { error } = await db.from("group_members").update(patch).eq("id", input.id);
       if (error) throw new Error(error.message);
     },
@@ -385,7 +387,11 @@ function Grupos() {
                           checked={m.is_manager}
                           disabled={!can("group", "update")}
                           onCheckedChange={(v) =>
-                            updateMember.mutate({ id: m.id, field: "is_manager", value: v === true })
+                            updateMember.mutate({
+                              id: m.id,
+                              field: "is_manager",
+                              value: v === true,
+                            })
                           }
                         />
                         Gerente
@@ -395,7 +401,11 @@ function Grupos() {
                           checked={m.is_delegate}
                           disabled={!can("group", "update")}
                           onCheckedChange={(v) =>
-                            updateMember.mutate({ id: m.id, field: "is_delegate", value: v === true })
+                            updateMember.mutate({
+                              id: m.id,
+                              field: "is_delegate",
+                              value: v === true,
+                            })
                           }
                         />
                         Delegação

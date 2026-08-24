@@ -98,7 +98,10 @@ export function AppShell({
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
+  const search = useMemo(
+    () => (location.search ?? {}) as Record<string, unknown>,
+    [location.search],
+  );
 
   useEffect(() => {
     // Só a preferência salva pode desfazer o padrão recolhido. Abaixo de lg a
@@ -109,7 +112,6 @@ export function AppShell({
     const stored = localStorage.getItem(OPEN_GROUPS_KEY);
     setOpenGroups(stored ? (JSON.parse(stored) as string[]) : ["assistencia"]);
   }, []);
-
 
   // Mantém aberto o grupo da tela atual, como o GLPI faz ao navegar.
   const activeGroup = useMemo(() => {
@@ -131,7 +133,9 @@ export function AppShell({
   }
 
   function toggleGroup(id: string) {
-    persistGroups(openGroups.includes(id) ? openGroups.filter((g) => g !== id) : [...openGroups, id]);
+    persistGroups(
+      openGroups.includes(id) ? openGroups.filter((g) => g !== id) : [...openGroups, id],
+    );
   }
 
   /** Fixa a barra aberta ou devolve ela ao rail que abre no hover. */
@@ -164,15 +168,13 @@ export function AppShell({
     (user?.user_metadata?.["full_name"] as string | undefined) ||
     user?.email?.split("@")[0] ||
     "Usuário";
-  const entityName =
-    entities.find((e) => e.id === selectedId)?.name ?? entities[0]?.name ?? "—";
+  const entityName = entities.find((e) => e.id === selectedId)?.name ?? entities[0]?.name ?? "—";
   const initials = userName
     .split(/[\s@.]+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
-
 
   const sidebarCollapsed = collapsed && !hoverOpen;
   const sidebar = (
@@ -278,7 +280,6 @@ export function AppShell({
                 value={selectedId ?? entities[0]?.id ?? ROOT_TREE}
                 onValueChange={(v) => setSelectedId(v === ROOT_TREE ? null : v)}
               >
-
                 <SelectTrigger
                   className="hidden h-8 w-[220px] text-xs sm:flex"
                   aria-label="Entidade"
@@ -286,7 +287,6 @@ export function AppShell({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-
                   {entities.map((e) => (
                     <SelectItem key={e.id} value={e.id}>
                       {" ".repeat(e.level * 3)}
@@ -320,9 +320,7 @@ export function AppShell({
                         {initials}
                       </span>
                       <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
-                        <span className="max-w-[150px] truncate font-medium">
-                          {userName}
-                        </span>
+                        <span className="max-w-[150px] truncate font-medium">{userName}</span>
                         <span className="max-w-[150px] truncate text-[0.7rem] text-muted-foreground">
                           {entityName}
                         </span>
@@ -400,18 +398,14 @@ export function AppShell({
               <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
                 <TriangleAlert className="size-4 shrink-0 text-destructive" />
                 <span className="flex-1">
-                  Não foi possível carregar suas permissões, então o menu está
-                  incompleto. Isto é uma falha do sistema, não falta de acesso.
-                  <span className="ml-1 text-muted-foreground">
-                    ({permissionsError.message})
-                  </span>
+                  Não foi possível carregar suas permissões, então o menu está incompleto. Isto é
+                  uma falha do sistema, não falta de acesso.
+                  <span className="ml-1 text-muted-foreground">({permissionsError.message})</span>
                 </span>
                 <button
                   type="button"
                   className="rounded border border-border px-2 py-1 font-medium hover:bg-secondary"
-                  onClick={() =>
-                    queryClient.invalidateQueries({ queryKey: ["my_permissions"] })
-                  }
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ["my_permissions"] })}
                 >
                   Tentar de novo
                 </button>
@@ -533,7 +527,6 @@ function SidebarNav({
             </Tooltip>
           );
         }
-
 
         return (
           <div key={group.id}>

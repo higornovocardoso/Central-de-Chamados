@@ -64,10 +64,7 @@ function Impacto() {
   const relacoes = useQuery({
     queryKey: ["itil_relations"],
     queryFn: async () => {
-      const { data, error } = await looseDb
-        .from("itil_relations")
-        .select("*")
-        .order("created_at");
+      const { data, error } = await looseDb.from("itil_relations").select("*").order("created_at");
       if (error) throw new Error(error.message);
       return data ?? [];
     },
@@ -140,7 +137,13 @@ function Impacto() {
   const nada = ligados.length === 0 && itil.length === 0 && itens.length === 0;
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Análise de impacto" estado={acesso} mensagem="Seu perfil não tem acesso aos chamados." />;
+    return (
+      <AvisoAcesso
+        titulo="Análise de impacto"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso aos chamados."
+      />
+    );
   }
 
   return (
@@ -226,7 +229,9 @@ function Impacto() {
                       </Tag>
                       <ArrowRight className="size-3 shrink-0 text-muted-foreground" />
                       <span className="truncate font-mono text-[0.7rem]">
-                        {String(ehOrigem ? r["target_id"] : r["source_id"]).slice(0, 8).toUpperCase()}
+                        {String(ehOrigem ? r["target_id"] : r["source_id"])
+                          .slice(0, 8)
+                          .toUpperCase()}
                       </span>
                     </li>
                   );

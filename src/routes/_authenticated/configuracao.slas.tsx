@@ -113,7 +113,11 @@ function NiveisDeServico() {
 
   const [level, setLevel] = useState({ name: "", offset_minutes: -60 });
   const [criterion, setCriterion] = useState({ field: "status", value: "aberto" });
-  const [action, setAction] = useState({ action_type: "campo", field: "priority_level", value: "5" });
+  const [action, setAction] = useState({
+    action_type: "campo",
+    field: "priority_level",
+    value: "5",
+  });
 
   const addLevel = useMutation({
     mutationFn: async () => {

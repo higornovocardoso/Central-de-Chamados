@@ -48,7 +48,13 @@ function Api() {
   }
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="API" estado={acesso} mensagem="Seu perfil não tem acesso à configuração." />;
+    return (
+      <AvisoAcesso
+        titulo="API"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso à configuração."
+      />
+    );
   }
 
   const exampleCurl = `curl "${baseUrl}/rest/v1/tickets?select=id,title,status&status=eq.aberto" \\

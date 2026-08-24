@@ -62,7 +62,10 @@ function Notificacoes() {
   const templatesQuery = useQuery({
     queryKey: ["notification_templates"],
     queryFn: async () => {
-      const { data, error } = await looseDb.from("notification_templates").select("*").order("name");
+      const { data, error } = await looseDb
+        .from("notification_templates")
+        .select("*")
+        .order("name");
       if (error) throw new Error(error.message);
       return data ?? [];
     },
@@ -360,9 +363,8 @@ function Notificacoes() {
             <p className="mb-1 font-medium text-foreground">Para o envio funcionar</p>
             <p>
               Publique a função <code>send-notifications</code> e configure dois segredos no
-              Supabase: <code>RESEND_API_KEY</code> com a chave do Resend e{" "}
-              <code>NOTIFY_FROM</code> com o remetente. Sem a chave, a fila apenas acumula — nada é
-              perdido.
+              Supabase: <code>RESEND_API_KEY</code> com a chave do Resend e <code>NOTIFY_FROM</code>{" "}
+              com o remetente. Sem a chave, a fila apenas acumula — nada é perdido.
             </p>
           </div>
         </TabsContent>

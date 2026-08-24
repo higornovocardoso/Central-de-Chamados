@@ -88,11 +88,13 @@ function DetalheAtivo() {
   });
 
   /** Todas as abas leem o mesmo formato: linhas de uma tabela ligadas ao ativo. */
-  const relatedRows = (table: string, column = "asset_id") => async () => {
-    const { data, error } = await looseDb.from(table).select("*").eq(column, id).order("id");
-    if (error) throw new Error(error.message);
-    return (data ?? []) as LooseRow[];
-  };
+  const relatedRows =
+    (table: string, column = "asset_id") =>
+    async () => {
+      const { data, error } = await looseDb.from(table).select("*").eq(column, id).order("id");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as LooseRow[];
+    };
 
   const componentsQuery = useQuery({
     queryKey: ["asset_components", id],
@@ -139,7 +141,11 @@ function DetalheAtivo() {
   const ticketsQuery = useQuery({
     queryKey: ["asset_tickets", id],
     queryFn: async () => {
-      const { data } = await looseDb.from("ticket_items").select("*").eq("asset_id", id).order("id");
+      const { data } = await looseDb
+        .from("ticket_items")
+        .select("*")
+        .eq("asset_id", id)
+        .order("id");
       const ids = (data ?? []).map((t) => String(t["ticket_id"]));
       if (ids.length === 0) return [];
       const { data: tickets } = await supabase
@@ -360,8 +366,14 @@ function DetalheAtivo() {
               <header className="panel-header">Uso</header>
               <dl className="divide-y divide-border text-xs">
                 <Row label="Responsável" value={String(asset["assigned_name"] ?? "") || "—"} />
-                <Row label="Data da compra" value={formatDay(String(asset["purchase_date"] ?? "") || null)} />
-                <Row label="Fim da garantia" value={formatDay(String(asset["warranty_end"] ?? "") || null)} />
+                <Row
+                  label="Data da compra"
+                  value={formatDay(String(asset["purchase_date"] ?? "") || null)}
+                />
+                <Row
+                  label="Fim da garantia"
+                  value={formatDay(String(asset["warranty_end"] ?? "") || null)}
+                />
                 <Row label="Origem do dado" value={String(asset["update_source"] ?? "manual")} />
                 <Row label="Observações" value={String(asset["notes"] ?? "") || "—"} />
               </dl>
@@ -385,7 +397,11 @@ function DetalheAtivo() {
                   </span>
                 </>
               )}
-              onRemove={canEdit ? (rowId) => removeFrom.mutate({ table: "asset_components", id: rowId }) : undefined}
+              onRemove={
+                canEdit
+                  ? (rowId) => removeFrom.mutate({ table: "asset_components", id: rowId })
+                  : undefined
+              }
               form={
                 canEdit ? (
                   <div className="flex flex-wrap gap-2">
@@ -445,7 +461,11 @@ function DetalheAtivo() {
                   </span>
                 </>
               )}
-              onRemove={canEdit ? (rowId) => removeFrom.mutate({ table: "asset_volumes", id: rowId }) : undefined}
+              onRemove={
+                canEdit
+                  ? (rowId) => removeFrom.mutate({ table: "asset_volumes", id: rowId })
+                  : undefined
+              }
               form={
                 canEdit ? (
                   <div className="flex flex-wrap gap-2">
@@ -501,9 +521,9 @@ function DetalheAtivo() {
                       <Row
                         label="Sistema"
                         value={
-                          (catalog?.operatingSystems ?? []).find((s) => s.id === o["os_id"])?.[
+                          ((catalog?.operatingSystems ?? []).find((s) => s.id === o["os_id"])?.[
                             "name"
-                          ] as string ?? "—"
+                          ] as string) ?? "—"
                         }
                       />
                       <Row label="Versão" value={String(o["version"] ?? "") || "—"} />
@@ -527,7 +547,9 @@ function DetalheAtivo() {
               empty="Nenhum software instalado registrado."
               render={(s) => (
                 <>
-                  <span className="flex-1 truncate">Versão {String(s["version_id"]).slice(0, 8)}</span>
+                  <span className="flex-1 truncate">
+                    Versão {String(s["version_id"]).slice(0, 8)}
+                  </span>
                   <span className="text-muted-foreground">
                     {s["install_date"] ? formatDay(String(s["install_date"])) : "—"}
                   </span>
@@ -557,7 +579,9 @@ function DetalheAtivo() {
               empty="Nenhum equipamento conectado."
               render={(c) => <span className="flex-1">{assetName(c["peripheral_id"])}</span>}
               onRemove={
-                canEdit ? (rowId) => removeFrom.mutate({ table: "asset_connections", id: rowId }) : undefined
+                canEdit
+                  ? (rowId) => removeFrom.mutate({ table: "asset_connections", id: rowId })
+                  : undefined
               }
               form={
                 canEdit ? (
@@ -609,7 +633,11 @@ function DetalheAtivo() {
                   </span>
                 </>
               )}
-              onRemove={canEdit ? (rowId) => removeFrom.mutate({ table: "network_ports", id: rowId }) : undefined}
+              onRemove={
+                canEdit
+                  ? (rowId) => removeFrom.mutate({ table: "network_ports", id: rowId })
+                  : undefined
+              }
               form={
                 canEdit ? (
                   <div className="flex flex-wrap gap-2">
@@ -662,11 +690,26 @@ function DetalheAtivo() {
               ) : (
                 <div className="grid gap-0 md:grid-cols-2">
                   <dl className="divide-y divide-border text-xs">
-                    <Row label="Número do pedido" value={String(infocom["order_number"] ?? "") || "—"} />
-                    <Row label="Nota fiscal" value={String(infocom["invoice_number"] ?? "") || "—"} />
-                    <Row label="Data da compra" value={formatDay(String(infocom["buy_date"] ?? "") || null)} />
-                    <Row label="Data de entrega" value={formatDay(String(infocom["delivery_date"] ?? "") || null)} />
-                    <Row label="Início da garantia" value={formatDay(String(infocom["warranty_start"] ?? "") || null)} />
+                    <Row
+                      label="Número do pedido"
+                      value={String(infocom["order_number"] ?? "") || "—"}
+                    />
+                    <Row
+                      label="Nota fiscal"
+                      value={String(infocom["invoice_number"] ?? "") || "—"}
+                    />
+                    <Row
+                      label="Data da compra"
+                      value={formatDay(String(infocom["buy_date"] ?? "") || null)}
+                    />
+                    <Row
+                      label="Data de entrega"
+                      value={formatDay(String(infocom["delivery_date"] ?? "") || null)}
+                    />
+                    <Row
+                      label="Início da garantia"
+                      value={formatDay(String(infocom["warranty_start"] ?? "") || null)}
+                    />
                     <Row label="Garantia (meses)" value={String(infocom["warranty_months"] ?? 0)} />
                   </dl>
                   <dl className="divide-y divide-border border-t border-border text-xs md:border-l md:border-t-0">
@@ -675,8 +718,14 @@ function DetalheAtivo() {
                       label="Depreciação"
                       value={DEPRECIATION_LABEL[String(infocom["depreciation"])] ?? "—"}
                     />
-                    <Row label="Prazo (meses)" value={String(infocom["depreciation_months"] ?? 0)} />
-                    <Row label="Criticidade" value={String(infocom["business_criticity"] ?? "") || "—"} />
+                    <Row
+                      label="Prazo (meses)"
+                      value={String(infocom["depreciation_months"] ?? 0)}
+                    />
+                    <Row
+                      label="Criticidade"
+                      value={String(infocom["business_criticity"] ?? "") || "—"}
+                    />
                     <Row label="Observações" value={String(infocom["comment"] ?? "") || "—"} />
                   </dl>
                 </div>
@@ -748,8 +797,8 @@ function DetalheAtivo() {
           <section className="panel overflow-hidden">
             <header className="panel-header">Bloqueio de campos</header>
             <p className="border-b border-border p-3 text-[0.72rem] text-muted-foreground">
-              Campo travado não é sobrescrito por importação em massa nem por inventário
-              automático. Serve para o que foi corrigido à mão e não pode voltar atrás.
+              Campo travado não é sobrescrito por importação em massa nem por inventário automático.
+              Serve para o que foi corrigido à mão e não pode voltar atrás.
             </p>
             <ul className="divide-y divide-border">
               {["name", "asset_tag", "serial_number", "brand", "model", "assigned_name"].map(

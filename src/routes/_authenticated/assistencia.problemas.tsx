@@ -403,8 +403,7 @@ function Problemas() {
               <TabsContent value="analise" className="mt-3">
                 <section className="panel space-y-3 p-3">
                   <p className="text-[0.72rem] text-muted-foreground">
-                    A aba Análise do GLPI: o que o problema afeta, o que o causa e como ele
-                    aparece.
+                    A aba Análise do GLPI: o que o problema afeta, o que o causa e como ele aparece.
                   </p>
                   {(
                     [

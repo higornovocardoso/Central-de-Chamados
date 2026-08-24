@@ -96,8 +96,20 @@ function MudancasRecorrentes() {
           { key: "is_active", label: "Ativa", type: "boolean" },
           { key: "next_run_at", label: "Próxima criação", type: "datetime", readOnly: true },
           { key: "last_created_at", label: "Última criação", type: "datetime", readOnly: true },
-          { key: "urgency", label: "Urgência", type: "select", options: LEVEL_OPTIONS, formOnly: true },
-          { key: "impact", label: "Impacto", type: "select", options: LEVEL_OPTIONS, formOnly: true },
+          {
+            key: "urgency",
+            label: "Urgência",
+            type: "select",
+            options: LEVEL_OPTIONS,
+            formOnly: true,
+          },
+          {
+            key: "impact",
+            label: "Impacto",
+            type: "select",
+            options: LEVEL_OPTIONS,
+            formOnly: true,
+          },
           {
             key: "assignee_id",
             label: "Responsável",

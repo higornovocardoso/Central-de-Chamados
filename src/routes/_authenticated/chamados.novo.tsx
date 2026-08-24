@@ -224,8 +224,8 @@ function NovoChamado() {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Prioridade prevista: {levelLabel(previewPriority(urgency, 3))}. O técnico
-                    define o impacto no atendimento.
+                    Prioridade prevista: {levelLabel(previewPriority(urgency, 3))}. O técnico define
+                    o impacto no atendimento.
                   </p>
                 </>
               ) : (

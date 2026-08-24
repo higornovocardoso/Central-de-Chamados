@@ -68,10 +68,7 @@ function Planejamento() {
   const chamados = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("tickets")
-        .select("id,title")
-        .eq("is_deleted", false);
+      const { data } = await supabase.from("tickets").select("id,title").eq("is_deleted", false);
       return data ?? [];
     },
   });
@@ -125,7 +122,13 @@ function Planejamento() {
   }
 
   if (acesso !== "liberado") {
-    return <AvisoAcesso titulo="Planejamento" estado={acesso} mensagem="Seu perfil não tem acesso ao planejamento." />;
+    return (
+      <AvisoAcesso
+        titulo="Planejamento"
+        estado={acesso}
+        mensagem="Seu perfil não tem acesso ao planejamento."
+      />
+    );
   }
 
   return (

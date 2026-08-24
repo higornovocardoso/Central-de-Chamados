@@ -11,9 +11,11 @@ export const Route = createFileRoute("/_authenticated/configuracao/dicionarios")
   // dividem a mesma tela, então a aba vem pela URL.
   validateSearch: (search: Record<string, unknown>): { aba: "dicionarios" | "unicidade" } => {
     const aba = String(search["aba"] ?? "");
-    return { aba: (["dicionarios", "unicidade"] as const).includes(aba as never)
-      ? (aba as "dicionarios" | "unicidade")
-      : "dicionarios" };
+    return {
+      aba: (["dicionarios", "unicidade"] as const).includes(aba as never)
+        ? (aba as "dicionarios" | "unicidade")
+        : "dicionarios",
+    };
   },
   head: () => ({
     meta: [
@@ -81,8 +83,8 @@ function Dicionarios() {
                 ]}
               />
               <p className="mt-2 text-[0.7rem] text-muted-foreground">
-                A troca acontece na entrada do dado, pela função{" "}
-                <code>apply_dictionary</code> no banco. A primeira regra que casar vence.
+                A troca acontece na entrada do dado, pela função <code>apply_dictionary</code> no
+                banco. A primeira regra que casar vence.
               </p>
             </div>
 

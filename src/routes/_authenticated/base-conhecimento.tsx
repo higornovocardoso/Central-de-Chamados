@@ -127,8 +127,7 @@ function BaseConhecimento() {
     const term = search.trim().toLowerCase();
     return (articlesQuery.data ?? []).filter(
       (a) =>
-        !term ||
-        [a.title, a.category, a.summary, a.body].join(" ").toLowerCase().includes(term),
+        !term || [a.title, a.category, a.summary, a.body].join(" ").toLowerCase().includes(term),
     );
   }, [articlesQuery.data, search]);
 
@@ -228,11 +227,17 @@ function BaseConhecimento() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Título *</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              <Input
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Categoria</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+              <Select
+                value={form.category}
+                onValueChange={(v) => setForm({ ...form, category: v })}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

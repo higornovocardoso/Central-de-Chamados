@@ -58,9 +58,7 @@ export default defineConfig(({ mode, command }) => {
       }),
       // NITRO_PRESET permite compilar para outro alvo sem editar o config —
       // usado para reproduzir erro de SSR localmente com "node-server".
-      ...(command === "build"
-        ? [nitro({ preset: process.env["NITRO_PRESET"] || "netlify" })]
-        : []),
+      ...(command === "build" ? [nitro({ preset: process.env["NITRO_PRESET"] || "netlify" })] : []),
       viteReact(),
     ],
   };

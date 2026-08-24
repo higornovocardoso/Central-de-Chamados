@@ -44,11 +44,7 @@ import {
   type UserGroupRow,
 } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
-import {
-  createSystemUser,
-  deleteSystemUser,
-  updateSystemUser,
-} from "@/lib/users.functions";
+import { createSystemUser, deleteSystemUser, updateSystemUser } from "@/lib/users.functions";
 
 export const Route = createFileRoute("/_authenticated/administracao/usuarios")({
   head: () => ({
@@ -152,15 +148,14 @@ function Usuarios() {
   const filtered = useMemo(() => {
     const needle = term.trim().toLowerCase();
     if (!needle) return people;
-    return people.filter((p) =>
-      `${p.full_name} ${p.email}`.toLowerCase().includes(needle),
-    );
+    return people.filter((p) => `${p.full_name} ${p.email}`.toLowerCase().includes(needle));
   }, [people, term]);
 
   const addAuth = useMutation({
     mutationFn: async () => {
       if (!selected) throw new Error("Escolha um usuário.");
-      if (!newAuth.profile_id || !newAuth.entity_id) throw new Error("Escolha o perfil e a entidade.");
+      if (!newAuth.profile_id || !newAuth.entity_id)
+        throw new Error("Escolha o perfil e a entidade.");
       const { error } = await db.from("user_authorizations").insert({
         user_id: selected.id,
         profile_id: newAuth.profile_id,
@@ -271,9 +266,7 @@ function Usuarios() {
   });
 
   const selectedAuths = authorizations.filter((a) => a.user_id === selected?.id);
-  const withoutAuth = people.filter(
-    (p) => !authorizations.some((a) => a.user_id === p.id),
-  ).length;
+  const withoutAuth = people.filter((p) => !authorizations.some((a) => a.user_id === p.id)).length;
   const initialsOf = (p: Person) =>
     (p.full_name || p.email)
       .split(/[\s@.]+/)
@@ -638,7 +631,8 @@ function Usuarios() {
           <DialogHeader>
             <DialogTitle>Novo usuário</DialogTitle>
             <DialogDescription className="text-xs">
-              A conta é criada já confirmada — o usuário entra com o e-mail e a senha definidos aqui.
+              A conta é criada já confirmada — o usuário entra com o e-mail e a senha definidos
+              aqui.
             </DialogDescription>
           </DialogHeader>
 
