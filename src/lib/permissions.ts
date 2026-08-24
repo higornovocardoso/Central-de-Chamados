@@ -84,8 +84,8 @@ const FULL: ObjectRights = { read: true, update: true, create: true, delete: tru
 const READ_ONLY: Partial<ObjectRights> = { read: true };
 
 async function legacyPermissions(): Promise<Permissions> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user?.id;
   if (!userId) return EMPTY_PERMISSIONS;
 
   const { data } = await supabase.from("user_roles").select("user_id,role").eq("user_id", userId);

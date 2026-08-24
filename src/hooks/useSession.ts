@@ -8,9 +8,11 @@ export function useSessionUser() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
+    // getSession não vai à rede. Qualquer mudança posterior chega pelo
+    // onAuthStateChange logo abaixo, então a leitura local basta aqui.
+    supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
-      setUser(data.user ?? null);
+      setUser(data.session?.user ?? null);
       setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
