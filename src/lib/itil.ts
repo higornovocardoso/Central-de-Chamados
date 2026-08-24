@@ -62,8 +62,6 @@ export function previewPriority(urgency: number, impact: number) {
   return Math.max(1, Math.min(5, Math.floor((urgency + impact) / 2)));
 }
 
-// ---------------------------------------------------------------------------
-
 export type TaskState = "informacao" | "a_fazer" | "concluida";
 
 export const TASK_STATE_LABEL: Record<TaskState, string> = {
@@ -79,8 +77,6 @@ export const TASK_STATE_CLASS: Record<TaskState, string> = {
   a_fazer: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
   concluida: "bg-success/15 text-success border-success/30",
 };
-
-// ---------------------------------------------------------------------------
 
 export type ValidationState = "nao_sujeito" | "aguardando" | "aprovado" | "recusado";
 
@@ -105,8 +101,6 @@ export const VALIDATION_PERCENTS = [
   { value: 100, label: "100% — todos os aprovadores" },
 ];
 
-// ---------------------------------------------------------------------------
-
 export type SolutionState = "aguardando" | "aprovada" | "recusada";
 
 export const SOLUTION_LABEL: Record<SolutionState, string> = {
@@ -114,8 +108,6 @@ export const SOLUTION_LABEL: Record<SolutionState, string> = {
   aprovada: "Aprovada",
   recusada: "Recusada",
 };
-
-// ---------------------------------------------------------------------------
 
 export type TicketLinkType = "ligado" | "duplicado" | "filho" | "pai";
 
@@ -134,8 +126,6 @@ export const LINK_HINT: Record<TicketLinkType, string> = {
   filho: "O pai só fecha depois dos filhos",
   pai: "Contém chamados dependentes",
 };
-
-// ---------------------------------------------------------------------------
 
 export type ActorRole = "requerente" | "observador" | "atribuido";
 

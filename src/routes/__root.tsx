@@ -139,7 +139,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <EntityProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="top-right" />
       </EntityProvider>

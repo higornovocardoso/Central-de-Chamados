@@ -130,10 +130,6 @@ export function newCriterion(field: string): SearchCriterion {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Exportação
-// ---------------------------------------------------------------------------
-
 /** CSV com BOM e ponto e vírgula, que é o que o Excel brasileiro espera. */
 export function exportCsv(
   filename: string,
@@ -173,8 +169,7 @@ export function exportPdf(
       (row) =>
         `<tr>${columns
           .map(
-            (c) =>
-              `<td>${escapeHtml(textOf(accessor ? accessor(row, c.key) : row[c.key]))}</td>`,
+            (c) => `<td>${escapeHtml(textOf(accessor ? accessor(row, c.key) : row[c.key]))}</td>`,
           )
           .join("")}</tr>`,
     )
