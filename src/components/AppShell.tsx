@@ -7,6 +7,8 @@ import {
   TriangleAlert,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Search,
   User,
@@ -87,7 +89,9 @@ export function AppShell({
   const { user, profileName, can, error: permissionsError } = usePermissions();
   const { entities, selectedId, setSelectedId } = useEntity();
   const location = useRouterState({ select: (s) => s.location });
-  const [collapsed, setCollapsed] = useState(false);
+  // O padrão é o rail recolhido (só ícones); ele se abre ao passar o mouse.
+  // Quem preferir a barra sempre aberta fixa pelo botão da barra superior.
+  const [collapsed, setCollapsed] = useState(true);
   const [hoverOpen, setHoverOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>([]);
   const [term, setTerm] = useState("");
@@ -97,9 +101,11 @@ export function AppShell({
   const search = useMemo(() => (location.search ?? {}) as Record<string, unknown>, [location.search]);
 
   useEffect(() => {
-    // Em telas estreitas a mesma barra aparece recolhida (só ícones).
-    const narrow = window.matchMedia("(max-width: 63.99rem)").matches;
-    setCollapsed(narrow || localStorage.getItem(COLLAPSE_KEY) === "1");
+    // Só a preferência salva pode desfazer o padrão recolhido. Abaixo de lg a
+    // barra nem é renderizada (o menu vira a folha lateral), então não há
+    // nada a decidir por largura de tela aqui.
+    const pinned = localStorage.getItem(COLLAPSE_KEY);
+    if (pinned !== null) setCollapsed(pinned === "1");
     const stored = localStorage.getItem(OPEN_GROUPS_KEY);
     setOpenGroups(stored ? (JSON.parse(stored) as string[]) : ["assistencia"]);
   }, []);
@@ -126,6 +132,16 @@ export function AppShell({
 
   function toggleGroup(id: string) {
     persistGroups(openGroups.includes(id) ? openGroups.filter((g) => g !== id) : [...openGroups, id]);
+  }
+
+  /** Fixa a barra aberta ou devolve ela ao rail que abre no hover. */
+  function toggleCollapsed() {
+    const next = !collapsed;
+    setCollapsed(next);
+    // Com a barra fixa aberta o hover não tem mais o que fazer; zerar evita
+    // que um hover pendente reabra o rail no clique seguinte.
+    setHoverOpen(false);
+    localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
   }
 
   async function handleSignOut() {
@@ -174,16 +190,36 @@ export function AppShell({
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex min-h-screen bg-background">
-        {/* Menu lateral — escondido no celular, abre pela folha lateral */}
-        <aside
-          onMouseEnter={() => setHoverOpen(true)}
-          onMouseLeave={() => setHoverOpen(false)}
-          className={`sidebar-surface sidebar-rail sticky top-2 m-2 hidden h-[calc(100vh-1rem)] shrink-0 flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out lg:flex ${
-            sidebarCollapsed ? "w-[4.25rem]" : "w-60"
+        {/*
+          Menu lateral — escondido no celular, abre pela folha lateral.
+          São dois elementos de propósito: o invólucro reserva no fluxo apenas
+          a largura do estado fixado, e o <aside> flutua por cima dele. Assim a
+          abertura no hover não empurra o conteúdo da página a cada passada de
+          mouse — o painel expandido sobrepõe, como no GLPI.
+        */}
+        <div
+          className={`sticky top-2 z-40 m-2 hidden h-[calc(100vh-1rem)] shrink-0 transition-[width] duration-300 ease-out lg:block ${
+            collapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
-          <div className="flex-1 overflow-y-auto pb-3 pt-2">{sidebar}</div>
-        </aside>
+          <aside
+            onMouseEnter={() => setHoverOpen(true)}
+            onMouseLeave={() => setHoverOpen(false)}
+            // Quem navega pelo teclado também precisa ver os rótulos ao
+            // chegar nos itens; o mouse não pode ser o único jeito de abrir.
+            onFocusCapture={() => setHoverOpen(true)}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setHoverOpen(false);
+              }
+            }}
+            className={`sidebar-surface sidebar-rail absolute inset-y-0 left-0 flex flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out ${
+              sidebarCollapsed ? "w-[4.25rem]" : "w-60"
+            }`}
+          >
+            <div className="flex-1 overflow-y-auto pb-3 pt-2">{sidebar}</div>
+          </aside>
+        </div>
 
         {/* Folha lateral para celular/tablet */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -218,6 +254,24 @@ export function AppShell({
                 onClick={() => setMobileOpen(true)}
               >
                 <Menu className="size-5" />
+              </Button>
+
+              {/* No desktop o rail já abre no hover; este botão é para quem
+                  quer a barra travada aberta. A escolha fica salva. */}
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="hidden size-8 lg:inline-flex"
+                aria-label={collapsed ? "Fixar menu aberto" : "Recolher menu"}
+                aria-pressed={!collapsed}
+                onClick={toggleCollapsed}
+              >
+                {collapsed ? (
+                  <PanelLeftOpen className="size-5" />
+                ) : (
+                  <PanelLeftClose className="size-5" />
+                )}
               </Button>
 
               <Select
