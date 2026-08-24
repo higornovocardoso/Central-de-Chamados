@@ -22,8 +22,7 @@ perfil e separação por entidade.
 
 ## Configuração
 
-O `.env` da raiz é versionado e já vem preenchido. Para apontar para outra
-instância do Supabase, copie o modelo e ajuste:
+O `.env` não é versionado. Crie o seu a partir do modelo:
 
 ```sh
 cp .env.example .env
@@ -31,15 +30,20 @@ cp .env.example .env
 
 Os valores saem do painel do Supabase, em Configurações > API:
 
-| Variável                        | Descrição                |
-| ------------------------------- | ------------------------ |
-| `VITE_SUPABASE_URL`             | URL do projeto           |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável (anon)  |
-| `VITE_SUPABASE_PROJECT_ID`      | Identificador do projeto |
+| Variável                        | Lida onde | Descrição                          |
+| ------------------------------- | --------- | ---------------------------------- |
+| `SUPABASE_URL`                  | Servidor  | URL do projeto                     |
+| `SUPABASE_PUBLISHABLE_KEY`      | Servidor  | Chave publicável                   |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Servidor  | Chave administrativa, ignora o RLS |
+| `VITE_SUPABASE_URL`             | Navegador | Mesma URL, embutida no bundle      |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Navegador | Mesma chave publicável, no bundle  |
 
-As três existem também sem o prefixo `VITE_`, para uso no servidor. As chaves
-`VITE_*` são embutidas no bundle e ficam visíveis no navegador — por isso apenas
-a chave publicável entra aqui, nunca a `service_role`.
+Tudo que começa com `VITE_` é embutido no código enviado ao navegador e fica
+visível para qualquer visitante. Só a chave publicável pode entrar ali — a
+`SUPABASE_SERVICE_ROLE_KEY` nunca, em hipótese alguma.
+
+Sem a `SUPABASE_SERVICE_ROLE_KEY` o sistema roda normalmente, mas criar, editar
+e excluir usuários falha com "variável de ambiente ausente".
 
 ## Desenvolvimento
 
@@ -82,10 +86,9 @@ supabase/
 O deploy é automático: todo push na `main` dispara um build na Netlify, que
 publica o estático de `dist/` e a função de SSR.
 
-Hoje o build usa o `.env` versionado. Como ele guarda apenas a chave publicável
-do Supabase, que é pública por definição, isso não expõe segredo nenhum. Ainda
-assim, o caminho recomendado é cadastrar as seis variáveis no painel da Netlify
-e então parar de versionar o arquivo — o `vite.config.ts` lê `process.env` além
-dos arquivos `.env`, então a troca é transparente. Feito isso, qualquer chave
-que venha a ser secreta (`SERVICE_ROLE_KEY`, por exemplo) não corre o risco de
-entrar no repositório por descuido.
+As variáveis de ambiente ficam no painel da Netlify, em Project configuration >
+Environment variables. O `vite.config.ts` lê `process.env` além dos arquivos
+`.env`, então o build usa as do painel sem depender de arquivo no repositório.
+
+Variável nova, ou valor alterado, **só passa a valer em um build novo**. Depois
+de mexer no painel, dispare um deploy em Deploys > Trigger deploy.
