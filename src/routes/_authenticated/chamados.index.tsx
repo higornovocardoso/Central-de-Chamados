@@ -52,6 +52,7 @@ type ChamadosSearch = {
   busca?: string | undefined;
   filtro?: string | undefined;
   status?: string | undefined;
+  setor?: string | undefined;
   pagina?: number | undefined;
   tamanho?: number | undefined;
   ordem?: string | undefined;
@@ -71,6 +72,8 @@ export const Route = createFileRoute("/_authenticated/chamados/")({
     const parsed: ChamadosSearch = {};
     if (typeof busca === "string" && busca) parsed.busca = busca;
     if (typeof filtro === "string" && filtro) parsed.filtro = filtro;
+    const setor = search["setor"];
+    if (typeof setor === "string" && setor) parsed.setor = setor;
     if (typeof status === "string" && STATUS_ORDER.includes(status as TicketStatus)) {
       parsed.status = status;
     }
@@ -104,6 +107,7 @@ type TicketRow = {
   resolution_due_at: string | null;
   requester_id: string | null;
   reporter_name: string;
+  reporter_sector: string;
   assignee_id: string | null;
   // Campos da fase 3; ausentes enquanto a migration não roda.
   type?: string;
@@ -121,6 +125,7 @@ const FIELDS = [
   { key: "category", label: "Categoria" },
   { key: "requester", label: "Requerente" },
   { key: "assignee", label: "Atribuído a" },
+  { key: "reporter_sector", label: "Setor" },
 ] as const;
 
 const OPERATORS = [
@@ -140,6 +145,23 @@ const QUICK_FILTERS = [
   { key: "requisicoes", label: "Requisições" },
 ];
 
+/**
+ * O setor vem digitado à mão no formulário público, então o mesmo departamento
+ * aparece como "contabil", "Contábil", "Dep Contabil" e "Depto Contábil".
+ * Normalizar sem acento, sem caixa e sem os prefixos de "departamento" junta o
+ * que é a mesma coisa, para o filtro não virar uma lista de quase-duplicatas.
+ * O texto original continua sendo o exibido na coluna.
+ */
+function normalizaSetor(bruto: string | null | undefined): string {
+  const limpo = (bruto ?? "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/^(depto?|departamento|dep).?s+/, "");
+  return limpo;
+}
+
 /** Chave do filtro que troca a lista inteira para o que está na lixeira. */
 const LIXEIRA = "lixeira";
 
@@ -152,6 +174,7 @@ const COLUMNS = [
   { key: "created_at", label: "Data de abertura", sortable: true },
   { key: "priority", label: "Prioridade", sortable: true },
   { key: "requester", label: "Requerente", sortable: false },
+  { key: "sector", label: "Setor", sortable: true },
   { key: "assignee", label: "Atribuído a", sortable: false },
   { key: "category", label: "Categoria", sortable: true },
   { key: "entity", label: "Entidade", sortable: false },
@@ -178,6 +201,7 @@ function ListaChamados() {
   const podeExcluir = can("ticket", "delete");
   const podePurgar = can("ticket", "purge");
   const statusFilter = searchParams.status;
+  const setorFilter = searchParams.setor;
   const page = searchParams.pagina ?? 1;
   const pageSize = searchParams.tamanho ?? 15;
   const sortKey = searchParams.ordem ?? "created_at";
@@ -235,6 +259,21 @@ function ListaChamados() {
     [nameById],
   );
 
+  // O seletor lista só os setores que existem nos chamados: um catálogo fixo
+  // ficaria desatualizado, já que o campo é livre.
+  const setores = useMemo(() => {
+    const porChave = new Map<string, string>();
+    for (const t of tickets) {
+      const chave = normalizaSetor(t.reporter_sector);
+      if (!chave) continue;
+      // Guarda o primeiro rótulo visto para cada chave; serve de nome no menu.
+      if (!porChave.has(chave)) porChave.set(chave, t.reporter_sector.trim());
+    }
+    return [...porChave.entries()]
+      .map(([chave, rotulo]) => ({ chave, rotulo }))
+      .sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
+  }, [tickets]);
+
   const filtered = useMemo(() => {
     const needle = term.trim().toLowerCase();
 
@@ -249,6 +288,9 @@ function ListaChamados() {
       }
 
       if (statusFilter && t.status !== statusFilter) return false;
+      // Comparação por texto normalizado: os setores são digitados à mão no
+      // formulário público, e "Contábil" e "contabil" são o mesmo setor.
+      if (setorFilter && normalizaSetor(t.reporter_sector) !== setorFilter) return false;
 
       if (quick === "meus" && t.assignee_id !== user?.id) return false;
       if (quick === "nao_atribuidos" && t.assignee_id) return false;
@@ -282,7 +324,18 @@ function ListaChamados() {
 
       return true;
     });
-  }, [tickets, term, quick, naLixeira, statusFilter, criteria, user?.id, requesterOf, assigneeOf]);
+  }, [
+    tickets,
+    term,
+    quick,
+    naLixeira,
+    statusFilter,
+    setorFilter,
+    criteria,
+    user?.id,
+    requesterOf,
+    assigneeOf,
+  ]);
 
   const sorted = useMemo(() => {
     const factor = sortDir === "asc" ? 1 : -1;
@@ -311,6 +364,8 @@ function ListaChamados() {
           return a.title.localeCompare(b.title, "pt-BR") * factor;
         case "category":
           return a.category.localeCompare(b.category, "pt-BR") * factor;
+        case "sector":
+          return (a.reporter_sector ?? "").localeCompare(b.reporter_sector ?? "", "pt-BR") * factor;
         case "type":
           return (a.type ?? "").localeCompare(b.type ?? "", "pt-BR") * factor;
         case "id":
@@ -470,6 +525,25 @@ function ListaChamados() {
           >
             <Filter className="size-3.5" /> Pesquisa avançada
           </Button>
+
+          {setores.length > 0 && (
+            <Select
+              value={setorFilter ?? "__todos__"}
+              onValueChange={(v) => setSearch({ setor: v === "__todos__" ? undefined : v })}
+            >
+              <SelectTrigger className="h-8 w-[170px] text-xs" aria-label="Filtrar por setor">
+                <SelectValue placeholder="Setor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__todos__">Todos os setores</SelectItem>
+                {setores.map((s) => (
+                  <SelectItem key={s.chave} value={s.chave}>
+                    {s.rotulo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {showCriteria && (
@@ -588,6 +662,16 @@ function ListaChamados() {
               {lixeiraCount > 0 && (
                 <span className="ml-0.5 rounded bg-black/20 px-1 tabular-nums">{lixeiraCount}</span>
               )}
+            </button>
+          )}
+          {setorFilter && (
+            <button
+              type="button"
+              onClick={() => setSearch({ setor: undefined })}
+              className="ml-1 inline-flex items-center gap-1 rounded bg-primary px-2 py-1 text-xs text-primary-foreground"
+            >
+              Setor: {setores.find((s) => s.chave === setorFilter)?.rotulo ?? setorFilter}
+              <X className="size-3" />
             </button>
           )}
           {statusFilter && (
@@ -824,6 +908,9 @@ function ListaChamados() {
                       </span>
                     </td>
                     <td className="max-w-[160px] truncate">{requesterOf(t)}</td>
+                    <td className="max-w-[140px] truncate text-muted-foreground">
+                      {t.reporter_sector?.trim() || "—"}
+                    </td>
                     <td className="max-w-[160px] truncate">{assigneeOf(t)}</td>
                     <td className="whitespace-nowrap">{t.category}</td>
                     <td className="whitespace-nowrap text-muted-foreground">Entidade raiz</td>
