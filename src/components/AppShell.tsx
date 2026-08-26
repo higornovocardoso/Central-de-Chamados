@@ -14,7 +14,7 @@ import {
   User,
   UsersRound,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -138,6 +138,31 @@ export function AppShell({
     );
   }
 
+  // Como abrir empurra o conteúdo, uma passada de raspão pela barra faria a
+  // página saltar à toa. A espera curta exige intenção: quem só atravessa a
+  // faixa da esquerda a caminho de outra coisa não dispara nada. Fechar é
+  // imediato, porque devolver o espaço não tem por que esperar.
+  const timerHover = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function cancelarEspera() {
+    if (timerHover.current) {
+      clearTimeout(timerHover.current);
+      timerHover.current = null;
+    }
+  }
+
+  function abrirNoHover() {
+    cancelarEspera();
+    timerHover.current = setTimeout(() => setHoverOpen(true), 180);
+  }
+
+  function fecharNoHover() {
+    cancelarEspera();
+    setHoverOpen(false);
+  }
+
+  useEffect(() => cancelarEspera, []);
+
   /** Fixa a barra aberta ou devolve ela ao rail que abre no hover. */
   function toggleCollapsed() {
     const next = !collapsed;
@@ -194,25 +219,29 @@ export function AppShell({
       <div className="flex min-h-screen bg-background">
         {/*
           Menu lateral — escondido no celular, abre pela folha lateral.
-          São dois elementos de propósito: o invólucro reserva no fluxo apenas
-          a largura do estado fixado, e o <aside> flutua por cima dele. Assim a
-          abertura no hover não empurra o conteúdo da página a cada passada de
-          mouse — o painel expandido sobrepõe, como no GLPI.
+          O invólucro acompanha a largura visível, então abrir no hover empurra
+          o conteúdo em vez de cobri-lo. Sobrepor escondia coluna de tabela
+          justamente enquanto se lia a tabela.
+          O <aside> segue absoluto dentro do invólucro para que as duas larguras
+          animem juntas; sem isso o conteúdo saltaria antes da barra terminar.
         */}
         <div
           className={`sticky top-2 z-40 m-2 hidden h-[calc(100vh-1rem)] shrink-0 transition-[width] duration-300 ease-out lg:block ${
-            collapsed ? "w-[4.25rem]" : "w-60"
+            sidebarCollapsed ? "w-[4.25rem]" : "w-60"
           }`}
         >
           <aside
-            onMouseEnter={() => setHoverOpen(true)}
-            onMouseLeave={() => setHoverOpen(false)}
+            onMouseEnter={abrirNoHover}
+            onMouseLeave={fecharNoHover}
             // Quem navega pelo teclado também precisa ver os rótulos ao
             // chegar nos itens; o mouse não pode ser o único jeito de abrir.
-            onFocusCapture={() => setHoverOpen(true)}
+            onFocusCapture={() => {
+              cancelarEspera();
+              setHoverOpen(true);
+            }}
             onBlurCapture={(event) => {
               if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                setHoverOpen(false);
+                fecharNoHover();
               }
             }}
             className={`sidebar-surface sidebar-rail absolute inset-y-0 left-0 flex flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out ${
