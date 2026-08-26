@@ -13,7 +13,17 @@ export const publicTicketSchema = z.object({
   title: z.string().trim().min(3, "Descreva o assunto do chamado.").max(160),
   description: z.string().trim().max(4000).default(""),
   category: z.string().trim().min(1).max(60),
-  priority: z.enum(["baixa", "media", "alta", "critica"]),
+  /**
+   * Urgência, não prioridade. Quem abre o chamado diz o quanto aquilo o atrapalha;
+   * o impacto — quantas pessoas foram afetadas — é julgamento de quem atende. A
+   * prioridade sai do cruzamento dos dois, pela priority_matrix, num gatilho do
+   * banco.
+   *
+   * Antes o formulário mandava priority direto, e o gatilho recalculava por cima
+   * a partir de urgência e impacto que nunca recebia. Na prática a escolha da
+   * pessoa era descartada e todo chamado nascia "média".
+   */
+  urgency: z.number().int().min(1).max(5),
 });
 
 const schema = publicTicketSchema;
@@ -57,7 +67,10 @@ export const createPublicTicket = createServerFn({ method: "POST" })
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
-      body: JSON.stringify({ ...data, id, entity_id, status: "aberto" }),
+      // impact fica no meio da escala: quem abre o chamado não tem como saber
+      // quantas pessoas foram afetadas. Quem atende ajusta depois, e a
+      // prioridade se recalcula sozinha.
+      body: JSON.stringify({ ...data, id, entity_id, impact: 3, status: "aberto" }),
     });
 
     if (!response.ok) {

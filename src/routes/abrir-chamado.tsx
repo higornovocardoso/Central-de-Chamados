@@ -14,8 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIES, PRIORITY_LABEL, ticketCode, type TicketPriority } from "@/lib/tickets";
+import { CATEGORIES, ticketCode } from "@/lib/tickets";
 import { createPublicTicket, publicTicketSchema } from "@/lib/public-tickets.functions";
+
+/**
+ * Rótulos escritos do ponto de vista de quem abre o chamado, não do manual de
+ * ITIL: "paralisado" diz mais que "muito alta" para quem só quer voltar a
+ * trabalhar. Os números são os mesmos que a priority_matrix espera.
+ */
+const URGENCIAS = [
+  { valor: 1, rotulo: "Posso esperar" },
+  { valor: 2, rotulo: "Pouco urgente" },
+  { valor: 3, rotulo: "Normal" },
+  { valor: 4, rotulo: "Urgente" },
+  { valor: 5, rotulo: "Estou paralisado" },
+];
 
 export const Route = createFileRoute("/abrir-chamado")({
   head: () => ({
@@ -60,7 +73,7 @@ function AbrirChamado() {
   const submit = useServerFn(createPublicTicket);
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState<string | null>(null);
-  const [priority, setPriority] = useState<TicketPriority>("media");
+  const [urgency, setUrgency] = useState(3);
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -74,7 +87,7 @@ function AbrirChamado() {
       title: String(form.get("title") ?? ""),
       description: String(form.get("description") ?? ""),
       category,
-      priority,
+      urgency,
     });
 
     if (!parsed.success) {
@@ -244,22 +257,23 @@ function AbrirChamado() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Prioridade</Label>
-                    <Select
-                      value={priority}
-                      onValueChange={(v) => setPriority(v as TicketPriority)}
-                    >
+                    <Label className="text-xs">Urgência</Label>
+                    <Select value={String(urgency)} onValueChange={(v) => setUrgency(Number(v))}>
                       <SelectTrigger className="h-11 rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {(Object.keys(PRIORITY_LABEL) as TicketPriority[]).map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {PRIORITY_LABEL[item]}
+                        {URGENCIAS.map((item) => (
+                          <SelectItem key={item.valor} value={String(item.valor)}>
+                            {item.rotulo}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-[0.7rem] text-muted-foreground">
+                      O quanto isso atrapalha seu trabalho agora. A equipe de T.I. define a
+                      prioridade final considerando quantas pessoas foram afetadas.
+                    </p>
                   </div>
                 </div>
 
