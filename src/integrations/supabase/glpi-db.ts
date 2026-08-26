@@ -27,8 +27,21 @@ export type EntityRow = {
   city: string;
   state: string;
   country: string;
+  accepts_public_tickets: boolean;
   created_at: string;
   updated_at: string;
+};
+
+/**
+ * Domínios de e-mail que identificam a empresa dona de um chamado aberto pelo
+ * formulário público. O domínio é único no sistema inteiro: dois clientes com
+ * o mesmo domínio tornariam o roteamento ambíguo.
+ */
+export type EntityEmailDomainRow = {
+  id: string;
+  entity_id: string;
+  domain: string;
+  created_at: string;
 };
 
 export type AccessProfileRow = {
@@ -296,6 +309,7 @@ export type GlpiDatabase = {
   public: {
     Tables: {
       entities: Table<EntityRow>;
+      entity_email_domains: Table<EntityEmailDomainRow>;
       access_profiles: Table<AccessProfileRow>;
       right_definitions: Table<RightDefinitionRow>;
       flag_definitions: Table<FlagDefinitionRow>;

@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { db, type EntityRow } from "@/integrations/supabase/glpi-db";
+import { db, type EntityEmailDomainRow, type EntityRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 
 export const Route = createFileRoute("/_authenticated/administracao/entidades")({
@@ -44,6 +44,7 @@ const ROOT = "__root__";
 const EMPTY = {
   name: "",
   parent_id: ROOT,
+  accepts_public_tickets: false,
   comment: "",
   phone: "",
   administrative_number: "",
@@ -65,6 +66,7 @@ function Entidades() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EntityRow | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [newDomain, setNewDomain] = useState("");
 
   const entitiesQuery = useQuery({
     queryKey: ["entities"],
@@ -83,6 +85,7 @@ function Entidades() {
       const payload = {
         name: form.name.trim(),
         parent_id: form.parent_id === ROOT ? null : form.parent_id,
+        accepts_public_tickets: form.accepts_public_tickets,
         comment: form.comment,
         phone: form.phone,
         administrative_number: form.administrative_number,
@@ -109,6 +112,61 @@ function Entidades() {
     onError: (e: Error) => toast.error("Não foi possível salvar", { description: e.message }),
   });
 
+  // Os domínios só existem para entidade já gravada: antes de salvar não há
+  // id a que vinculá-los.
+  const domainsQuery = useQuery({
+    queryKey: ["entity_email_domains", editing?.id],
+    enabled: Boolean(editing?.id),
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("entity_email_domains")
+        .select("*")
+        .eq("entity_id", editing!.id)
+        .order("domain");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as EntityEmailDomainRow[];
+    },
+  });
+
+  const addDomain = useMutation({
+    mutationFn: async () => {
+      // O banco exige minúsculas e sem espaço. Normalizar aqui evita que o
+      // usuário leve um erro de restrição por ter digitado "Empresa.COM ".
+      const limpo = newDomain
+        .trim()
+        .toLowerCase()
+        .replace(/^@+/, "")
+        .replace(/^https?:\/\//, "")
+        .replace(/\/.*$/, "");
+      if (!limpo.includes(".") || limpo.includes("@")) {
+        throw new Error("Informe apenas o domínio, como empresa.com.br");
+      }
+      const { error } = await db
+        .from("entity_email_domains")
+        .insert({ entity_id: editing!.id, domain: limpo });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setNewDomain("");
+      queryClient.invalidateQueries({ queryKey: ["entity_email_domains"] });
+    },
+    onError: (e: Error) =>
+      toast.error("Não foi possível adicionar", {
+        description: e.message.includes("duplicate key")
+          ? "Este domínio já está cadastrado, aqui ou em outra empresa. Cada domínio pertence a uma só."
+          : e.message,
+      }),
+  });
+
+  const removeDomain = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.from("entity_email_domains").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["entity_email_domains"] }),
+    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
+  });
+
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await db.from("entities").delete().eq("id", id);
@@ -128,16 +186,19 @@ function Entidades() {
   });
 
   function openNew(parentId?: string) {
+    setNewDomain("");
     setEditing(null);
     setForm({ ...EMPTY, parent_id: parentId ?? ROOT });
     setOpen(true);
   }
 
   function openEdit(entity: EntityRow) {
+    setNewDomain("");
     setEditing(entity);
     setForm({
       name: entity.name,
       parent_id: entity.parent_id ?? ROOT,
+      accepts_public_tickets: entity.accepts_public_tickets ?? false,
       comment: entity.comment,
       phone: entity.phone,
       administrative_number: entity.administrative_number,
@@ -280,7 +341,100 @@ function Entidades() {
               <TabsTrigger value="endereco" className="text-xs">
                 Endereço
               </TabsTrigger>
+              <TabsTrigger value="publico" className="text-xs">
+                Chamado público
+              </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="publico" className="mt-3 space-y-4">
+              <label className="flex items-start gap-2.5 rounded-lg border border-border p-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 size-4 shrink-0 accent-primary"
+                  checked={form.accepts_public_tickets}
+                  onChange={(e) => setForm({ ...form, accepts_public_tickets: e.target.checked })}
+                />
+                <span className="text-xs">
+                  <span className="font-medium">Aceitar chamados pelo formulário público</span>
+                  <span className="mt-0.5 block text-muted-foreground">
+                    Desmarcado, ninguém de fora abre chamado nesta empresa — nem com um domínio
+                    cadastrado abaixo.
+                  </span>
+                </span>
+              </label>
+
+              {!editing ? (
+                <p className="rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
+                  Salve a entidade primeiro. Os domínios precisam de uma empresa já criada para se
+                  vincular.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-[0.7rem] text-muted-foreground">
+                    Domínios de e-mail desta empresa
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Quem abre chamado pelo formulário público informa o e-mail, e o domínio dele
+                    decide a empresa. Domínio não cadastrado aqui não consegue abrir chamado. Cada
+                    domínio pertence a uma empresa só.
+                  </p>
+
+                  <div className="flex gap-2">
+                    <Input
+                      value={newDomain}
+                      onChange={(e) => setNewDomain(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (newDomain.trim()) addDomain.mutate();
+                        }
+                      }}
+                      placeholder="empresa.com.br"
+                      className="h-8 text-xs"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 shrink-0"
+                      disabled={!newDomain.trim() || addDomain.isPending}
+                      onClick={() => addDomain.mutate()}
+                    >
+                      <Plus className="size-3.5" /> Adicionar
+                    </Button>
+                  </div>
+
+                  {domainsQuery.isLoading && (
+                    <p className="text-xs text-muted-foreground">Carregando…</p>
+                  )}
+
+                  {domainsQuery.data?.length === 0 && !domainsQuery.isLoading && (
+                    <p className="rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
+                      Nenhum domínio cadastrado. Enquanto estiver assim, o formulário público não
+                      aceita chamado para esta empresa.
+                    </p>
+                  )}
+
+                  <ul className="divide-y divide-border rounded-lg border border-border">
+                    {(domainsQuery.data ?? []).map((d) => (
+                      <li key={d.id} className="flex items-center gap-2 px-3 py-1.5">
+                        <span className="flex-1 truncate font-mono text-xs">{d.domain}</span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="size-7"
+                          aria-label={`Remover ${d.domain}`}
+                          disabled={removeDomain.isPending}
+                          onClick={() => removeDomain.mutate(d.id)}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </TabsContent>
 
             <TabsContent value="geral" className="mt-3 space-y-3">
               <Field label="Nome *">
