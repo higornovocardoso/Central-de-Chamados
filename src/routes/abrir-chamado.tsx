@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Loader2, Mail, Moon, Send, Building2, Sun, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIES, ticketCode } from "@/lib/tickets";
+import { ticketCode } from "@/lib/tickets";
+import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/lib/theme";
 import { createPublicTicket, publicTicketSchema } from "@/lib/public-tickets.functions";
 
@@ -63,8 +65,8 @@ const PASSOS = [
     texto: "O chamado entra na fila com prazo de atendimento e de solução.",
   },
   {
-    titulo: "Acompanhe pelo e-mail",
-    texto: "Cada resposta do técnico chega no endereço que você informar.",
+    titulo: "Guarde o protocolo",
+    texto: "Com o número do chamado, a equipe encontra o seu pedido quando você falar com ela.",
   },
 ];
 
@@ -74,11 +76,44 @@ function AbrirChamado() {
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState<string | null>(null);
   const [urgency, setUrgency] = useState(3);
-  const [category, setCategory] = useState<string>(CATEGORIES[0]);
+  const [categoriaId, setCategoriaId] = useState("");
+
+  // As categorias cadastradas em Configuração › Categorias que estão marcadas
+  // para aparecer no atendimento. Subcategoria aparece como "Pai › Filha".
+  const categoriasQuery = useQuery({
+    queryKey: ["categorias-publicas"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("itil_categories")
+        .select("id,name,parent_id")
+        .eq("visible_helpdesk", true);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const categorias = useMemo(() => {
+    const lista = categoriasQuery.data ?? [];
+    const porId = new Map(lista.map((c) => [c.id, c]));
+    const rotulo = (id: string, guarda = 0): string => {
+      const c = porId.get(id);
+      if (!c) return "";
+      const pai = c.parent_id && guarda < 10 ? rotulo(c.parent_id, guarda + 1) : "";
+      return pai ? `${pai} › ${c.name}` : c.name;
+    };
+    return lista
+      .map((c) => ({ id: c.id, rotulo: rotulo(c.id) }))
+      .sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
+  }, [categoriasQuery.data]);
+  const categoriaEscolhida = categorias.find((c) => c.id === categoriaId);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+
+    if (categorias.length > 0 && !categoriaEscolhida) {
+      toast.error("Escolha a categoria do chamado");
+      return;
+    }
 
     const parsed = publicTicketSchema.safeParse({
       reporter_name: String(form.get("name") ?? ""),
@@ -86,7 +121,9 @@ function AbrirChamado() {
       reporter_sector: String(form.get("sector") ?? ""),
       title: String(form.get("title") ?? ""),
       description: String(form.get("description") ?? ""),
-      category,
+      // Sem nenhuma categoria cadastrada, o chamado entra como "Outros".
+      category: categoriaEscolhida?.rotulo ?? "Outros",
+      category_id: categoriaEscolhida?.id,
       urgency,
     });
 
@@ -183,8 +220,7 @@ function AbrirChamado() {
                   {ticketCode(created)}
                 </p>
                 <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                  Ele já está na fila da equipe de T.I. As respostas chegam no e-mail que você
-                  informou.
+                  Ele já está na fila da equipe de T.I. Para falar sobre ele, informe este número.
                 </p>
                 <Button
                   variant="outline"
@@ -204,7 +240,7 @@ function AbrirChamado() {
             <div className="mb-6">
               <h2 className="text-xl font-semibold tracking-tight">Abrir chamado</h2>
               <p className="mt-1 text-[0.8125rem] text-muted-foreground">
-                Os campos com nome e e-mail servem para a equipe responder você.
+                Seu nome e e-mail servem para a equipe saber quem pediu e falar com você.
               </p>
             </div>
 
@@ -276,14 +312,18 @@ function AbrirChamado() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Categoria</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="h-11">
-                      <SelectValue />
+                  <Select value={categoriaId} onValueChange={setCategoriaId}>
+                    <SelectTrigger className="h-11" aria-label="Categoria">
+                      <SelectValue
+                        placeholder={
+                          categoriasQuery.isLoading ? "Carregando…" : "Escolha a categoria"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((item) => (
-                        <SelectItem key={item} value={item}>
-                          {item}
+                      {categorias.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.rotulo}
                         </SelectItem>
                       ))}
                     </SelectContent>

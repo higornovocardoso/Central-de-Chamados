@@ -39,7 +39,7 @@ export type CrudField = {
 
 /**
  * Lista + formulário para os cadastros simples do GLPI. As telas com
- * comportamento próprio (regras, notificações) montam a sua interface,
+ * comportamento próprio (regras, prazos) montam a sua interface,
  * mas tudo que é "nome, alguns campos e pronto" passa por aqui.
  */
 export function CrudTable({

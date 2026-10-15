@@ -484,7 +484,9 @@ function DetalheChamado() {
                 {VALIDATION_LABEL[validationState]}
               </Tag>
             )}
-            <span className={`text-xs ${resolutionSla.className}`}>SLA: {resolutionSla.label}</span>
+            <span className={`text-xs ${resolutionSla.className}`}>
+              Prazo: {resolutionSla.label}
+            </span>
             {can("ticket", "delete") && (
               <Button
                 size="sm"

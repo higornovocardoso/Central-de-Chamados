@@ -58,7 +58,6 @@ const ACTION_FIELDS = [
   { value: "priority_level", label: "Prioridade" },
   { value: "category_id", label: "Categoria (id)" },
   { value: "assignee_id", label: "Atribuir ao técnico (id)" },
-  { value: "sla_ttr_id", label: "SLA de solução (id)" },
   { value: "recalcular_prioridade", label: "Recalcular a prioridade" },
 ];
 

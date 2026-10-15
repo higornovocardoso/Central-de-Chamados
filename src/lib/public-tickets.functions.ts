@@ -12,7 +12,9 @@ export const publicTicketSchema = z.object({
   reporter_sector: z.string().trim().max(120).default(""),
   title: z.string().trim().min(3, "Descreva o assunto do chamado.").max(160),
   description: z.string().trim().max(4000).default(""),
-  category: z.string().trim().min(1).max(60),
+  category: z.string().trim().min(1).max(160),
+  /** Categoria cadastrada; o texto acima é o nome dela, para a lista e o histórico. */
+  category_id: z.string().uuid().optional(),
   /**
    * Urgência, não prioridade. Quem abre o chamado diz o quanto aquilo o atrapalha;
    * o impacto — quantas pessoas foram afetadas — é julgamento de quem atende. A

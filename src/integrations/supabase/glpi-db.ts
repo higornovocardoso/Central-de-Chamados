@@ -187,7 +187,6 @@ export type TicketActorRow = {
   group_id: string | null;
   supplier_id: string | null;
   alternative_email: string;
-  use_notification: boolean;
   created_at: string;
 };
 
@@ -239,13 +238,6 @@ export type TicketLinkRow = {
   ticket_id: string;
   linked_ticket_id: string;
   link_type: "ligado" | "duplicado" | "filho" | "pai";
-  created_at: string;
-};
-
-export type TicketItemRow = {
-  id: string;
-  ticket_id: string;
-  asset_id: string;
   created_at: string;
 };
 
@@ -328,7 +320,6 @@ export type GlpiDatabase = {
       ticket_solutions: Table<TicketSolutionRow>;
       ticket_validations: Table<TicketValidationRow>;
       ticket_links: Table<TicketLinkRow>;
-      ticket_items: Table<TicketItemRow>;
       ticket_costs: Table<TicketCostRow>;
       documents: Table<DocumentRow>;
       document_tickets: Table<DocumentTicketRow>;
