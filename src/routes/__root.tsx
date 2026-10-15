@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap",
       },
       {
         rel: "stylesheet",
@@ -109,11 +109,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const THEME_BOOT = `try{if(localStorage.getItem("central.tema")==="escuro")document.documentElement.classList.add("dark")}catch(e){}`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
+        {/* Aplica o tema salvo antes da primeira pintura, para a tela não
+            piscar clara em quem escolheu o escuro. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
       <body>
         {children}
@@ -140,7 +145,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <EntityProvider>
         <Outlet />
-        <Toaster position="top-right" />
+        <Toaster position="bottom-right" />
       </EntityProvider>
     </QueryClientProvider>
   );

@@ -1,357 +1,250 @@
 import {
+  BookOpen,
   Building2,
-  HardDrive,
+  CalendarDays,
+  CircleHelp,
+  Clock,
+  Inbox,
   LayoutDashboard,
-  LifeBuoy,
-  Settings,
+  Mail,
+  Repeat,
+  Route as RouteIcon,
+  ShieldCheck,
+  SlidersHorizontal,
+  Tag,
+  User,
   Users,
-  Wrench,
   type LucideIcon,
 } from "lucide-react";
 
 /**
- * Estrutura de menu do GLPI 10. Os itens que ainda não têm tela própria
- * apontam para /modulo/$slug, que renderiza um "em construção" — assim o
- * menu fica completo desde já e cada módulo entra no lugar certo.
+ * Menu da central. O sistema faz só atendimento de chamados, então o menu é
+ * plano: três seções, cada item uma tela. Telas parecidas que antes tinham
+ * item próprio (Usuários e Grupos, SLAs e Calendários...) viraram um item só,
+ * com abas no topo da página (SECTION_TABS).
  */
 export type NavLink = {
-  label: string;
-  to: string;
-  params?: Record<string, string> | undefined;
-  search?: Record<string, string> | undefined;
-  /** Marca telas que ainda não existem, para exibir o selo "em breve". */
-  soon?: boolean | undefined;
-  /** Objeto da matriz de direitos; sem leitura, o item some do menu. */
-  right?: string | undefined;
-};
-
-export type NavGroup = {
   id: string;
   label: string;
+  to: string;
+  search?: Record<string, string> | undefined;
   icon: LucideIcon;
-  links: NavLink[];
+  /** Objeto da matriz de direitos; sem leitura, o item some do menu. */
+  right?: string | undefined;
+  /** Outras rotas em que este item fica marcado como ativo. */
+  also?: string[] | undefined;
+  /** Contador ao lado do rótulo, calculado pelo AppShell. */
+  count?: "abertos" | "meus" | "sem_tecnico" | undefined;
 };
 
-const soon = (label: string, slug: string, right?: string): NavLink => ({
-  label,
-  to: "/modulo/$slug",
-  params: { slug },
-  soon: true,
-  right,
-});
+export type NavSection = { id: string; label: string; links: NavLink[] };
 
-export const NAV_HOME: NavLink = { label: "Painel", to: "/painel" };
-
-export const NAV_GROUPS: NavGroup[] = [
+export const NAV_SECTIONS: NavSection[] = [
   {
-    id: "ativos",
-    label: "Ativos",
-    icon: HardDrive,
+    id: "atendimento",
+    label: "Atendimento",
     links: [
-      { label: "Painel de ativos", to: "/inventario/painel", right: "dashboard" },
+      { id: "painel", label: "Painel", to: "/painel", icon: LayoutDashboard },
       {
-        label: "Computadores",
-        to: "/inventario",
-        search: { tipo: "computador" },
-        right: "computer",
-      },
-      { label: "Monitores", to: "/inventario", search: { tipo: "monitor" }, right: "monitor" },
-      {
-        label: "Software",
-        to: "/inventario/softwares",
-        search: { aba: "versoes" },
-        right: "software",
+        id: "chamados",
+        label: "Chamados",
+        to: "/chamados",
+        icon: Inbox,
+        right: "ticket",
+        also: ["/chamados/novo", "/chamados/$id", "/assistencia/kanban"],
+        count: "abertos",
       },
       {
-        label: "Equipamentos de rede",
-        to: "/inventario",
-        search: { tipo: "rede" },
-        right: "networkequipment",
-      },
-      { label: "Componentes", to: "/inventario/componentes", right: "component" },
-      {
-        label: "Periféricos",
-        to: "/inventario",
-        search: { tipo: "periferico" },
-        right: "peripheral",
-      },
-      { label: "Impressoras", to: "/inventario", search: { tipo: "impressora" }, right: "printer" },
-      {
-        label: "Cartuchos",
-        to: "/inventario/estoque",
-        search: { aba: "cartuchos" },
-        right: "cartridge",
+        id: "meus",
+        label: "Meus chamados",
+        to: "/chamados",
+        search: { filtro: "meus" },
+        icon: User,
+        right: "ticket",
+        count: "meus",
       },
       {
-        label: "Consumíveis",
-        to: "/inventario/estoque",
-        search: { aba: "consumiveis" },
-        right: "consumable",
-      },
-      { label: "Telefones", to: "/inventario", search: { tipo: "telefonia" }, right: "phone" },
-      { label: "Racks", to: "/inventario", search: { tipo: "rack" }, right: "rack" },
-      { label: "Gabinetes", to: "/inventario", search: { tipo: "gabinete" }, right: "enclosure" },
-      { label: "PDUs", to: "/inventario", search: { tipo: "pdu" }, right: "pdu" },
-      {
-        label: "Dispositivos passivos",
-        to: "/inventario",
-        search: { tipo: "passivo" },
-        right: "passivedevice",
+        id: "sem-tecnico",
+        label: "Sem técnico",
+        to: "/chamados",
+        search: { filtro: "nao_atribuidos" },
+        icon: CircleHelp,
+        right: "ticket",
+        count: "sem_tecnico",
       },
       {
-        label: "Não gerenciados",
-        to: "/inventario",
-        search: { tipo: "nao_gerenciado" },
-        right: "unmanaged",
-      },
-      { label: "Cabos", to: "/inventario", search: { tipo: "cabo" }, right: "cable" },
-      { label: "Cartões SIM", to: "/inventario", search: { tipo: "sim_card" }, right: "sim" },
-      { label: "Global", to: "/inventario", search: { tipo: "todos" }, right: "computer" },
-    ],
-  },
-  {
-    id: "assistencia",
-    label: "Assistência",
-    icon: LifeBuoy,
-    links: [
-      { label: "Chamados", to: "/chamados", right: "ticket" },
-      { label: "Criar chamado", to: "/chamados/novo", right: "ticket" },
-      { label: "Problemas", to: "/assistencia/problemas", right: "problem" },
-      { label: "Mudanças", to: "/assistencia/mudancas", right: "change" },
-      { label: "Planejamento", to: "/assistencia/planejamento", right: "planning" },
-      { label: "Estatísticas", to: "/assistencia/estatisticas", right: "statistics" },
-      { label: "Chamados recorrentes", to: "/chamados/recorrentes", right: "recurrent" },
-      { label: "Mudanças recorrentes", to: "/assistencia/mudancas-recorrentes", right: "change" },
-    ],
-  },
-  {
-    id: "gestao",
-    label: "Gestão",
-    icon: Building2,
-    links: [
-      {
-        label: "Licenças",
-        to: "/inventario/softwares",
-        search: { aba: "licencas" },
-        right: "license",
-      },
-      { label: "Orçamentos", to: "/gestao/orcamentos", right: "budget" },
-      { label: "Fornecedores", to: "/gestao/fornecedores", right: "supplier" },
-      { label: "Contatos", to: "/gestao/contatos", right: "contact" },
-      { label: "Contratos", to: "/gestao/contratos", right: "contract" },
-      { label: "Documentos", to: "/gestao/documentos", right: "document" },
-      { label: "Linhas telefônicas", to: "/gestao/linhas", right: "line" },
-      { label: "Certificados", to: "/gestao/certificados", right: "certificate" },
-      {
-        label: "Datacenters",
-        to: "/gestao/infra",
-        search: { aba: "datacenters" },
-        right: "datacenter",
-      },
-      { label: "Clusters", to: "/gestao/infra", search: { aba: "clusters" }, right: "cluster" },
-      { label: "Domínios", to: "/gestao/dominios", right: "domain" },
-      {
-        label: "Appliances",
-        to: "/gestao/infra",
-        search: { aba: "appliances" },
-        right: "appliance",
+        id: "agenda",
+        label: "Agenda de tarefas",
+        to: "/assistencia/planejamento",
+        icon: CalendarDays,
+        right: "planning",
       },
       {
-        label: "Bancos de dados",
-        to: "/gestao/infra",
-        search: { aba: "bancos" },
-        right: "database",
-      },
-    ],
-  },
-  {
-    id: "ferramentas",
-    label: "Ferramentas",
-    icon: Wrench,
-    links: [
-      { label: "Projetos", to: "/ferramentas/projetos", right: "project" },
-      {
-        label: "Lembretes",
-        to: "/ferramentas/lembretes",
-        search: { aba: "lembretes" },
-        right: "reminder",
+        id: "recorrentes",
+        label: "Recorrentes",
+        to: "/chamados/recorrentes",
+        icon: Repeat,
+        right: "recurrent",
       },
       {
-        label: "Feeds RSS",
-        to: "/ferramentas/lembretes",
-        search: { aba: "rss" },
-        right: "rssfeed",
+        id: "base",
+        label: "Base de conhecimento",
+        to: "/base-conhecimento",
+        icon: BookOpen,
+        right: "knowledgebase",
       },
-      { label: "Base de conhecimento", to: "/base-conhecimento", right: "knowledgebase" },
-      { label: "Reservas", to: "/ferramentas/reservas", right: "reservation" },
-      { label: "Relatórios", to: "/ferramentas/relatorios", right: "report" },
-      { label: "Buscas salvas", to: "/ferramentas/buscas-salvas", right: "saved_search" },
-      { label: "Análise de impacto", to: "/assistencia/impacto", right: "ticket" },
     ],
   },
   {
     id: "administracao",
     label: "Administração",
-    icon: Users,
     links: [
-      { label: "Usuários", to: "/administracao/usuarios", right: "user" },
-      { label: "Grupos", to: "/administracao/grupos", right: "group" },
-      { label: "Entidades", to: "/administracao/entidades", right: "entity" },
-      { label: "Regras", to: "/administracao/regras", right: "business_rule" },
       {
-        label: "Dicionários",
-        to: "/configuracao/dicionarios",
-        search: { aba: "dicionarios" },
-        right: "dictionary",
+        id: "pessoas",
+        label: "Pessoas e grupos",
+        to: "/administracao/usuarios",
+        icon: Users,
+        right: "user",
+        also: ["/administracao/grupos"],
       },
-      { label: "Perfis", to: "/administracao/perfis", right: "profile" },
-      soon("Fila de e-mails", "fila-de-emails", "mailqueue"),
-      { label: "Logs", to: "/administracao/logs", right: "log" },
-      soon("Inventário", "inventario-automatico", "import"),
+      {
+        id: "empresas",
+        label: "Empresas",
+        to: "/administracao/entidades",
+        icon: Building2,
+        right: "entity",
+      },
+      {
+        id: "perfis",
+        label: "Perfis de acesso",
+        to: "/administracao/perfis",
+        icon: ShieldCheck,
+        right: "profile",
+      },
     ],
   },
   {
-    id: "configurar",
-    label: "Configurar",
-    icon: Settings,
+    id: "configuracao",
+    label: "Configuração",
     links: [
-      { label: "Listas suspensas", to: "/configuracao/listas", right: "dropdown" },
-      { label: "Locais", to: "/cadastros", search: { aba: "locations" }, right: "dropdown" },
-      soon("Notificações", "notificacoes", "notification"),
-      { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
-      { label: "Configurações gerais", to: "/configuracao/geral", right: "config" },
       {
-        label: "Unicidade de campos",
-        to: "/configuracao/dicionarios",
-        search: { aba: "unicidade" },
-        right: "field_unicity",
+        id: "categorias",
+        label: "Categorias",
+        to: "/configuracao/categorias",
+        icon: Tag,
+        right: "dropdown",
       },
       {
-        label: "Ações automáticas",
-        to: "/configuracao/acoes-automaticas",
-        right: "automatic_action",
+        id: "prazos",
+        label: "Prazos (SLA)",
+        to: "/configuracao/slas",
+        icon: Clock,
+        right: "sla",
+        also: ["/configuracao/calendarios"],
       },
-      soon("Autenticação", "autenticacao", "config"),
-      soon("Coletores de e-mail", "coletores", "collector"),
-      { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
-      soon("Links externos", "links-externos", "external_link"),
-      soon("Plugins", "plugins", "plugin"),
-      { label: "API", to: "/configuracao/api", right: "config" },
+      {
+        id: "regras",
+        label: "Regras de atribuição",
+        to: "/administracao/regras",
+        icon: RouteIcon,
+        right: "business_rule",
+      },
+      {
+        id: "email",
+        label: "E-mail",
+        to: "/configuracao/notificacoes",
+        icon: Mail,
+        right: "notification",
+        also: ["/configuracao/coletores", "/administracao/fila-de-emails"],
+      },
+      {
+        id: "geral",
+        label: "Geral",
+        to: "/configuracao/geral",
+        icon: SlidersHorizontal,
+        right: "config",
+        also: ["/administracao/logs"],
+      },
     ],
   },
 ];
 
-/** Rótulos das telas que já existem, para montar o caminho de navegação. */
-const CRUMB_LABEL: Record<string, string> = {
-  painel: "Painel",
-  chamados: "Chamados",
-  novo: "Criar chamado",
-  inventario: "Ativos",
-  "base-conhecimento": "Base de conhecimento",
-  cadastros: "Cadastros",
-  modulo: "Módulo",
-  administracao: "Administração",
-  configuracao: "Configurar",
-  entidades: "Entidades",
-  perfis: "Perfis",
-  grupos: "Grupos",
-  usuarios: "Usuários",
-  regras: "Regras",
-  calendarios: "Calendários",
-  slas: "Níveis de serviço",
-  notificacoes: "Notificações",
-  coletores: "Coletores de e-mail",
-  "acoes-automaticas": "Ações automáticas",
-  recorrentes: "Chamados recorrentes",
-  listas: "Listas suspensas",
-  softwares: "Software",
-  estoque: "Cartuchos e consumíveis",
-  gestao: "Gestão",
-  contratos: "Contratos",
-  fornecedores: "Fornecedores",
-  contatos: "Contatos",
-  orcamentos: "Orçamentos",
-  certificados: "Certificados",
-  linhas: "Linhas telefônicas",
-  dominios: "Domínios",
-  infra: "Datacenters e clusters",
-  documentos: "Documentos",
-  assistencia: "Assistência",
-  ferramentas: "Ferramentas",
-  problemas: "Problemas",
-  mudancas: "Mudanças",
-  projetos: "Projetos",
-  reservas: "Reservas",
-  lembretes: "Lembretes",
-  relatorios: "Relatórios",
-  kanban: "Kanban",
-  dicionarios: "Dicionários",
-  logs: "Logs",
-  api: "API",
-  componentes: "Componentes",
-  planejamento: "Planejamento",
-  estatisticas: "Estatísticas",
-  "mudancas-recorrentes": "Mudanças recorrentes",
-  "buscas-salvas": "Buscas salvas",
-  impacto: "Análise de impacto",
-  "fila-de-emails": "Fila de e-mails",
-  geral: "Configurações gerais",
-};
+export const NAV_LINKS: NavLink[] = NAV_SECTIONS.flatMap((s) => s.links);
 
-const GROUP_OF_SEGMENT: Record<string, string> = {
-  painel: "Painel",
-  chamados: "Assistência",
-  inventario: "Ativos",
-  "base-conhecimento": "Assistência",
-  cadastros: "Configurar",
-  administracao: "Administração",
-  configuracao: "Configurar",
-  gestao: "Gestão",
-  assistencia: "Assistência",
-  ferramentas: "Ferramentas",
-};
+/** Abas no topo das telas que dividem um mesmo item do menu. */
+export const SECTION_TABS: { label: string; to: string; right?: string }[][] = [
+  [
+    { label: "Usuários", to: "/administracao/usuarios", right: "user" },
+    { label: "Grupos", to: "/administracao/grupos", right: "group" },
+  ],
+  [
+    { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
+    { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
+  ],
+  [
+    { label: "Notificações", to: "/configuracao/notificacoes", right: "notification" },
+    { label: "Coletores", to: "/configuracao/coletores", right: "collector" },
+    { label: "Fila de envio", to: "/administracao/fila-de-emails", right: "mailqueue" },
+  ],
+  [
+    { label: "Configurações", to: "/configuracao/geral", right: "config" },
+    { label: "Logs", to: "/administracao/logs", right: "log" },
+  ],
+];
+
+export function sectionTabsFor(pathname: string) {
+  return SECTION_TABS.find((tabs) => tabs.some((t) => t.to === pathname)) ?? null;
+}
+
+/** Casa um padrão de rota ("/chamados/$id") com o caminho atual. */
+function matchesPattern(pattern: string, pathname: string) {
+  const a = pattern.split("/");
+  const b = pathname.split("/");
+  return a.length === b.length && a.every((seg, i) => seg.startsWith("$") || seg === b[i]);
+}
+
+/**
+ * Item do menu que fica marcado. Os três atalhos da lista de chamados
+ * apontam para a mesma rota e só diferem pelo filtro, então o filtro decide.
+ */
+export function activeNavId(pathname: string, search: Record<string, unknown>): string | null {
+  if (pathname === "/chamados") {
+    const filtro = String(search["filtro"] ?? "");
+    if (filtro === "meus") return "meus";
+    if (filtro === "nao_atribuidos") return "sem-tecnico";
+    return "chamados";
+  }
+  for (const link of NAV_LINKS) {
+    if (link.to === pathname && !link.search) return link.id;
+    if (link.also?.some((p) => matchesPattern(p, pathname))) return link.id;
+  }
+  return null;
+}
 
 export type Crumb = { label: string; to?: string | undefined };
 
-/** Segmentos que agrupam telas mas não têm página própria. */
-const NO_INDEX_ROUTE = new Set([
-  "administracao",
-  "modulo",
-  "configuracao",
-  "gestao",
-  "assistencia",
-  "ferramentas",
-]);
+const EXTRA_LABEL: Record<string, string> = {
+  "/chamados/novo": "Novo chamado",
+  "/assistencia/kanban": "Quadro",
+};
 
-/**
- * Caminho no formato do GLPI: Início > Grupo > Tela.
- * O último item nunca vira link, igual ao original.
- */
-export function breadcrumbFor(pathname: string, tail?: string | undefined): Crumb[] {
-  const segments = pathname.split("/").filter(Boolean);
-  const first = segments[0];
-  if (!first) return [{ label: "Início" }];
-
-  const second = segments[1];
-  const crumbs: Crumb[] = [{ label: "Início", to: "/painel" }];
-
-  const group = GROUP_OF_SEGMENT[first];
-  const firstLabel = CRUMB_LABEL[first] ?? first;
-  if (group && group !== firstLabel) crumbs.push({ label: group });
-
-  crumbs.push(
-    second && !NO_INDEX_ROUTE.has(first)
-      ? { label: firstLabel, to: `/${first}` }
-      : { label: firstLabel },
-  );
-
-  if (second) {
-    crumbs.push({ label: tail ?? CRUMB_LABEL[second] ?? second });
-  } else if (tail) {
-    crumbs.push({ label: tail });
+/** Caminho do topo: Central › Tela, ou Chamados › chamado aberto. */
+export function breadcrumbFor(
+  pathname: string,
+  search: Record<string, unknown>,
+  tail?: string | undefined,
+): Crumb[] {
+  const id = activeNavId(pathname, search);
+  const link = NAV_LINKS.find((l) => l.id === id);
+  if (!link) return [{ label: "Central", to: "/painel" }, { label: tail ?? "Início" }];
+  // Na tela do próprio item, o nome do item já basta; o complemento só
+  // entra nas telas de dentro dele (um chamado aberto, uma aba).
+  if (pathname !== link.to) {
+    const tabLabel = SECTION_TABS.flat().find((t) => t.to === pathname)?.label;
+    return [
+      { label: link.label, to: link.to },
+      { label: tail ?? tabLabel ?? EXTRA_LABEL[pathname] ?? pathname.split("/").pop() ?? "" },
+    ];
   }
-
-  return crumbs;
+  return [{ label: "Central", to: "/painel" }, { label: link.label }];
 }
-
-export const NAV_ICON = { LayoutDashboard };

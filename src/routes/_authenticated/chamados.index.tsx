@@ -7,8 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  LayoutGrid,
-  List,
   Plus,
   RotateCcw,
   Search,
@@ -16,7 +14,8 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
+import { AppShell, SlidingTabs } from "@/components/AppShell";
+import { VisaoToggle } from "@/components/VisaoToggle";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -32,15 +31,14 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useRoles } from "@/hooks/useRoles";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
-import { LEVEL_DOT, TICKET_TYPE_LABEL, levelLabel, type TicketType } from "@/lib/itil";
+import { PRAZO_TEXTO, porPrazo, prazoCurto, prazoDe, useAgora } from "@/lib/prazo";
+import { levelLabel } from "@/lib/itil";
 import {
-  PRIORITY_DOT,
   PRIORITY_LABEL,
   PRIORITY_ORDER,
   STATUS_DOT,
   STATUS_LABEL,
   STATUS_ORDER,
-  formatDate,
   isOpenStatus,
   relativeTime,
   ticketCode,
@@ -136,14 +134,28 @@ const OPERATORS = [
 
 const QUICK_FILTERS = [
   { key: "todos", label: "Todos" },
-  { key: "meus", label: "Meus chamados" },
-  { key: "nao_atribuidos", label: "Não atribuídos" },
-  { key: "atrasados", label: "Atrasados" },
-  { key: "novos", label: "Novos" },
   { key: "abertos", label: "Em aberto" },
+  { key: "meus", label: "Meus" },
+  { key: "nao_atribuidos", label: "Sem técnico" },
+  { key: "atrasados", label: "Prazo estourado" },
+  { key: "novos", label: "Novos" },
   { key: "incidentes", label: "Incidentes" },
   { key: "requisicoes", label: "Requisições" },
 ];
+
+/** O filtro rápido de cada aba, separado para também contar quantos cabem nela. */
+function passaFiltroRapido(t: TicketRow, quick: string, userId: string | undefined) {
+  if (quick === "meus") return t.assignee_id === userId;
+  if (quick === "nao_atribuidos") return !t.assignee_id;
+  if (quick === "novos") return t.status === "aberto";
+  if (quick === "incidentes") return (t.type ?? "incidente") === "incidente";
+  if (quick === "requisicoes") return t.type === "requisicao";
+  if (quick === "abertos") return isOpenStatus(t.status);
+  if (quick === "atrasados") {
+    return slaState(t.resolution_due_at, t.resolved_at, t.status === "fechado").late;
+  }
+  return true;
+}
 
 /**
  * O setor vem digitado à mão no formulário público, então o mesmo departamento
@@ -166,18 +178,13 @@ function normalizaSetor(bruto: string | null | undefined): string {
 const LIXEIRA = "lixeira";
 
 const COLUMNS = [
-  { key: "id", label: "ID", sortable: true },
-  { key: "type", label: "Tipo", sortable: true },
-  { key: "title", label: "Título", sortable: true },
-  { key: "status", label: "Status", sortable: true },
-  { key: "updated_at", label: "Última atualização", sortable: true },
-  { key: "created_at", label: "Data de abertura", sortable: true },
-  { key: "priority", label: "Prioridade", sortable: true },
-  { key: "requester", label: "Requerente", sortable: false },
-  { key: "sector", label: "Setor", sortable: true },
-  { key: "assignee", label: "Atribuído a", sortable: false },
-  { key: "category", label: "Categoria", sortable: true },
-  { key: "entity", label: "Entidade", sortable: false },
+  { key: "created_at", label: "Nº", sortable: true, className: "w-[6.5rem]" },
+  { key: "title", label: "Chamado", sortable: true, className: "" },
+  { key: "status", label: "Status", sortable: true, className: "w-[9.5rem]" },
+  { key: "priority", label: "Prioridade", sortable: true, className: "w-[8rem]" },
+  { key: "assignee", label: "Técnico", sortable: false, className: "w-[11rem]" },
+  { key: "prazo", label: "Prazo", sortable: true, className: "w-[8.5rem]" },
+  { key: "updated_at", label: "Atualizado", sortable: true, className: "w-[7rem] text-right" },
 ] as const;
 
 function ListaChamados() {
@@ -292,16 +299,7 @@ function ListaChamados() {
       // formulário público, e "Contábil" e "contabil" são o mesmo setor.
       if (setorFilter && normalizaSetor(t.reporter_sector) !== setorFilter) return false;
 
-      if (quick === "meus" && t.assignee_id !== user?.id) return false;
-      if (quick === "nao_atribuidos" && t.assignee_id) return false;
-      if (quick === "novos" && t.status !== "aberto") return false;
-      if (quick === "incidentes" && (t.type ?? "incidente") !== "incidente") return false;
-      if (quick === "requisicoes" && t.type !== "requisicao") return false;
-      if (quick === "abertos" && !isOpenStatus(t.status)) return false;
-      if (quick === "atrasados") {
-        const sla = slaState(t.resolution_due_at, t.resolved_at, t.status === "fechado");
-        if (!sla.late) return false;
-      }
+      if (!naLixeira && !passaFiltroRapido(t, quick, user?.id)) return false;
 
       for (const c of criteria) {
         if (!c.value.trim()) continue;
@@ -370,6 +368,8 @@ function ListaChamados() {
           return (a.type ?? "").localeCompare(b.type ?? "", "pt-BR") * factor;
         case "id":
           return a.id.localeCompare(b.id) * factor;
+        case "prazo":
+          return porPrazo(a, b) * factor;
         case "updated_at":
           return (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()) * factor;
         default:
@@ -385,6 +385,19 @@ function ListaChamados() {
   const rows = sorted.slice(start, start + pageSize);
 
   const lixeiraCount = useMemo(() => tickets.filter((t) => t.is_deleted).length, [tickets]);
+
+  const contagemRapida = useMemo(() => {
+    const vivos = tickets.filter((t) => !t.is_deleted);
+    return Object.fromEntries(
+      QUICK_FILTERS.map((f) => [
+        f.key,
+        vivos.filter((t) => passaFiltroRapido(t, f.key, user?.id)).length,
+      ]),
+    ) as Record<string, number>;
+  }, [tickets, user?.id]);
+
+  // Prazo ao vivo: renova a cada 30 s, o suficiente para a coluna de minutos.
+  const agora = useAgora(30_000);
 
   const allOnPageSelected = rows.length > 0 && rows.every((r) => selected.includes(r.id));
 
@@ -473,65 +486,49 @@ function ListaChamados() {
       title={naLixeira ? "Lixeira" : "Chamados"}
       subtitle={
         naLixeira
-          ? `${total} chamado(s) na lixeira. Restaurar traz de volta; excluir em definitivo não tem volta.`
-          : `${total} chamado(s) encontrado(s)`
+          ? `${total} na lixeira. Restaurar traz de volta; excluir em definitivo não tem volta.`
+          : `${total} ${total === 1 ? "chamado encontrado" : "chamados encontrados"}`
       }
-      actions={
-        <div className="flex items-center gap-1">
-          {/* Alternador de visualização do GLPI: o Kanban é um modo de ver a
-              lista, não uma tela separada no menu. */}
-          <div className="mr-1 flex items-center rounded border border-border">
-            <span
-              className="flex size-7 items-center justify-center rounded-l bg-secondary text-secondary-foreground"
-              title="Visão em lista"
-              aria-current="page"
-            >
-              <List className="size-4" />
-            </span>
-            <Link
-              to="/assistencia/kanban"
-              title="Visão em Kanban"
-              aria-label="Visão em Kanban"
-              className="flex size-7 items-center justify-center rounded-r text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            >
-              <LayoutGrid className="size-4" />
-            </Link>
-          </div>
-          <Button size="sm" className="h-8" asChild>
-            <Link to="/chamados/novo">
-              <Plus className="size-4" /> Adicionar
-            </Link>
-          </Button>
-        </div>
-      }
+      actions={<VisaoToggle atual="lista" />}
     >
-      {/* Barra de pesquisa, no formato do GLPI */}
-      <div className="panel mb-3">
-        <div className="flex flex-wrap items-center gap-2 p-2">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <div className="mb-4 flex flex-col gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <SlidingTabs
+            className="min-w-0 max-w-full flex-1"
+            activeKey={naLixeira ? LIXEIRA : statusFilter ? "" : quick}
+            onSelect={(key) => {
+              setSelected([]);
+              setSearch({ filtro: key === "todos" ? undefined : key, status: undefined });
+            }}
+            items={[
+              ...QUICK_FILTERS.map((f) => ({
+                key: f.key,
+                label: f.label,
+                count: contagemRapida[f.key] ?? 0,
+              })),
+              ...(podeExcluir ? [{ key: LIXEIRA, label: "Lixeira", count: lixeiraCount }] : []),
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="relative min-w-[220px] flex-1 sm:max-w-sm">
+            <span className="sr-only">Buscar chamados</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={term}
               onChange={(e) => setSearch({ busca: e.target.value || undefined })}
-              placeholder="Buscar por título, número, categoria ou requerente..."
-              className="h-8 pl-8 text-xs"
+              placeholder="Buscar por título, número, categoria ou requerente"
+              className="h-9 bg-surface pl-9"
             />
-          </div>
-          <Button
-            size="sm"
-            variant={showCriteria ? "secondary" : "outline"}
-            className="h-8"
-            onClick={() => setShowCriteria((v) => !v)}
-          >
-            <Filter className="size-3.5" /> Pesquisa avançada
-          </Button>
+          </label>
 
           {setores.length > 0 && (
             <Select
               value={setorFilter ?? "__todos__"}
               onValueChange={(v) => setSearch({ setor: v === "__todos__" ? undefined : v })}
             >
-              <SelectTrigger className="h-8 w-[170px] text-xs" aria-label="Filtrar por setor">
+              <SelectTrigger className="h-9 w-[180px] bg-surface" aria-label="Filtrar por setor">
                 <SelectValue placeholder="Setor" />
               </SelectTrigger>
               <SelectContent>
@@ -544,13 +541,48 @@ function ListaChamados() {
               </SelectContent>
             </Select>
           )}
+
+          <Button
+            size="sm"
+            variant={showCriteria || criteria.length ? "secondary" : "outline"}
+            className="h-9"
+            onClick={() => setShowCriteria((v) => !v)}
+          >
+            <Filter className="size-4" /> Mais filtros
+            {criteria.length > 0 && (
+              <span className="rounded-full bg-primary px-1.5 text-[0.68rem] text-primary-foreground">
+                {criteria.length}
+              </span>
+            )}
+          </Button>
+
+          {statusFilter && (
+            <button
+              type="button"
+              onClick={() => setSearch({ status: undefined })}
+              className="inline-flex h-7 items-center gap-1.5 rounded-full bg-accent px-3 text-xs font-medium text-accent-foreground transition-colors hover:bg-accent/70"
+            >
+              Status: {STATUS_LABEL[statusFilter as TicketStatus]}
+              <X className="size-3.5" />
+            </button>
+          )}
+          {setorFilter && (
+            <button
+              type="button"
+              onClick={() => setSearch({ setor: undefined })}
+              className="inline-flex h-7 items-center gap-1.5 rounded-full bg-accent px-3 text-xs font-medium text-accent-foreground transition-colors hover:bg-accent/70"
+            >
+              Setor: {setores.find((s) => s.chave === setorFilter)?.rotulo ?? setorFilter}
+              <X className="size-3.5" />
+            </button>
+          )}
         </div>
 
         {showCriteria && (
-          <div className="space-y-2 border-t border-border p-2">
+          <div className="panel rise-in space-y-2 p-3">
             {criteria.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                Nenhum critério. Adicione um para refinar a busca.
+              <p className="text-[0.8125rem] text-muted-foreground">
+                Nenhum critério. Adicione um para refinar a busca por qualquer campo.
               </p>
             )}
             {criteria.map((c) => (
@@ -561,7 +593,7 @@ function ListaChamados() {
                     setCriteria((prev) => prev.map((x) => (x.id === c.id ? { ...x, field: v } : x)))
                   }
                 >
-                  <SelectTrigger className="h-8 w-[150px] text-xs">
+                  <SelectTrigger className="h-9 w-[160px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -578,7 +610,7 @@ function ListaChamados() {
                     setCriteria((prev) => prev.map((x) => (x.id === c.id ? { ...x, op: v } : x)))
                   }
                 >
-                  <SelectTrigger className="h-8 w-[120px] text-xs">
+                  <SelectTrigger className="h-9 w-[120px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -597,23 +629,23 @@ function ListaChamados() {
                     )
                   }
                   placeholder="valor"
-                  className="h-8 w-[200px] text-xs"
+                  className="h-9 w-[220px]"
                 />
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="size-8"
+                  className="size-9"
                   aria-label="Remover critério"
                   onClick={() => setCriteria((prev) => prev.filter((x) => x.id !== c.id))}
                 >
-                  <X className="size-3.5" />
+                  <X className="size-4" />
                 </Button>
               </div>
             ))}
             <Button
               size="sm"
               variant="outline"
-              className="h-8"
+              className="h-9"
               onClick={() =>
                 setCriteria((prev) => [
                   ...prev,
@@ -621,76 +653,18 @@ function ListaChamados() {
                 ])
               }
             >
-              <Plus className="size-3.5" /> Adicionar critério
+              <Plus className="size-4" /> Adicionar critério
             </Button>
           </div>
         )}
-
-        <div className="flex flex-wrap items-center gap-1 border-t border-border px-2 py-1.5">
-          {QUICK_FILTERS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => {
-                setSelected([]);
-                setSearch({ filtro: f.key === "todos" ? undefined : f.key, status: undefined });
-              }}
-              className={`rounded px-2 py-1 text-xs transition-colors ${
-                quick === f.key && !statusFilter
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-          {podeExcluir && (
-            <button
-              type="button"
-              onClick={() => {
-                setSelected([]);
-                setSearch({ filtro: LIXEIRA, status: undefined });
-              }}
-              className={`ml-1 inline-flex items-center gap-1 rounded border-l border-border pl-2 pr-2 py-1 text-xs transition-colors ${
-                naLixeira
-                  ? "bg-destructive text-destructive-foreground"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-              title="Chamados excluídos, que ainda dá para restaurar"
-            >
-              <Trash2 className="size-3.5" /> Lixeira
-              {lixeiraCount > 0 && (
-                <span className="ml-0.5 rounded bg-black/20 px-1 tabular-nums">{lixeiraCount}</span>
-              )}
-            </button>
-          )}
-          {setorFilter && (
-            <button
-              type="button"
-              onClick={() => setSearch({ setor: undefined })}
-              className="ml-1 inline-flex items-center gap-1 rounded bg-primary px-2 py-1 text-xs text-primary-foreground"
-            >
-              Setor: {setores.find((s) => s.chave === setorFilter)?.rotulo ?? setorFilter}
-              <X className="size-3" />
-            </button>
-          )}
-          {statusFilter && (
-            <button
-              type="button"
-              onClick={() => setSearch({ status: undefined })}
-              className="ml-1 inline-flex items-center gap-1 rounded bg-primary px-2 py-1 text-xs text-primary-foreground"
-            >
-              Status: {STATUS_LABEL[statusFilter as TicketStatus]}
-              <X className="size-3" />
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Ações da lixeira: restaurar ou apagar de vez */}
       {naLixeira && selected.length > 0 && (
-        <div className="panel mb-2 flex flex-wrap items-center gap-2 border-destructive/30 bg-destructive/10 p-2">
-          <span className="text-xs font-medium">{selected.length} selecionado(s)</span>
+        <div className="panel rise-in mb-3 flex flex-wrap items-center gap-2 border-destructive/30 bg-destructive/5 p-2.5">
+          <span className="px-1 text-[0.8125rem] font-medium">
+            {selected.length} {selected.length === 1 ? "selecionado" : "selecionados"}
+          </span>
           <Button
             size="sm"
             variant="outline"
@@ -727,10 +701,12 @@ function ListaChamados() {
 
       {/* Ações em massa */}
       {isStaff && !naLixeira && selected.length > 0 && (
-        <div className="panel mb-2 flex flex-wrap items-center gap-2 bg-accent/40 p-2">
-          <span className="text-xs font-medium">{selected.length} selecionado(s)</span>
+        <div className="panel rise-in mb-3 flex flex-wrap items-center gap-2 border-primary/25 bg-accent/60 p-2.5">
+          <span className="px-1 text-[0.8125rem] font-medium">
+            {selected.length} {selected.length === 1 ? "selecionado" : "selecionados"}
+          </span>
           <Select value={bulkStatus} onValueChange={setBulkStatus}>
-            <SelectTrigger className="h-8 w-[170px] text-xs">
+            <SelectTrigger className="h-8 w-[170px] bg-surface">
               <SelectValue placeholder="Alterar status" />
             </SelectTrigger>
             <SelectContent>
@@ -742,7 +718,7 @@ function ListaChamados() {
             </SelectContent>
           </Select>
           <Select value={bulkPriority} onValueChange={setBulkPriority}>
-            <SelectTrigger className="h-8 w-[160px] text-xs">
+            <SelectTrigger className="h-8 w-[160px] bg-surface">
               <SelectValue placeholder="Alterar prioridade" />
             </SelectTrigger>
             <SelectContent>
@@ -754,11 +730,11 @@ function ListaChamados() {
             </SelectContent>
           </Select>
           <Select value={bulkAssignee} onValueChange={setBulkAssignee}>
-            <SelectTrigger className="h-8 w-[190px] text-xs">
+            <SelectTrigger className="h-8 w-[190px] bg-surface">
               <SelectValue placeholder="Atribuir a" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">Não atribuído</SelectItem>
+              <SelectItem value="__none__">Sem técnico</SelectItem>
               {technicians.map((tid) => (
                 <SelectItem key={tid} value={tid}>
                   {nameById.get(tid) ?? tid.slice(0, 8)}
@@ -783,10 +759,10 @@ function ListaChamados() {
       {/* Tabela */}
       <div className="panel overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="glpi-table">
+          <table className="glpi-table min-w-[860px] table-fixed">
             <thead>
               <tr>
-                <th className="w-9">
+                <th className="w-11">
                   <Checkbox
                     checked={allOnPageSelected}
                     onCheckedChange={(v) =>
@@ -800,12 +776,12 @@ function ListaChamados() {
                   />
                 </th>
                 {COLUMNS.map((col) => (
-                  <th key={col.key}>
+                  <th key={col.key} className={col.className}>
                     {col.sortable ? (
                       <button
                         type="button"
                         onClick={() => toggleSort(col.key)}
-                        className="inline-flex items-center gap-1 hover:text-foreground"
+                        className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
                       >
                         {col.label}
                         {sortKey === col.key &&
@@ -823,33 +799,43 @@ function ListaChamados() {
               </tr>
             </thead>
             <tbody>
-              {ticketsQuery.isLoading && (
-                <tr>
-                  <td
-                    colSpan={COLUMNS.length + 1}
-                    className="p-6 text-center text-muted-foreground"
-                  >
-                    Carregando chamados...
-                  </td>
-                </tr>
-              )}
+              {ticketsQuery.isLoading &&
+                Array.from({ length: 6 }, (_, i) => (
+                  <tr key={`sk${i}`}>
+                    <td colSpan={COLUMNS.length + 1}>
+                      <span className="block h-9 animate-pulse rounded-md bg-muted" />
+                    </td>
+                  </tr>
+                ))}
               {!ticketsQuery.isLoading && rows.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={COLUMNS.length + 1}
-                    className="p-8 text-center text-muted-foreground"
-                  >
-                    {naLixeira
-                      ? "A lixeira está vazia."
-                      : "Nenhum chamado encontrado com esses critérios."}
+                  <td colSpan={COLUMNS.length + 1} className="px-6 py-12 text-center">
+                    <p className="font-medium">
+                      {naLixeira ? "A lixeira está vazia." : "Nenhum chamado encontrado."}
+                    </p>
+                    {!naLixeira && (
+                      <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+                        Tente outra aba, limpe a busca ou remova os filtros.
+                      </p>
+                    )}
                   </td>
                 </tr>
               )}
-              {rows.map((t) => {
-                const sla = slaState(t.resolution_due_at, t.resolved_at, t.status === "fechado");
+              {rows.map((t, k) => {
+                const p = prazoDe(t, agora);
+                const meu = t.assignee_id === user?.id && isOpenStatus(t.status);
                 return (
-                  <tr key={t.id} data-selected={selected.includes(t.id)}>
-                    <td>
+                  <tr
+                    key={t.id}
+                    data-selected={selected.includes(t.id)}
+                    className="rise-in cursor-pointer"
+                    style={{ "--d": `${Math.min(k, 12) * 25}ms` } as React.CSSProperties}
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest("a,button,[role=checkbox]")) return;
+                      navigate({ to: "/chamados/$id", params: { id: t.id } });
+                    }}
+                  >
+                    <td className={meu ? "shadow-[inset_3px_0_0_var(--primary)]" : undefined}>
                       <Checkbox
                         checked={selected.includes(t.id)}
                         onCheckedChange={(v) =>
@@ -860,60 +846,49 @@ function ListaChamados() {
                         aria-label={`Selecionar ${t.title}`}
                       />
                     </td>
-                    <td className="font-mono text-[0.72rem] text-muted-foreground">
-                      {ticketCode(t.id)}
-                    </td>
-                    <td className="whitespace-nowrap text-muted-foreground">
-                      {TICKET_TYPE_LABEL[(t.type ?? "incidente") as TicketType]}
-                    </td>
-                    <td className="max-w-[320px]">
+                    <td className="font-mono text-xs text-muted-foreground">{ticketCode(t.id)}</td>
+                    <td className="min-w-0">
                       <Link
                         to="/chamados/$id"
                         params={{ id: t.id }}
-                        className="block truncate font-medium text-link hover:underline"
+                        className="block truncate font-medium hover:text-primary"
                       >
                         {t.title}
                       </Link>
-                      {sla.late && (
-                        <span className="text-[0.7rem] text-destructive">SLA {sla.label}</span>
-                      )}
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {[requesterOf(t), t.reporter_sector?.trim(), t.category]
+                          .filter(Boolean)
+                          .join(" · ")}
+                        {t.type === "requisicao" ? " · Requisição" : ""}
+                      </span>
                     </td>
                     <td>
-                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                        <span className={`size-2 rounded-full ${STATUS_DOT[t.status]}`} />
+                      <span className={`pill ${STATUS_PILL[t.status]}`}>
+                        <span className={`size-1.5 rounded-full ${STATUS_DOT[t.status]}`} />
                         {STATUS_LABEL[t.status]}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap text-muted-foreground">
-                      {relativeTime(t.updated_at)}
-                    </td>
-                    <td className="whitespace-nowrap text-muted-foreground">
-                      {formatDate(t.created_at)}
+                    <td>
+                      <Prioridade nivel={t.priority_level} prioridade={t.priority} />
                     </td>
                     <td>
-                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                        {t.priority_level ? (
-                          <>
-                            <span
-                              className={`size-2 rounded-full ${LEVEL_DOT[t.priority_level]}`}
-                            />
-                            {levelLabel(t.priority_level)}
-                          </>
-                        ) : (
-                          <>
-                            <span className={`size-2 rounded-full ${PRIORITY_DOT[t.priority]}`} />
-                            {PRIORITY_LABEL[t.priority]}
-                          </>
-                        )}
+                      <span className="flex min-w-0 items-center gap-2">
+                        <Avatar nome={t.assignee_id ? assigneeOf(t) : null} />
+                        <span
+                          className={`truncate ${t.assignee_id ? "" : "text-muted-foreground"}`}
+                        >
+                          {t.assignee_id ? assigneeOf(t) : "Sem técnico"}
+                        </span>
                       </span>
                     </td>
-                    <td className="max-w-[160px] truncate">{requesterOf(t)}</td>
-                    <td className="max-w-[140px] truncate text-muted-foreground">
-                      {t.reporter_sector?.trim() || "—"}
+                    <td
+                      className={`text-[0.8125rem] font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
+                    >
+                      {prazoCurto(p)}
                     </td>
-                    <td className="max-w-[160px] truncate">{assigneeOf(t)}</td>
-                    <td className="whitespace-nowrap">{t.category}</td>
-                    <td className="whitespace-nowrap text-muted-foreground">Entidade raiz</td>
+                    <td className="text-right text-xs text-muted-foreground">
+                      {relativeTime(t.updated_at)}
+                    </td>
                   </tr>
                 );
               })}
@@ -922,7 +897,7 @@ function ListaChamados() {
         </div>
 
         {/* Paginação */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-2 py-1.5 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-surface-2 px-3 py-2 text-xs">
           <span className="text-muted-foreground">
             {total === 0
               ? "Nenhum item"
@@ -933,7 +908,7 @@ function ListaChamados() {
               value={String(pageSize)}
               onValueChange={(v) => setSearch({ tamanho: Number(v) })}
             >
-              <SelectTrigger className="h-7 w-[110px] text-xs">
+              <SelectTrigger className="h-8 w-[120px] bg-surface text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -947,12 +922,12 @@ function ListaChamados() {
             <Button
               size="icon"
               variant="outline"
-              className="size-7"
+              className="size-8"
               disabled={currentPage <= 1}
               onClick={() => setSearch({ pagina: currentPage - 1 })}
               aria-label="Página anterior"
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-4" />
             </Button>
             <span className="tabular-nums text-muted-foreground">
               {currentPage} / {totalPages}
@@ -960,16 +935,87 @@ function ListaChamados() {
             <Button
               size="icon"
               variant="outline"
-              className="size-7"
+              className="size-8"
               disabled={currentPage >= totalPages}
               onClick={() => setSearch({ pagina: currentPage + 1 })}
               aria-label="Próxima página"
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-4" />
             </Button>
           </div>
         </div>
       </div>
     </AppShell>
+  );
+}
+
+const STATUS_PILL: Record<TicketStatus, string> = {
+  aberto: "pill-info",
+  em_andamento: "pill-primary",
+  planejado: "pill-purple",
+  aguardando: "pill-warning",
+  resolvido: "pill-success",
+  fechado: "pill-muted",
+};
+
+/** Barrinhas de sinal: quanto mais cheias, mais urgente. */
+function Prioridade({
+  nivel,
+  prioridade,
+}: {
+  nivel?: number | undefined;
+  prioridade: TicketPriority;
+}) {
+  const n = nivel ?? { baixa: 2, media: 3, alta: 4, critica: 5 }[prioridade];
+  const cor =
+    n >= 5
+      ? "var(--destructive)"
+      : n === 4
+        ? "var(--warning)"
+        : n === 3
+          ? "var(--primary)"
+          : "var(--muted-foreground)";
+  const cheias = Math.min(n, 4);
+  return (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap text-[0.8125rem] text-secondary-foreground">
+      <svg viewBox="0 0 15 15" className="size-[15px]" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => {
+          const h = 4 + i * 3;
+          return (
+            <rect
+              key={i}
+              x={1 + i * 3.5}
+              y={14 - h}
+              width="2.4"
+              height={h}
+              rx="1"
+              fill={i < cheias ? cor : "var(--input)"}
+            />
+          );
+        })}
+      </svg>
+      {nivel ? levelLabel(nivel) : PRIORITY_LABEL[prioridade]}
+    </span>
+  );
+}
+
+function Avatar({ nome }: { nome: string | null }) {
+  if (!nome) {
+    return (
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-dashed border-input text-[0.625rem] text-muted-foreground">
+        –
+      </span>
+    );
+  }
+  const ini = nome
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+  return (
+    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-[0.625rem] font-semibold text-accent-foreground">
+      {ini}
+    </span>
   );
 }

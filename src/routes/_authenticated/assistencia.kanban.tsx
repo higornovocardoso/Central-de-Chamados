@@ -1,237 +1,219 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { LayoutGrid, List } from "lucide-react";
+import { useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { Tag } from "@/components/Tag";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VisaoToggle } from "@/components/VisaoToggle";
 import { supabase } from "@/integrations/supabase/client";
-import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
-import { LEVEL_CLASS, levelLabel } from "@/lib/itil";
-import { STATUS_LABEL, STATUS_ORDER, ticketCode, type TicketStatus } from "@/lib/tickets";
+import { levelLabel } from "@/lib/itil";
+import { PRAZO_TEXTO, prazoCurto, prazoDe, useAgora } from "@/lib/prazo";
+import {
+  PRIORITY_LABEL,
+  STATUS_DOT,
+  STATUS_LABEL,
+  STATUS_ORDER,
+  ticketCode,
+  type TicketPriority,
+  type TicketStatus,
+} from "@/lib/tickets";
 
 export const Route = createFileRoute("/_authenticated/assistencia/kanban")({
   head: () => ({
     meta: [
-      { title: "Kanban" },
+      { title: "Quadro de chamados" },
       {
         name: "description",
-        content: "Chamados, problemas e mudanças em colunas, arrastando entre os status.",
+        content: "Os chamados em colunas por status. Arraste o cartão para mudar o status.",
       },
     ],
   }),
   component: Kanban,
 });
 
-const PROBLEM_STATUS = [
-  { value: "novo", label: "Novo" },
-  { value: "em_analise", label: "Em análise" },
-  { value: "aguardando", label: "Pendente" },
-  { value: "solucionado", label: "Solucionado" },
-  { value: "fechado", label: "Fechado" },
-];
-
-const CHANGE_STATUS = [
-  { value: "nova", label: "Nova" },
-  { value: "avaliacao", label: "Avaliação" },
-  { value: "aceita", label: "Aceita" },
-  { value: "em_execucao", label: "Em execução" },
-  { value: "aplicada", label: "Aplicada" },
-  { value: "fechada", label: "Fechada" },
-];
-
-type Board = "ticket" | "problem" | "change";
+type Card = {
+  id: string;
+  title: string;
+  category: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  priority_level?: number;
+  created_at: string;
+  resolution_due_at: string | null;
+  assignee_id: string | null;
+  is_deleted?: boolean;
+};
 
 function Kanban() {
   const { can } = usePermissions();
   const queryClient = useQueryClient();
-  const [board, setBoard] = useState<Board>("ticket");
   const [dragging, setDragging] = useState<string | null>(null);
+  const [over, setOver] = useState<string | null>(null);
+  const agora = useAgora(30_000);
 
   const ticketsQuery = useQuery({
-    queryKey: ["tickets"],
+    queryKey: ["tickets", "quadro"],
     queryFn: async () => {
-      const { data } = await supabase.from("tickets").select("*").order("created_at");
-      return (data ?? []) as (Record<string, unknown> & { id: string })[];
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as Card[];
     },
   });
 
-  const problemsQuery = useQuery({
-    queryKey: ["problems"],
+  const profilesQuery = useQuery({
+    queryKey: ["profiles"],
     queryFn: async () => {
-      const { data } = await looseDb.from("problems").select("*").order("created_at");
-      return data ?? [];
+      const { data, error } = await supabase.from("profiles").select("id,full_name,email");
+      if (error) throw error;
+      return data;
     },
   });
-
-  const changesQuery = useQuery({
-    queryKey: ["changes"],
-    queryFn: async () => {
-      const { data } = await looseDb.from("changes").select("*").order("created_at");
-      return data ?? [];
-    },
-  });
+  const nome = (id: string | null) => {
+    if (!id) return null;
+    const p = (profilesQuery.data ?? []).find((x) => x.id === id);
+    return p ? p.full_name || p.email : null;
+  };
 
   const move = useMutation({
     mutationFn: async (input: { id: string; status: string }) => {
-      if (board === "ticket") {
-        const { error } = await supabase
-          .from("tickets")
-          .update({ status: input.status } as never)
-          .eq("id", input.id);
-        if (error) throw error;
-      } else {
-        const table = board === "problem" ? "problems" : "changes";
-        const { error } = await looseDb
-          .from(table)
-          .update({ status: input.status })
-          .eq("id", input.id);
-        if (error) throw new Error(error.message);
-      }
+      const { error } = await supabase
+        .from("tickets")
+        .update({ status: input.status } as never)
+        .eq("id", input.id);
+      if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_r, input) => {
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["problems"] });
-      queryClient.invalidateQueries({ queryKey: ["changes"] });
+      queryClient.invalidateQueries({ queryKey: ["nav_counts"] });
+      toast.success(`Chamado movido para ${STATUS_LABEL[input.status as TicketStatus]}.`);
     },
     onError: (e: Error) => toast.error("Não foi possível mover", { description: e.message }),
   });
 
-  const columns =
-    board === "ticket"
-      ? STATUS_ORDER.map((s) => ({ value: s as string, label: STATUS_LABEL[s] }))
-      : board === "problem"
-        ? PROBLEM_STATUS
-        : CHANGE_STATUS;
-
-  const rows: LooseRow[] =
-    board === "ticket"
-      ? ((ticketsQuery.data ?? []) as unknown as LooseRow[])
-      : board === "problem"
-        ? (problemsQuery.data ?? [])
-        : (changesQuery.data ?? []);
-
-  const visible = rows.filter((r) => r["is_deleted"] !== true);
-  const canMove = can(board, "update");
+  const cards = ticketsQuery.data ?? [];
+  const canMove = can("ticket", "update");
 
   return (
     <AppShell
       title="Chamados"
-      subtitle="A fila inteira em colunas. Arraste o cartão para mudar o status."
-      breadcrumbTail="Kanban"
-      actions={
-        <div className="flex items-center rounded border border-border">
-          <Link
-            to="/chamados"
-            title="Visão em lista"
-            aria-label="Visão em lista"
-            className="flex size-7 items-center justify-center rounded-l text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          >
-            <List className="size-4" />
-          </Link>
-          <span
-            className="flex size-7 items-center justify-center rounded-r bg-secondary text-secondary-foreground"
-            title="Visão em Kanban"
-            aria-current="page"
-          >
-            <LayoutGrid className="size-4" />
-          </span>
-        </div>
+      subtitle={
+        canMove
+          ? "A fila em colunas. Arraste o cartão para mudar o status."
+          : "A fila em colunas. Seu perfil não pode alterar o status, então os cartões são só leitura."
       }
+      breadcrumbTail="Quadro"
+      actions={<VisaoToggle atual="quadro" />}
     >
-      <Tabs value={board} onValueChange={(v) => setBoard(v as Board)}>
-        <TabsList className="mb-3 min-h-8">
-          <TabsTrigger value="ticket" className="text-xs">
-            Chamados
-          </TabsTrigger>
-          <TabsTrigger value="problem" className="text-xs">
-            Problemas
-          </TabsTrigger>
-          <TabsTrigger value="change" className="text-xs">
-            Mudanças
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div className="overflow-x-auto pb-2">
-        <div className="flex min-w-max gap-3">
-          {columns.map((column) => {
-            const cards = visible.filter((r) => String(r["status"]) === column.value);
+      <div className="-mx-1 overflow-x-auto px-1 pb-3">
+        <div className="flex min-w-max gap-3.5">
+          {STATUS_ORDER.map((status) => {
+            const coluna = cards.filter((c) => c.status === status);
             return (
               <section
-                key={column.value}
-                className="panel flex w-[260px] flex-col"
+                key={status}
+                className={`flex w-[272px] flex-col rounded-[var(--radius-lg)] border bg-surface-2 transition-colors duration-200 ${
+                  over === status && dragging ? "border-primary/50 bg-accent/60" : "border-border"
+                }`}
                 onDragOver={(e) => {
-                  if (canMove) e.preventDefault();
+                  if (!canMove) return;
+                  e.preventDefault();
+                  setOver(status);
                 }}
+                onDragLeave={() => setOver((o) => (o === status ? null : o))}
                 onDrop={() => {
                   if (dragging && canMove) {
-                    move.mutate({ id: dragging, status: column.value });
-                    setDragging(null);
+                    const card = cards.find((c) => c.id === dragging);
+                    if (card && card.status !== status) move.mutate({ id: dragging, status });
                   }
+                  setDragging(null);
+                  setOver(null);
                 }}
               >
-                <header className="panel-header justify-between">
-                  <span>{column.label}</span>
-                  <span className="rounded bg-secondary px-1.5 text-[0.68rem] tabular-nums text-muted-foreground">
-                    {cards.length}
+                <header className="flex items-center justify-between px-3.5 pb-1.5 pt-3">
+                  <span className="flex items-center gap-2 text-[0.8125rem] font-semibold">
+                    <span className={`size-2 rounded-full ${STATUS_DOT[status]}`} />
+                    {STATUS_LABEL[status]}
+                  </span>
+                  <span className="rounded-full bg-muted px-2 font-mono text-[0.68rem] leading-5 text-muted-foreground">
+                    {coluna.length}
                   </span>
                 </header>
 
-                <div className="flex min-h-[120px] flex-col gap-2 p-2">
-                  {cards.length === 0 && (
-                    <p className="py-4 text-center text-[0.7rem] text-muted-foreground">vazio</p>
+                <div className="flex min-h-[140px] flex-col gap-2.5 p-2.5">
+                  {coluna.length === 0 && (
+                    <p className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
+                      Nada aqui.
+                    </p>
                   )}
-                  {cards.map((card) => (
-                    <article
-                      key={card.id}
-                      draggable={canMove}
-                      onDragStart={() => setDragging(card.id)}
-                      onDragEnd={() => setDragging(null)}
-                      className={`rounded border border-border bg-background p-2 text-xs ${
-                        canMove ? "cursor-grab active:cursor-grabbing" : ""
-                      } ${dragging === card.id ? "opacity-50" : ""}`}
-                    >
-                      <div className="mb-1 flex items-center gap-1.5">
-                        {board === "ticket" && (
-                          <span className="font-mono text-[0.65rem] text-muted-foreground">
+                  {coluna.map((card, k) => {
+                    const p = prazoDe(card, agora);
+                    const tecnico = nome(card.assignee_id);
+                    return (
+                      <article
+                        key={card.id}
+                        draggable={canMove}
+                        onDragStart={() => setDragging(card.id)}
+                        onDragEnd={() => {
+                          setDragging(null);
+                          setOver(null);
+                        }}
+                        style={{ "--d": `${Math.min(k, 8) * 40}ms` } as CSSProperties}
+                        className={`rise-in rounded-[0.625rem] border border-border bg-surface p-3 shadow-[var(--shadow-1)] transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)] ${
+                          canMove ? "cursor-grab active:cursor-grabbing" : ""
+                        } ${dragging === card.id ? "opacity-40" : ""}`}
+                      >
+                        <div className="mb-1.5 flex items-center justify-between gap-2 text-xs">
+                          <span className="font-mono text-muted-foreground">
                             {ticketCode(card.id)}
                           </span>
-                        )}
-                        <Tag className={LEVEL_CLASS[Number(card["priority_level"] ?? 3)] ?? ""}>
-                          {levelLabel(Number(card["priority_level"] ?? 3))}
-                        </Tag>
-                      </div>
-                      {board === "ticket" ? (
+                          <span className={`font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}>
+                            {prazoCurto(p)}
+                          </span>
+                        </div>
                         <Link
                           to="/chamados/$id"
                           params={{ id: card.id }}
-                          className="line-clamp-3 font-medium text-link hover:underline"
+                          className="line-clamp-3 font-medium leading-snug hover:text-primary"
                         >
-                          {String(card["title"])}
+                          {card.title}
                         </Link>
-                      ) : (
-                        <p className="line-clamp-3 font-medium">{String(card["title"])}</p>
-                      )}
-                      <p className="mt-1 truncate text-[0.68rem] text-muted-foreground">
-                        {String(card["category"] ?? "")}
-                      </p>
-                    </article>
-                  ))}
+                        <div className="mt-2.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                          <span className="truncate">
+                            {card.priority_level
+                              ? levelLabel(card.priority_level)
+                              : PRIORITY_LABEL[card.priority]}{" "}
+                            · {card.category}
+                          </span>
+                          <span
+                            title={tecnico ?? "Sem técnico"}
+                            className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-semibold ${
+                              tecnico
+                                ? "bg-accent text-accent-foreground"
+                                : "border border-dashed border-input"
+                            }`}
+                          >
+                            {tecnico
+                              ? tecnico
+                                  .split(" ")
+                                  .slice(0, 2)
+                                  .map((s) => s[0]?.toUpperCase())
+                                  .join("")
+                              : "–"}
+                          </span>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             );
           })}
         </div>
       </div>
-
-      {!canMove && (
-        <p className="mt-2 text-[0.7rem] text-muted-foreground">
-          Seu perfil não pode alterar o status, então os cartões são apenas leitura.
-        </p>
-      )}
     </AppShell>
   );
 }

@@ -37,13 +37,40 @@ export const EMPTY_PERMISSIONS: Permissions = {
 
 /** Categorias da matriz de direitos, na ordem das abas do GLPI. */
 export const RIGHT_CATEGORIES = [
-  { key: "ativos", label: "Ativos" },
-  { key: "assistencia", label: "Assistência" },
-  { key: "gestao", label: "Gestão" },
-  { key: "ferramentas", label: "Ferramentas" },
+  { key: "assistencia", label: "Atendimento" },
   { key: "administracao", label: "Administração" },
   { key: "configuracao", label: "Configuração" },
 ] as const;
+
+/**
+ * Direitos de módulos que saíram do sistema. As linhas continuam no banco
+ * (right_definitions e profile_rights), só não aparecem mais na matriz.
+ */
+const RETIRED_RIGHTS = new Set([
+  "problem",
+  "change",
+  "problem_task",
+  "change_task",
+  "statistics",
+  "dictionary",
+  "import",
+  "form",
+  "asset_definition",
+  "automatic_action",
+  "external_link",
+  "field_unicity",
+  "plugin",
+]);
+
+/** Ferramentas que ficaram, exibidas junto do atendimento. */
+const MOVED_TO_ASSISTENCIA = new Set(["knowledgebase", "faq"]);
+
+/** Aba da matriz de direitos em que o objeto aparece, ou null se saiu do sistema. */
+export function rightTab(definition: { key: string; category: string }): string | null {
+  if (RETIRED_RIGHTS.has(definition.key)) return null;
+  if (MOVED_TO_ASSISTENCIA.has(definition.key)) return "assistencia";
+  return RIGHT_CATEGORIES.some((c) => c.key === definition.category) ? definition.category : null;
+}
 
 export const RIGHT_ACTIONS: { key: RightAction; label: string; hint: string }[] = [
   { key: "read", label: "Ler", hint: "Exibir o objeto e vê-lo no menu" },
@@ -102,7 +129,6 @@ async function legacyPermissions(): Promise<Permissions> {
     ["ticket", "followup", "task", "solution", "knowledgebase", "faq"],
     isTech ? FULL : READ_ONLY,
   );
-  grant(["computer", "monitor", "printer", "phone", "software"], isTech ? FULL : READ_ONLY);
   grant(["supplier", "contract", "document"], isTech ? FULL : READ_ONLY);
   if (isAdmin) {
     grant(

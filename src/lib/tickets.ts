@@ -5,27 +5,27 @@ export type TicketPriority = "baixa" | "media" | "alta" | "critica";
 /** Nomes do GLPI. Os valores do banco continuam os mesmos. */
 export const STATUS_LABEL: Record<TicketStatus, string> = {
   aberto: "Novo",
-  em_andamento: "Em atendimento (atribuído)",
-  planejado: "Em atendimento (planejado)",
+  em_andamento: "Em atendimento",
+  planejado: "Planejado",
   aguardando: "Pendente",
   resolvido: "Solucionado",
   fechado: "Fechado",
 };
 
 export const STATUS_CLASS: Record<TicketStatus, string> = {
-  aberto: "bg-info/15 text-info border-info/30",
-  em_andamento: "bg-primary/25 text-foreground border-primary/50",
-  planejado: "bg-accent text-accent-foreground border-primary/30",
-  aguardando: "bg-warning/20 text-warning-foreground border-warning/40",
-  resolvido: "bg-success/15 text-success border-success/30",
-  fechado: "bg-secondary text-muted-foreground border-border",
+  aberto: "bg-info/15 text-info",
+  em_andamento: "bg-primary/12 text-primary",
+  planejado: "bg-plan/12 text-plan",
+  aguardando: "bg-warning/20 text-warning",
+  resolvido: "bg-success/15 text-success",
+  fechado: "bg-secondary text-muted-foreground",
 };
 
 /** Bolinha colorida que o GLPI usa antes do nome do status. */
 export const STATUS_DOT: Record<TicketStatus, string> = {
   aberto: "bg-info",
   em_andamento: "bg-primary",
-  planejado: "bg-chart-5",
+  planejado: "bg-plan",
   aguardando: "bg-warning",
   resolvido: "bg-success",
   fechado: "bg-muted-foreground",
@@ -49,10 +49,10 @@ export const PRIORITY_LABEL: Record<TicketPriority, string> = {
 };
 
 export const PRIORITY_CLASS: Record<TicketPriority, string> = {
-  baixa: "bg-secondary text-muted-foreground border-border",
-  media: "bg-info/15 text-info border-info/30",
-  alta: "bg-warning/20 text-warning-foreground border-warning/40",
-  critica: "bg-destructive/15 text-destructive border-destructive/40",
+  baixa: "bg-secondary text-muted-foreground",
+  media: "bg-info/15 text-info",
+  alta: "bg-warning/20 text-warning",
+  critica: "bg-destructive/15 text-destructive",
 };
 
 export const PRIORITY_DOT: Record<TicketPriority, string> = {

@@ -1,22 +1,27 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ChevronDown,
   ChevronRight,
-  LayoutDashboard,
-  TriangleAlert,
+  ChevronsUpDown,
   LogOut,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
+  Moon,
   Plus,
   Search,
+  Sun,
+  TriangleAlert,
   User,
-  UsersRound,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,12 +38,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { CommandPalette } from "@/components/CommandPalette";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useEntity } from "@/contexts/entity";
-import { breadcrumbFor, NAV_GROUPS, type NavLink } from "@/lib/nav";
+import { activeNavId, breadcrumbFor, NAV_SECTIONS, sectionTabsFor, type NavLink } from "@/lib/nav";
+import { useTheme } from "@/lib/theme";
+import { OPEN_STATUSES, type TicketStatus } from "@/lib/tickets";
 
 /**
  * O menu é montado a partir de dados (src/lib/nav.ts), então os destinos são
@@ -51,6 +58,7 @@ type LooseLinkProps = {
   search?: Record<string, string> | undefined;
   className?: string | undefined;
   title?: string | undefined;
+  "aria-current"?: "page" | undefined;
   onClick?: (() => void) | undefined;
   children?: ReactNode;
 };
@@ -59,16 +67,29 @@ const NavLinkTo = Link as unknown as ComponentType<LooseLinkProps>;
 /** Valor do seletor que representa "todas as entidades visíveis". */
 const ROOT_TREE = "__tree__";
 
-const COLLAPSE_KEY = "glpi.sidebar.collapsed";
-const OPEN_GROUPS_KEY = "glpi.sidebar.groups";
+type NavCounts = { abertos: number; meus: number; sem_tecnico: number };
 
-function isLinkActive(link: NavLink, pathname: string, search: Record<string, unknown>) {
-  const base = link.to.replace("/$slug", "");
-  const slug = link.params?.["slug"];
-  if (slug) return pathname === `/modulo/${slug}`;
-  if (pathname !== base) return false;
-  if (!link.search) return true;
-  return Object.entries(link.search).every(([key, value]) => String(search[key] ?? "") === value);
+/** Contadores do menu: uma consulta leve, só status e responsável. */
+function useNavCounts(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["nav_counts", userId],
+    enabled: Boolean(userId),
+    staleTime: 30_000,
+    queryFn: async (): Promise<NavCounts> => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("status,assignee_id")
+        .eq("is_deleted", false)
+        .in("status", OPEN_STATUSES);
+      if (error) throw error;
+      const rows = (data ?? []) as { status: TicketStatus; assignee_id: string | null }[];
+      return {
+        abertos: rows.length,
+        meus: rows.filter((r) => r.assignee_id === userId).length,
+        sem_tecnico: rows.filter((r) => !r.assignee_id).length,
+      };
+    },
+  });
 }
 
 export function AppShell({
@@ -80,7 +101,7 @@ export function AppShell({
 }: {
   children: ReactNode;
   title?: string | undefined;
-  subtitle?: string | undefined;
+  subtitle?: ReactNode;
   breadcrumbTail?: string | undefined;
   actions?: ReactNode;
 }) {
@@ -89,89 +110,29 @@ export function AppShell({
   const { user, profileName, can, error: permissionsError } = usePermissions();
   const { entities, selectedId, setSelectedId } = useEntity();
   const location = useRouterState({ select: (s) => s.location });
-  // O padrão é o rail recolhido (só ícones); ele se abre ao passar o mouse.
-  // Quem preferir a barra sempre aberta fixa pelo botão da barra superior.
-  const [collapsed, setCollapsed] = useState(true);
-  const [hoverOpen, setHoverOpen] = useState(false);
-  const [openGroups, setOpenGroups] = useState<string[]>([]);
-  const [term, setTerm] = useState("");
+  const { dark, toggle: toggleTheme } = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const counts = useNavCounts(user?.id);
 
   const search = useMemo(
     () => (location.search ?? {}) as Record<string, unknown>,
     [location.search],
   );
+  const activeId = activeNavId(location.pathname, search);
+  const canRead = (right: string | undefined) => !right || can(right, "read");
 
   useEffect(() => {
-    // Só a preferência salva pode desfazer o padrão recolhido. Abaixo de lg a
-    // barra nem é renderizada (o menu vira a folha lateral), então não há
-    // nada a decidir por largura de tela aqui.
-    const pinned = localStorage.getItem(COLLAPSE_KEY);
-    if (pinned !== null) setCollapsed(pinned === "1");
-    const stored = localStorage.getItem(OPEN_GROUPS_KEY);
-    setOpenGroups(stored ? (JSON.parse(stored) as string[]) : ["assistencia"]);
+    function onKey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
-
-  // Mantém aberto o grupo da tela atual, como o GLPI faz ao navegar.
-  const activeGroup = useMemo(() => {
-    for (const group of NAV_GROUPS) {
-      if (group.links.some((l) => isLinkActive(l, location.pathname, search))) return group.id;
-    }
-    return null;
-  }, [location.pathname, search]);
-
-  useEffect(() => {
-    if (activeGroup) {
-      setOpenGroups((prev) => (prev.includes(activeGroup) ? prev : [...prev, activeGroup]));
-    }
-  }, [activeGroup]);
-
-  function persistGroups(next: string[]) {
-    setOpenGroups(next);
-    localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(next));
-  }
-
-  function toggleGroup(id: string) {
-    persistGroups(
-      openGroups.includes(id) ? openGroups.filter((g) => g !== id) : [...openGroups, id],
-    );
-  }
-
-  // Como abrir empurra o conteúdo, uma passada de raspão pela barra faria a
-  // página saltar à toa. A espera curta exige intenção: quem só atravessa a
-  // faixa da esquerda a caminho de outra coisa não dispara nada. Fechar é
-  // imediato, porque devolver o espaço não tem por que esperar.
-  const timerHover = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function cancelarEspera() {
-    if (timerHover.current) {
-      clearTimeout(timerHover.current);
-      timerHover.current = null;
-    }
-  }
-
-  function abrirNoHover() {
-    cancelarEspera();
-    timerHover.current = setTimeout(() => setHoverOpen(true), 180);
-  }
-
-  function fecharNoHover() {
-    cancelarEspera();
-    setHoverOpen(false);
-  }
-
-  useEffect(() => cancelarEspera, []);
-
-  /** Fixa a barra aberta ou devolve ela ao rail que abre no hover. */
-  function toggleCollapsed() {
-    const next = !collapsed;
-    setCollapsed(next);
-    // Com a barra fixa aberta o hover não tem mais o que fazer; zerar evita
-    // que um hover pendente reabra o rail no clique seguinte.
-    setHoverOpen(false);
-    localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-  }
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -180,15 +141,9 @@ export function AppShell({
     navigate({ to: "/auth", replace: true });
   }
 
-  function submitSearch(event: React.FormEvent) {
-    event.preventDefault();
-    navigate({ to: "/chamados", search: { busca: term.trim() || undefined } as never });
-  }
+  const crumbs = breadcrumbFor(location.pathname, search, breadcrumbTail);
+  const tabs = sectionTabsFor(location.pathname)?.filter((t) => canRead(t.right)) ?? null;
 
-  const crumbs = breadcrumbFor(location.pathname, breadcrumbTail);
-  const perfil = profileName;
-
-  // O GLPI mostra o nome antes do e-mail, e a entidade logo abaixo.
   const userName =
     (user?.user_metadata?.["full_name"] as string | undefined) ||
     user?.email?.split("@")[0] ||
@@ -201,230 +156,201 @@ export function AppShell({
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-  const sidebarCollapsed = collapsed && !hoverOpen;
-  const sidebar = (
+  const nav = (onNavigate?: () => void) => (
     <SidebarNav
-      collapsed={sidebarCollapsed}
-      openGroups={openGroups}
-      onToggleGroup={toggleGroup}
-      pathname={location.pathname}
-      search={search}
-      canRead={(right) => !right || can(right, "read")}
-      onNavigate={() => undefined}
+      activeId={activeId}
+      canRead={canRead}
+      counts={counts.data}
+      onNavigate={onNavigate}
     />
   );
 
-  return (
-    <TooltipProvider delayDuration={300}>
-      <div className="flex min-h-screen bg-background">
-        {/*
-          Menu lateral — escondido no celular, abre pela folha lateral.
-          O invólucro acompanha a largura visível, então abrir no hover empurra
-          o conteúdo em vez de cobri-lo. Sobrepor escondia coluna de tabela
-          justamente enquanto se lia a tabela.
-          O <aside> segue absoluto dentro do invólucro para que as duas larguras
-          animem juntas; sem isso o conteúdo saltaria antes da barra terminar.
-        */}
-        <div
-          className={`sticky top-2 z-40 m-2 hidden h-[calc(100vh-1rem)] shrink-0 transition-[width] duration-300 ease-out lg:block ${
-            sidebarCollapsed ? "w-[4.25rem]" : "w-60"
-          }`}
+  const userMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-hover"
         >
-          <aside
-            onMouseEnter={abrirNoHover}
-            onMouseLeave={fecharNoHover}
-            // Quem navega pelo teclado também precisa ver os rótulos ao
-            // chegar nos itens; o mouse não pode ser o único jeito de abrir.
-            onFocusCapture={() => {
-              cancelarEspera();
-              setHoverOpen(true);
-            }}
-            onBlurCapture={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                fecharNoHover();
-              }
-            }}
-            className={`sidebar-surface sidebar-rail absolute inset-y-0 left-0 flex flex-col border border-sidebar-border text-sidebar-foreground transition-[width] duration-300 ease-out ${
-              sidebarCollapsed ? "w-[4.25rem]" : "w-60"
-            }`}
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[0.7rem] font-semibold text-primary-foreground">
+            {initials}
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[0.8125rem] font-medium">{userName}</span>
+            <span className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+              <span className="live-dot" /> {profileName || "Sem perfil"}
+            </span>
+          </span>
+          <ChevronsUpDown className="size-4 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="start" className="w-60 p-1.5">
+        <DropdownMenuLabel className="text-xs font-normal">
+          <span className="block truncate font-medium text-foreground">{userName}</span>
+          <span className="block truncate text-muted-foreground">{user?.email ?? ""}</span>
+          <span className="block truncate text-muted-foreground">{entityName}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setProfileOpen(true)}>
+          <User className="size-4" /> Minha conta
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={toggleTheme}>
+          {dark ? <Sun className="size-4" /> : <Moon className="size-4" />} Tema{" "}
+          {dark ? "claro" : "escuro"}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut}>
+          <LogOut className="size-4" /> Sair
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const brand = (
+    <Link to="/painel" className="flex items-center gap-2.5 px-2 pb-1">
+      <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[#5f84ff] text-white shadow-[0_4px_12px_-4px_var(--primary)]">
+        <svg
+          viewBox="0 0 24 24"
+          className="size-[1.05rem]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 7h16M4 12h10M4 17h6" />
+          <circle cx="18" cy="16" r="3" />
+        </svg>
+      </span>
+      <span className="leading-tight">
+        <span className="block text-[0.9rem] font-semibold tracking-tight">Central</span>
+        <span className="block text-xs text-muted-foreground">Chamados de T.I.</span>
+      </span>
+    </Link>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      {/* Barra lateral fixa no desktop */}
+      <aside className="sticky top-0 hidden h-screen w-[244px] shrink-0 flex-col gap-4 border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground transition-colors duration-300 lg:flex">
+        {brand}
+        <div className="-mx-1 flex-1 overflow-y-auto px-1">{nav()}</div>
+        <div className="border-t border-sidebar-border pt-3">{userMenu}</div>
+      </aside>
+
+      {/* Mesma navegação numa folha lateral no celular e no tablet */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="flex w-[17rem] flex-col gap-4 bg-sidebar p-3 pt-5">
+          <SheetTitle className="sr-only">Menu</SheetTitle>
+          {brand}
+          <div className="flex-1 overflow-y-auto">{nav(() => setMobileOpen(false))}</div>
+          <div className="border-t border-sidebar-border pt-3">{userMenu}</div>
+        </SheetContent>
+      </Sheet>
+
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-topbar px-3 text-topbar-foreground backdrop-blur-md backdrop-saturate-150 transition-colors duration-300 sm:px-5 lg:px-7">
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="size-9 lg:hidden"
+            aria-label="Abrir menu"
+            onClick={() => setMobileOpen(true)}
           >
-            <div className="flex-1 overflow-y-auto pb-3 pt-2">{sidebar}</div>
-          </aside>
-        </div>
+            <Menu className="size-5" />
+          </Button>
 
-        {/* Folha lateral para celular/tablet */}
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-[16.5rem] border-sidebar-border bg-sidebar p-0">
-            <SheetTitle className="sr-only">Menu</SheetTitle>
-            <div className="flex h-full flex-col">
-              <div className="flex-1 overflow-y-auto p-2 pb-3 pt-2">
-                <SidebarNav
-                  collapsed={false}
-                  openGroups={openGroups}
-                  onToggleGroup={toggleGroup}
-                  pathname={location.pathname}
-                  search={search}
-                  canRead={(right) => !right || can(right, "read")}
-                  onNavigate={() => setMobileOpen(false)}
-                />
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          {/* Barra superior */}
-          <header className="topbar-glass sticky top-0 z-30 border-b border-border text-topbar-foreground">
-            <div className="flex h-12 items-center gap-2 px-3">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-8 lg:hidden"
-                aria-label="Abrir menu"
-                onClick={() => setMobileOpen(true)}
-              >
-                <Menu className="size-5" />
-              </Button>
-
-              {/* No desktop o rail já abre no hover; este botão é para quem
-                  quer a barra travada aberta. A escolha fica salva. */}
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="hidden size-8 lg:inline-flex"
-                aria-label={collapsed ? "Fixar menu aberto" : "Recolher menu"}
-                aria-pressed={!collapsed}
-                onClick={toggleCollapsed}
-              >
-                {collapsed ? (
-                  <PanelLeftOpen className="size-5" />
+          <nav
+            aria-label="Caminho"
+            className="hidden min-w-0 items-center gap-2 text-[0.8125rem] text-muted-foreground md:flex"
+          >
+            {crumbs.map((crumb, index) => (
+              <span key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-2">
+                {index > 0 && <ChevronRight className="size-3.5 shrink-0 opacity-60" />}
+                {crumb.to && index < crumbs.length - 1 ? (
+                  <NavLinkTo
+                    to={crumb.to}
+                    className="whitespace-nowrap transition-colors hover:text-foreground"
+                  >
+                    {crumb.label}
+                  </NavLinkTo>
                 ) : (
-                  <PanelLeftClose className="size-5" />
+                  <span className="truncate font-medium text-foreground">{crumb.label}</span>
                 )}
-              </Button>
+              </span>
+            ))}
+          </nav>
 
+          <div className="ml-auto flex items-center gap-1.5">
+            {entities.length > 1 && (
               <Select
                 value={selectedId ?? entities[0]?.id ?? ROOT_TREE}
                 onValueChange={(v) => setSelectedId(v === ROOT_TREE ? null : v)}
               >
                 <SelectTrigger
-                  className="hidden h-8 w-[220px] text-xs sm:flex"
-                  aria-label="Entidade"
+                  className="hidden h-9 w-[190px] text-[0.8125rem] xl:flex"
+                  aria-label="Empresa"
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {entities.map((e) => (
                     <SelectItem key={e.id} value={e.id}>
-                      {" ".repeat(e.level * 3)}
+                      {" ".repeat(e.level * 3)}
                       {e.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            )}
 
-              <form onSubmit={submitSearch} className="relative ml-auto hidden w-64 md:block">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={term}
-                  onChange={(e) => setTerm(e.target.value)}
-                  placeholder="Buscar chamado..."
-                  className="h-8 pl-8 text-xs"
-                />
-              </form>
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="flex h-9 items-center gap-2.5 rounded-lg border border-border bg-surface-2 px-2.5 text-[0.8125rem] text-muted-foreground transition-colors hover:border-input hover:bg-surface sm:w-[260px]"
+              aria-label="Buscar (Ctrl+K)"
+            >
+              <Search className="size-4 shrink-0" />
+              <span className="hidden flex-1 truncate text-left sm:block">
+                Buscar chamado ou ação
+              </span>
+              <kbd className="hidden rounded-[5px] border border-b-2 border-input bg-surface px-1.5 font-mono text-[0.65rem] text-muted-foreground sm:inline">
+                Ctrl K
+              </kbd>
+            </button>
 
-              <div className="ml-auto flex items-center gap-1 md:ml-0">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    {/* Bloco do usuário: avatar com iniciais, nome em cima
-                        e a entidade atual embaixo, em duas linhas. */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-10 gap-2 rounded-xl px-2 text-xs hover:bg-secondary"
-                    >
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#8b5cf6] text-[0.7rem] font-semibold text-white shadow-sm">
-                        {initials}
-                      </span>
-                      <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
-                        <span className="max-w-[150px] truncate font-medium">{userName}</span>
-                        <span className="max-w-[150px] truncate text-[0.7rem] text-muted-foreground">
-                          {entityName}
-                        </span>
-                      </span>
-                      <ChevronDown className="size-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 p-1.5">
-                    <DropdownMenuLabel className="mb-1 rounded-lg bg-secondary/70 p-2.5 text-xs font-normal">
-                      <span className="flex items-center gap-2">
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#8b5cf6] text-[0.72rem] font-semibold text-white">
-                          {initials}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block truncate font-medium">{userName}</span>
-                          <span className="block truncate text-[0.7rem] text-muted-foreground">
-                            {user?.email ?? "Usuário"}
-                          </span>
-                        </span>
-                      </span>
-                      <span className="mt-2 flex flex-wrap gap-1">
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[0.66rem] font-medium text-primary">
-                          {perfil || "Sem perfil"}
-                        </span>
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[0.66rem] text-muted-foreground">
-                          {entityName}
-                        </span>
-                      </span>
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setProfileOpen(true)}>
-                      <User className="size-4" /> Minha conta
-                    </DropdownMenuItem>
-                    {can("user", "read") && (
-                      <DropdownMenuItem asChild>
-                        <NavLinkTo to="/administracao/usuarios">
-                          <UsersRound className="size-4" /> Gerenciar usuários
-                        </NavLinkTo>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="size-4" /> Sair
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
-              </div>
-            </div>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="size-9 [&_svg]:transition-transform [&_svg]:duration-500 active:[&_svg]:-rotate-45"
+              aria-label={dark ? "Mudar para o tema claro" : "Mudar para o tema escuro"}
+              title={dark ? "Tema claro" : "Tema escuro"}
+              onClick={toggleTheme}
+            >
+              {dark ? <Sun className="size-[1.1rem]" /> : <Moon className="size-[1.1rem]" />}
+            </Button>
 
-            {/* Caminho de navegação */}
-            <div className="flex h-8 items-center gap-1.5 border-t border-border bg-muted/60 px-3 text-xs text-muted-foreground">
-              {crumbs.map((crumb, index) => (
-                <span key={`${crumb.label}-${index}`} className="flex items-center gap-1.5">
-                  {index > 0 && <ChevronRight className="size-3 opacity-60" />}
-                  {crumb.to ? (
-                    <NavLinkTo to={crumb.to} className="hover:text-foreground hover:underline">
-                      {crumb.label}
-                    </NavLinkTo>
-                  ) : (
-                    <span className={index === crumbs.length - 1 ? "text-foreground" : undefined}>
-                      {crumb.label}
-                    </span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </header>
+            {can("ticket", "create") && (
+              <Button size="sm" asChild className="btn-sheen h-9 rounded-lg px-3">
+                <Link to="/chamados/novo">
+                  <Plus className="size-4" />
+                  <span className="hidden sm:inline">Novo chamado</span>
+                </Link>
+              </Button>
+            )}
+          </div>
+        </header>
 
-          <main key={location.pathname} className="rise-in min-w-0 flex-1 px-3 py-4 lg:px-5">
-            {/*
-              Sem permissões o menu fica só com o Painel, e antes disso não
-              havia aviso nenhum: o sistema parecia vazio em vez de quebrado.
-            */}
+        <main
+          key={location.pathname}
+          className="relative min-w-0 flex-1 px-4 pb-16 pt-6 sm:px-5 lg:px-8 lg:pt-7"
+        >
+          <div className="aura" aria-hidden="true" />
+          <div className="relative z-[1] mx-auto w-full max-w-[1320px] rise-in">
             {permissionsError && (
-              <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
+              <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
                 <TriangleAlert className="size-4 shrink-0 text-destructive" />
                 <span className="flex-1">
                   Não foi possível carregar suas permissões, então o menu está incompleto. Isto é
@@ -433,179 +359,282 @@ export function AppShell({
                 </span>
                 <button
                   type="button"
-                  className="rounded border border-border px-2 py-1 font-medium hover:bg-secondary"
+                  className="rounded-md border border-border px-2 py-1 font-medium hover:bg-secondary"
                   onClick={() => queryClient.invalidateQueries({ queryKey: ["my_permissions"] })}
                 >
                   Tentar de novo
                 </button>
               </div>
             )}
+
             {(title || actions) && (
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div>
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                <div className="min-w-0">
                   {title && (
-                    <h1 className="text-[1.0625rem] font-semibold tracking-tight">{title}</h1>
+                    <h1 className="text-[1.375rem] font-semibold leading-tight tracking-tight">
+                      {title}
+                    </h1>
                   )}
-                  {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+                  {subtitle && (
+                    <p className="mt-1 text-[0.8125rem] text-muted-foreground">{subtitle}</p>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">{actions}</div>
+                {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
               </div>
             )}
+
+            {tabs && tabs.length > 1 && <SectionTabs tabs={tabs} pathname={location.pathname} />}
+
             {children}
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
-    </TooltipProvider>
+
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        canRead={canRead}
+        dark={dark}
+        onToggleTheme={toggleTheme}
+      />
+    </div>
   );
 }
 
+/**
+ * Menu lateral com um realce que desliza até o item ativo. O realce é um só
+ * elemento posicionado por medida, por isso anima de um item para outro.
+ */
 function SidebarNav({
-  collapsed,
-  openGroups,
-  onToggleGroup,
-  pathname,
-  search,
+  activeId,
   canRead,
+  counts,
   onNavigate,
 }: {
-  collapsed: boolean;
-  openGroups: string[];
-  onToggleGroup: (id: string) => void;
-  pathname: string;
-  search: Record<string, unknown>;
+  activeId: string | null;
   canRead: (right: string | undefined) => boolean;
-  onNavigate: () => void;
+  counts: NavCounts | undefined;
+  onNavigate?: (() => void) | undefined;
 }) {
-  const [filter, setFilter] = useState("");
-  const needle = filter.trim().toLowerCase();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [marker, setMarker] = useState<{ top: number; height: number } | null>(null);
+  // Muda quando as permissões mudam o conjunto de itens, e só então.
+  const visibleKey = NAV_SECTIONS.flatMap((s) => s.links)
+    .filter((l) => canRead(l.right))
+    .map((l) => l.id)
+    .join(",");
 
-  // "Find menu" do GLPI: filtra grupos e itens pelo rótulo. Com filtro ativo
-  // todos os grupos que casam ficam abertos, senão o filtro não serviria.
-  const matches = (text: string) => !needle || text.toLowerCase().includes(needle);
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    const el = wrap?.querySelector<HTMLElement>(`[data-nav-id="${activeId}"]`);
+    if (!wrap || !el) {
+      setMarker(null);
+      return;
+    }
+    setMarker({ top: el.offsetTop, height: el.offsetHeight });
+  }, [activeId, visibleKey]);
 
   return (
-    <nav className="text-sm">
-      {!collapsed && (
-        <div className="px-2 pb-2">
-          <label className="relative block">
-            <span className="sr-only">Buscar no menu</span>
-            <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-sidebar-foreground/50" />
-            <input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="Buscar no menu"
-              className="h-8 w-full rounded-xl border border-white/10 bg-black/25 pl-7 pr-2 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus:border-sidebar-primary focus:outline-none"
-            />
-          </label>
-        </div>
-      )}
-
-      {collapsed ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <NavLinkTo
-              to="/painel"
-              onClick={onNavigate}
-              className={`nav-icon ${pathname === "/painel" ? "nav-icon-active" : ""}`}
-              title="Painel"
-            >
-              <LayoutDashboard className="size-[1.15rem] shrink-0" />
-            </NavLinkTo>
-          </TooltipTrigger>
-          <TooltipContent side="right">Painel</TooltipContent>
-        </Tooltip>
-      ) : (
-        <NavLinkTo
-          to="/painel"
-          onClick={onNavigate}
-          className={`nav-link ${pathname === "/painel" ? "nav-link-active" : ""}`}
-          title="Painel"
-        >
-          <LayoutDashboard className="size-4 shrink-0" />
-          <span>Painel</span>
-        </NavLinkTo>
-      )}
-
-      {NAV_GROUPS.map((group) => {
-        // Um grupo sem nenhum item legível some do menu, como no GLPI.
-        const readable = group.links.filter((l) => canRead(l.right));
-        const groupMatches = matches(group.label);
-        const links = readable.filter((l) => groupMatches || matches(l.label));
+    <div ref={wrapRef} className="relative flex flex-col gap-5">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 rounded-lg bg-sidebar-accent shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_22%,transparent)] transition-[transform,height,opacity] duration-[350ms] ease-out-soft"
+        style={{
+          transform: `translateY(${marker?.top ?? 0}px)`,
+          height: marker?.height ?? 0,
+          opacity: marker ? 1 : 0,
+          top: 0,
+        }}
+      />
+      {NAV_SECTIONS.map((section) => {
+        const links = section.links.filter((l) => canRead(l.right));
         if (links.length === 0) return null;
-
-        const open = needle ? true : openGroups.includes(group.id);
-        const Icon = group.icon;
-        const hasActive = links.some((l) => isLinkActive(l, pathname, search));
-
-        const first = links[0];
-        if (collapsed && first) {
-          return (
-            <Tooltip key={group.id}>
-              <TooltipTrigger asChild>
-                <NavLinkTo
-                  to={first.to}
-                  params={first.params}
-                  search={first.search}
-                  onClick={onNavigate}
-                  className={`nav-icon ${hasActive ? "nav-icon-active" : ""}`}
-                >
-                  <Icon className="size-[1.15rem]" />
-                </NavLinkTo>
-              </TooltipTrigger>
-              <TooltipContent side="right">{group.label}</TooltipContent>
-            </Tooltip>
-          );
-        }
-
         return (
-          <div key={group.id}>
-            <button
-              type="button"
-              onClick={() => onToggleGroup(group.id)}
-              className={`nav-link ${hasActive ? "nav-link-active" : open ? "bg-white/5 text-white" : ""}`}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="flex-1 truncate">{group.label}</span>
-              <ChevronDown
-                className={`size-3.5 transition-transform ${open ? "" : "-rotate-90"} opacity-70`}
+          <div key={section.id} className="flex flex-col gap-px">
+            <span className="px-2.5 pb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
+              {section.label}
+            </span>
+            {links.map((link) => (
+              <NavItem
+                key={link.id}
+                link={link}
+                active={link.id === activeId}
+                count={link.count ? counts?.[link.count] : undefined}
+                onNavigate={onNavigate}
               />
-            </button>
-            {open && (
-              <ul className="nav-sub">
-                {links.map((link) => {
-                  const active = isLinkActive(link, pathname, search);
-                  return (
-                    <li key={`${link.to}-${link.label}`}>
-                      <NavLinkTo
-                        to={link.to}
-                        params={link.params}
-                        search={link.search}
-                        onClick={onNavigate}
-                        className={`nav-sub-link ${active ? "nav-sub-active" : ""}`}
-                      >
-                        <span className="truncate">{link.label}</span>
-                        {link.soon && (
-                          <span className="ml-auto rounded-sm bg-black/25 px-1 text-[0.6rem] uppercase tracking-wide opacity-70">
-                            em breve
-                          </span>
-                        )}
-                      </NavLinkTo>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            ))}
           </div>
         );
       })}
-    </nav>
+    </div>
   );
 }
 
-/** Botão "+ Adicionar" no canto do cabeçalho, como no GLPI. */
+function NavItem({
+  link,
+  active,
+  count,
+  onNavigate,
+}: {
+  link: NavLink;
+  active: boolean;
+  count: number | undefined;
+  onNavigate?: (() => void) | undefined;
+}) {
+  const Icon = link.icon;
+  return (
+    <span data-nav-id={link.id} className="relative block">
+      <NavLinkTo
+        to={link.to}
+        search={link.search}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={`relative flex h-[2.125rem] items-center gap-2.5 rounded-lg px-2.5 text-[0.84375rem] transition-colors duration-200 ${
+          active
+            ? "font-medium text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-hover hover:text-foreground"
+        }`}
+      >
+        <Icon className="size-[1.05rem] shrink-0 opacity-90" />
+        <span className="flex-1 truncate">{link.label}</span>
+        {count !== undefined && count > 0 && (
+          <span
+            className={`min-w-5 text-right font-mono text-[0.7rem] tabular-nums ${
+              link.count === "sem_tecnico"
+                ? "font-medium text-destructive"
+                : "text-muted-foreground"
+            }`}
+          >
+            {count}
+          </span>
+        )}
+      </NavLinkTo>
+    </span>
+  );
+}
+
+/** Abas das telas que dividem o mesmo item do menu, com sublinhado que desliza. */
+function SectionTabs({
+  tabs,
+  pathname,
+}: {
+  tabs: { label: string; to: string }[];
+  pathname: string;
+}) {
+  return (
+    <SlidingTabs
+      className="mb-5"
+      items={tabs.map((t) => ({ key: t.to, label: t.label, to: t.to }))}
+      activeKey={pathname}
+    />
+  );
+}
+
+/**
+ * Faixa de abas com sublinhado deslizante. Serve tanto para links (to) quanto
+ * para botões (onSelect), e aceita um contador por aba.
+ */
+export function SlidingTabs({
+  items,
+  activeKey,
+  onSelect,
+  className = "",
+}: {
+  items: {
+    key: string;
+    label: string;
+    to?: string;
+    search?: Record<string, string>;
+    count?: number;
+  }[];
+  activeKey: string;
+  onSelect?: (key: string) => void;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ink, setInk] = useState<{ left: number; width: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = ref.current?.querySelector<HTMLElement>(
+        `[data-tab-key="${CSS.escape(activeKey)}"]`,
+      );
+      setInk(el ? { left: el.offsetLeft + 8, width: el.offsetWidth - 16 } : null);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure).catch(() => undefined);
+    return () => window.removeEventListener("resize", measure);
+  }, [activeKey, items.length]);
+
+  return (
+    <div
+      ref={ref}
+      role="tablist"
+      className={`relative flex gap-0.5 overflow-x-auto border-b border-border [scrollbar-width:none] ${className}`}
+    >
+      {items.map((item) => {
+        const active = item.key === activeKey;
+        const inner = (
+          <>
+            {item.label}
+            {item.count !== undefined && (
+              <span
+                className={`rounded-full px-1.5 font-mono text-[0.68rem] leading-[1.15rem] transition-colors ${
+                  active ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {item.count}
+              </span>
+            )}
+          </>
+        );
+        const cls = `flex h-10 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[0.84375rem] font-medium transition-colors ${
+          active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+        }`;
+        return item.to ? (
+          <span key={item.key} data-tab-key={item.key} role="presentation">
+            <NavLinkTo
+              to={item.to}
+              search={item.search}
+              className={cls}
+              aria-current={active ? "page" : undefined}
+            >
+              {inner}
+            </NavLinkTo>
+          </span>
+        ) : (
+          <button
+            key={item.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            data-tab-key={item.key}
+            className={cls}
+            onClick={() => onSelect?.(item.key)}
+          >
+            {inner}
+          </button>
+        );
+      })}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-[-1px] left-0 h-0.5 rounded-full bg-primary transition-[transform,width] duration-[350ms] ease-out-soft"
+        style={{
+          transform: `translateX(${ink?.left ?? 0}px)`,
+          width: ink?.width ?? 0,
+          opacity: ink ? 1 : 0,
+        }}
+      />
+    </div>
+  );
+}
+
+/** Botão "+ Adicionar" no canto do cabeçalho. */
 export function AddButton({ to, params }: { to: string; params?: Record<string, string> }) {
   return (
-    <Button size="sm" asChild className="h-8">
+    <Button size="sm" asChild className="h-9">
       <NavLinkTo to={to} params={params}>
         <Plus className="size-4" /> Adicionar
       </NavLinkTo>

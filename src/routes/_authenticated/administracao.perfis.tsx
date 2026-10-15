@@ -34,7 +34,7 @@ import {
   type RightDefinitionRow,
 } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
-import { RIGHT_ACTIONS, RIGHT_CATEGORIES, type RightAction } from "@/lib/permissions";
+import { RIGHT_ACTIONS, RIGHT_CATEGORIES, rightTab, type RightAction } from "@/lib/permissions";
 import { STATUS_LABEL, STATUS_ORDER } from "@/lib/tickets";
 
 export const Route = createFileRoute("/_authenticated/administracao/perfis")({
@@ -348,7 +348,7 @@ function Perfis() {
               </div>
             </div>
 
-            <Tabs defaultValue="ativos">
+            <Tabs defaultValue="assistencia">
               <TabsList className="min-h-8">
                 {RIGHT_CATEGORIES.map((c) => (
                   <TabsTrigger key={c.key} value={c.key} className="text-xs">
@@ -380,7 +380,7 @@ function Perfis() {
                         </thead>
                         <tbody>
                           {definitions
-                            .filter((d) => d.category === category.key)
+                            .filter((d) => rightTab(d) === category.key)
                             .map((d) => {
                               const row = rightsByObject.get(d.key);
                               return (

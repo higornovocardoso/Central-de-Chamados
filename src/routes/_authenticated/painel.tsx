@@ -1,39 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as ChartTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  Activity,
-  CircleCheck,
-  Clock,
-  Maximize,
-  Plus,
-  RefreshCw,
-  Timer,
-  TriangleAlert,
-  Users,
-} from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { ArrowRight, CircleCheck, CircleHelp, Inbox, TriangleAlert } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { DashboardSelector } from "@/components/DashboardSelector";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { slaState } from "@/lib/glpi";
+import { db } from "@/integrations/supabase/glpi-db";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useCountUp } from "@/hooks/useCountUp";
+import {
+  PRAZO_COR,
+  PRAZO_TEXTO,
+  duracao,
+  porPrazo,
+  prazoCurto,
+  prazoDe,
+  relogio,
+  useAgora,
+} from "@/lib/prazo";
 import {
   PRIORITY_LABEL,
-  STATUS_DOT,
   STATUS_LABEL,
-  STATUS_ORDER,
-  formatDate,
   isOpenStatus,
-  relativeTime,
   ticketCode,
   type TicketPriority,
   type TicketStatus,
@@ -46,15 +35,8 @@ export const Route = createFileRoute("/_authenticated/painel")({
       {
         name: "description",
         content:
-          "Visão geral dos chamados de T.I.: contadores por status, SLA, carga por técnico e evolução no mês.",
+          "O que precisa de atenção agora: prazos, fila sem técnico, carga da equipe e o chamado que você está atendendo.",
       },
-      { property: "og:title", content: "Painel" },
-      {
-        property: "og:description",
-        content: "Contadores por status, SLA e carga da equipe de suporte.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Painel,
@@ -67,52 +49,49 @@ type TicketRow = {
   status: TicketStatus;
   priority: TicketPriority;
   created_at: string;
-  updated_at: string;
   resolved_at: string | null;
   resolution_due_at: string | null;
   requester_id: string | null;
   reporter_name: string;
+  reporter_sector: string;
   assignee_id: string | null;
 };
 
-/** Cor de cada status nas etiquetas do topo. */
-const STATUS_PILL: Record<TicketStatus, string> = {
-  aberto: "pill-info",
-  em_andamento: "pill-primary",
-  planejado: "pill-purple",
-  aguardando: "pill-warning",
-  resolvido: "pill-success",
-  fechado: "pill-muted",
-};
+const PERIODOS = [
+  { dias: 7, label: "7 dias" },
+  { dias: 30, label: "30 dias" },
+  { dias: 90, label: "90 dias" },
+] as const;
 
-const PRIORITY_PILL: Record<TicketPriority, string> = {
-  baixa: "pill-muted",
-  media: "pill-info",
-  alta: "pill-warning",
-  critica: "pill-danger",
-};
+const PRIORITY_RANK: Record<TicketPriority, number> = { critica: 0, alta: 1, media: 2, baixa: 3 };
+const DIA = 86_400_000;
 
-const PRIORITY_HUE: Record<TicketPriority, string> = {
-  baixa: "var(--muted-foreground)",
-  media: "var(--info)",
-  alta: "var(--warning)",
-  critica: "var(--destructive)",
-};
+function inicioDoDia(ms: number) {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
 
 function Painel() {
+  const queryClient = useQueryClient();
+  const { user, can } = usePermissions();
+  const [periodo, setPeriodo] = useState<number>(30);
+  const agora = useAgora(30_000);
+
   const ticketsQuery = useQuery({
-    queryKey: ["tickets"],
+    queryKey: ["tickets", "painel"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select("*")
-        // Sem isto o painel conta o que está na lixeira: a tela de Chamados
-        // esconde is_deleted, o painel não escondia, e os números divergiam.
+        .select(
+          "id,title,category,status,priority,created_at,resolved_at,resolution_due_at,requester_id,reporter_name,reporter_sector,assignee_id",
+        )
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as TicketRow[];
     },
+    refetchInterval: 60_000,
   });
 
   const profilesQuery = useQuery({
@@ -124,628 +103,1057 @@ function Painel() {
     },
   });
 
-  const nameById = useMemo(() => {
+  const nomeDe = useMemo(() => {
     const map = new Map<string, string>();
     for (const p of profilesQuery.data ?? []) map.set(p.id, p.full_name || p.email);
-    return map;
+    return (id: string | null) => (id ? (map.get(id) ?? "—") : "Sem técnico");
   }, [profilesQuery.data]);
 
   const tickets = useMemo(() => ticketsQuery.data ?? [], [ticketsQuery.data]);
+  const abertos = useMemo(() => tickets.filter((t) => isOpenStatus(t.status)), [tickets]);
+  const estourados = abertos.filter((t) => prazoDe(t, agora).estado === "late");
 
-  const counters = useMemo(
+  // Fila: sem técnico, quem estoura antes primeiro; no empate, a prioridade.
+  const fila = useMemo(
     () =>
-      STATUS_ORDER.map((status) => ({
-        status,
-        label: STATUS_LABEL[status],
-        value: tickets.filter((t) => t.status === status).length,
-      })),
-    [tickets],
+      abertos
+        .filter((t) => !t.assignee_id)
+        .sort((a, b) => porPrazo(a, b) || PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]),
+    [abertos],
   );
 
-  const late = useMemo(
+  // O chamado que a pessoa está atendendo: o mais urgente dos dela em atendimento.
+  const atendendo = useMemo(
     () =>
-      tickets.filter(
-        (t) => slaState(t.resolution_due_at, t.resolved_at, t.status === "fechado").late,
-      ),
-    [tickets],
+      abertos
+        .filter((t) => t.assignee_id === user?.id && t.status !== "aguardando")
+        .sort(porPrazo)[0] ?? null,
+    [abertos, user?.id],
   );
 
-  const open = useMemo(() => tickets.filter((t) => isOpenStatus(t.status)), [tickets]);
+  const proximos = useMemo(
+    () =>
+      abertos
+        .filter((t) => t.id !== atendendo?.id)
+        .sort((a, b) => porPrazo(a, b) || PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
+        .slice(0, 6),
+    [abertos, atendendo?.id],
+  );
 
-  const avgHours = useMemo(() => {
-    const durations = tickets
-      .filter((t) => t.resolved_at)
-      .map((t) => new Date(t.resolved_at!).getTime() - new Date(t.created_at).getTime());
-    if (durations.length === 0) return null;
-    return durations.reduce((a, b) => a + b, 0) / durations.length / 3_600_000;
-  }, [tickets]);
-
-  const solvedRate = useMemo(() => {
-    if (tickets.length === 0) return 0;
-    const solved = tickets.filter((t) => t.status === "resolvido" || t.status === "fechado").length;
-    return Math.round((solved / tickets.length) * 100);
-  }, [tickets]);
-
-  const slaRate = useMemo(() => {
-    if (tickets.length === 0) return 100;
-    return Math.round(((tickets.length - late.length) / tickets.length) * 100);
-  }, [tickets, late]);
-
-  const byPriority = useMemo(() => {
-    const order: TicketPriority[] = ["critica", "alta", "media", "baixa"];
-    return order.map((priority) => ({
-      priority,
-      label: PRIORITY_LABEL[priority],
-      value: tickets.filter((t) => t.priority === priority).length,
-    }));
-  }, [tickets]);
-
-  const byCategory = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const t of tickets) map.set(t.category, (map.get(t.category) ?? 0) + 1);
-    return [...map.entries()]
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 6);
-  }, [tickets]);
-
-  const byTechnician = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const t of open) {
-      const key = t.assignee_id ? (nameById.get(t.assignee_id) ?? "—") : "Não atribuído";
-      map.set(key, (map.get(key) ?? 0) + 1);
-    }
-    return [...map.entries()]
-      .map(([name, total]) => ({ name, total }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 6);
-  }, [open, nameById]);
-
-  // Evolução dos últimos 30 dias — abertos x solucionados por dia.
-  const evolution = useMemo(() => {
-    const days: { dia: string; abertos: number; solucionados: number }[] = [];
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const day = new Date(today);
-      day.setDate(today.getDate() - i);
-      const key = day.toISOString().slice(0, 10);
-      days.push({
-        dia: day.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-        abertos: tickets.filter((t) => t.created_at.slice(0, 10) === key).length,
-        solucionados: tickets.filter((t) => t.resolved_at?.slice(0, 10) === key).length,
+  // Série diária do período: abertos e solucionados por dia.
+  const serie = useMemo(() => {
+    const hoje = inicioDoDia(Date.now());
+    const dias: { dia: number; abertos: number; solucionados: number }[] = [];
+    for (let i = periodo - 1; i >= 0; i--) {
+      const ini = hoje - i * DIA;
+      const fim = ini + DIA;
+      dias.push({
+        dia: ini,
+        abertos: tickets.filter((t) => {
+          const c = new Date(t.created_at).getTime();
+          return c >= ini && c < fim;
+        }).length,
+        solucionados: tickets.filter((t) => {
+          if (!t.resolved_at) return false;
+          const r = new Date(t.resolved_at).getTime();
+          return r >= ini && r < fim;
+        }).length,
       });
     }
-    return days;
+    return dias;
+  }, [tickets, periodo]);
+
+  // Quantos estavam em aberto no fim de cada um dos últimos 14 dias.
+  const historico = useMemo(() => {
+    const hoje = inicioDoDia(Date.now());
+    return Array.from({ length: 14 }, (_, k) => {
+      const fim = hoje - (13 - k) * DIA + DIA;
+      let emAberto = 0;
+      let atrasados = 0;
+      for (const t of tickets) {
+        const criado = new Date(t.created_at).getTime();
+        const resolvido = t.resolved_at ? new Date(t.resolved_at).getTime() : Infinity;
+        if (criado < fim && resolvido >= fim && t.status !== "fechado") {
+          emAberto++;
+          if (t.resolution_due_at && new Date(t.resolution_due_at).getTime() < fim) atrasados++;
+        }
+      }
+      return { emAberto, atrasados };
+    });
   }, [tickets]);
 
-  function toggleFullscreen() {
-    const el = document.documentElement;
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void el.requestFullscreen();
+  const desde = Date.now() - periodo * DIA;
+  const resolvidosNoPeriodo = tickets.filter(
+    (t) => t.resolved_at && new Date(t.resolved_at).getTime() >= desde,
+  );
+  const noPrazo = resolvidosNoPeriodo.filter(
+    (t) => !t.resolution_due_at || t.resolved_at! <= t.resolution_due_at,
+  ).length;
+  const taxaNoPrazo = resolvidosNoPeriodo.length
+    ? Math.round((noPrazo / resolvidosNoPeriodo.length) * 100)
+    : null;
+  const mediaSolucaoMs = resolvidosNoPeriodo.length
+    ? resolvidosNoPeriodo.reduce(
+        (s, t) => s + (new Date(t.resolved_at!).getTime() - new Date(t.created_at).getTime()),
+        0,
+      ) / resolvidosNoPeriodo.length
+    : null;
+
+  const novosHoje = tickets.filter(
+    (t) => new Date(t.created_at).getTime() >= inicioDoDia(Date.now()),
+  ).length;
+  const maisAntigoEstourado = [...estourados].sort(porPrazo)[0];
+  const maisAntigoNaFila = [...fila].sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+
+  const carga = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of abertos) {
+      if (!t.assignee_id) continue;
+      map.set(t.assignee_id, (map.get(t.assignee_id) ?? 0) + 1);
+    }
+    return [...map.entries()]
+      .map(([id, total]) => ({ id, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  }, [abertos]);
+
+  const categorias = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of tickets) {
+      if (new Date(t.created_at).getTime() < desde) continue;
+      const nome = t.category || "Sem categoria";
+      map.set(nome, (map.get(nome) ?? 0) + 1);
+    }
+    const lista = [...map.entries()].sort((a, b) => b[1] - a[1]);
+    const top = lista.slice(0, 5);
+    const resto = lista.slice(5).reduce((s, [, n]) => s + n, 0);
+    return resto > 0 ? [...top, ["Outras", resto] as [string, number]] : top;
+  }, [tickets, desde]);
+
+  const podeAtender = can("ticket", "update") && Boolean(user);
+
+  const chamar = useMutation({
+    mutationFn: async () => {
+      // Confere no banco, e não na lista em memória, se o primeiro da fila
+      // continua livre: outro técnico pode ter chamado no mesmo instante.
+      for (const candidato of fila.slice(0, 5)) {
+        const { data: atual, error } = await supabase
+          .from("tickets")
+          .select("assignee_id,status")
+          .eq("id", candidato.id)
+          .single();
+        if (error) throw error;
+        if (atual.assignee_id) continue;
+
+        const { data: ator, error: atorError } = await db
+          .from("ticket_actors")
+          .insert({ ticket_id: candidato.id, role: "atribuido", user_id: user!.id } as never)
+          .select("id")
+          .single();
+        if (atorError) throw new Error(atorError.message);
+
+        const statusAnterior = atual.status as TicketStatus;
+        if (statusAnterior === "aberto") {
+          const { error: stError } = await supabase
+            .from("tickets")
+            .update({ status: "em_andamento" } as never)
+            .eq("id", candidato.id);
+          if (stError) throw stError;
+        }
+        return { ticket: candidato, atorId: (ator as { id: string }).id, statusAnterior };
+      }
+      throw new Error("Os chamados da fila acabaram de ser assumidos por outros técnicos.");
+    },
+    onSuccess: (r) => {
+      atualizar();
+      toast.success(`Você assumiu ${ticketCode(r.ticket.id)}`, {
+        description: r.ticket.title,
+        action: { label: "Desfazer", onClick: () => desfazer.mutate(r) },
+      });
+    },
+    onError: (e: Error) =>
+      toast.error("Não foi possível chamar o próximo", { description: e.message }),
+  });
+
+  const desfazer = useMutation({
+    mutationFn: async (r: { ticket: TicketRow; atorId: string; statusAnterior: TicketStatus }) => {
+      const { error } = await db.from("ticket_actors").delete().eq("id", r.atorId);
+      if (error) throw new Error(error.message);
+      if (r.statusAnterior === "aberto") {
+        await supabase
+          .from("tickets")
+          .update({ status: "aberto" } as never)
+          .eq("id", r.ticket.id);
+      }
+    },
+    onSuccess: () => {
+      atualizar();
+      toast("Chamado devolvido para a fila.");
+    },
+    onError: (e: Error) => toast.error("Não foi possível desfazer", { description: e.message }),
+  });
+
+  function atualizar() {
+    queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    queryClient.invalidateQueries({ queryKey: ["nav_counts"] });
   }
 
-  const critical = useMemo(
-    () =>
-      [...tickets]
-        .filter(
-          (t) =>
-            isOpenStatus(t.status) &&
-            (t.priority === "critica" ||
-              t.priority === "alta" ||
-              slaState(t.resolution_due_at, t.resolved_at, false).late),
-        )
-        .slice(0, 6),
-    [tickets],
-  );
+  const primeiroNome =
+    ((user?.user_metadata?.["full_name"] as string | undefined) ?? "").split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "";
+  const hora = new Date().getHours();
+  const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
-  const recent = tickets.slice(0, 6);
-  const maxTech = Math.max(1, ...byTechnician.map((t) => t.total));
-  const maxCategory = Math.max(1, ...byCategory.map((c) => c.total));
+  const resumo =
+    estourados.length === 0 && fila.length === 0
+      ? "Nenhum chamado fora do prazo e ninguém esperando técnico."
+      : `${plural(estourados.length, "chamado passou", "chamados passaram")} do prazo e ${plural(
+          fila.length,
+          "espera",
+          "esperam",
+        )} um técnico.`;
+
+  const carregando = ticketsQuery.isLoading;
 
   return (
-    <AppShell
-      title="Painel"
-      subtitle="Visão geral da central de serviços"
-      actions={
-        <div className="flex items-center gap-1">
-          <DashboardSelector atual="assistencia" />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-8 rounded-full"
-            title="Atualizar"
-            aria-label="Atualizar"
-            onClick={() => ticketsQuery.refetch()}
-          >
-            <RefreshCw className={`size-4 ${ticketsQuery.isFetching ? "animate-spin" : ""}`} />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-8 rounded-full"
-            title="Tela cheia"
-            aria-label="Tela cheia"
-            onClick={toggleFullscreen}
-          >
-            <Maximize className="size-4" />
-          </Button>
-          <Button size="sm" className="ml-1 h-8 rounded-full" asChild>
-            <Link to="/chamados/novo">
-              <Plus className="size-4" /> Criar chamado
-            </Link>
-          </Button>
-        </div>
-      }
-    >
-      {/* Faixa de etiquetas: status dos chamados e situação de SLA */}
-      <div className="mb-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <section className="panel rise-in flex flex-wrap items-center gap-2 px-4 py-3">
-          <span className="mr-1 text-sm font-semibold">Status dos chamados</span>
-          {counters.map((c) => (
-            <Link
-              key={c.status}
-              to="/chamados"
-              search={{ status: c.status }}
-              className={`pill ${STATUS_PILL[c.status]}`}
-            >
-              <span className="font-semibold tabular-nums">{String(c.value).padStart(2, "0")}</span>
-              {c.label}
-            </Link>
-          ))}
-        </section>
-        <section
-          className="panel rise-in flex flex-wrap items-center gap-2 px-4 py-3"
-          style={{ "--d": "60ms" } as React.CSSProperties}
+    <AppShell>
+      <div className="reveal flex flex-col gap-5">
+        <div
+          style={{ "--i": 0 } as CSSProperties}
+          className="flex flex-wrap items-end justify-between gap-3"
         >
-          <span className="mr-1 text-sm font-semibold">Situação do SLA</span>
-          <Link to="/chamados" search={{ filtro: "atrasados" }} className="pill pill-danger">
-            <span className="font-semibold tabular-nums">
-              {String(late.length).padStart(2, "0")}
-            </span>
-            Atrasados
-          </Link>
-          <span className="pill pill-success">
-            <span className="font-semibold tabular-nums">{slaRate}%</span> No prazo
-          </span>
-        </section>
-      </div>
-
-      {/* Indicadores principais */}
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          hue="tile-info"
-          icon={Activity}
-          value={String(open.length)}
-          label="Chamados em aberto"
-          delay={0}
-          to="/chamados"
-        />
-        <Kpi
-          hue="tile-danger"
-          icon={TriangleAlert}
-          value={String(late.length)}
-          label="Fora do prazo (SLA)"
-          delay={70}
-          to="/chamados"
-        />
-        <Kpi
-          hue="tile-success"
-          icon={CircleCheck}
-          value={`${solvedRate}%`}
-          label="Taxa de solução"
-          delay={140}
-        />
-        <Kpi
-          hue="tile-primary"
-          icon={Timer}
-          value={avgHours === null ? "—" : `${avgHours.toFixed(1)}h`}
-          label="Tempo médio de solução"
-          delay={210}
-        />
-      </div>
-
-      {/* Anéis de desempenho + chamados críticos */}
-      <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_1.25fr]">
-        <Panel title="Desempenho" hint={`${tickets.length} chamados no total`} delay={0}>
-          <div className="grid grid-cols-2 gap-4 p-4 pt-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-            <Ring value={slaRate} label="SLA cumprido" color="var(--chart-2)" />
-            <Ring value={solvedRate} label="Solucionados" color="var(--success)" />
-            <Ring
-              value={tickets.length ? Math.round((open.length / tickets.length) * 100) : 0}
-              label="Em aberto"
-              color="var(--chart-1)"
-            />
-            <Ring
-              value={
-                tickets.length
-                  ? Math.round(
-                      (tickets.filter((t) => t.priority === "critica" || t.priority === "alta")
-                        .length /
-                        tickets.length) *
-                        100,
-                    )
-                  : 0
-              }
-              label="Alta prioridade"
-              color="var(--destructive)"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
-            {byPriority.map((p) => (
-              <span key={p.priority} className={`pill ${PRIORITY_PILL[p.priority]}`}>
-                <span
-                  className="size-1.5 rounded-full"
-                  style={{ background: PRIORITY_HUE[p.priority] }}
-                />
-                {p.label}
-                <span className="font-semibold tabular-nums">{p.value}</span>
+          <div>
+            <h1 className="text-[1.5rem] font-semibold leading-tight tracking-tight">
+              {saudacao}
+              {primeiroNome ? `, ${primeiroNome}` : ""}
+            </h1>
+            <p className="mt-1.5 flex flex-wrap items-center gap-2 text-[0.84375rem] text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+                <span className="live-dot" /> Ao vivo
               </span>
-            ))}
+              {carregando ? "Carregando a fila…" : resumo}
+            </p>
           </div>
-        </Panel>
+          <Segmented
+            value={periodo}
+            options={PERIODOS.map((p) => ({ value: p.dias, label: p.label }))}
+            onChange={setPeriodo}
+          />
+        </div>
 
-        <Panel
-          title="Chamados críticos e atrasados"
-          hint="Prioridade alta ou SLA vencido"
-          delay={80}
+        <div
+          style={{ "--i": 1 } as CSSProperties}
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
         >
-          <div className="overflow-x-auto">
-            <table className="glpi-table">
-              <thead>
-                <tr>
-                  <th>Chamado</th>
-                  <th>Responsável</th>
-                  <th>Prioridade</th>
-                  <th>SLA</th>
-                </tr>
-              </thead>
-              <tbody>
-                {critical.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-6 text-center text-muted-foreground">
-                      Nenhum chamado crítico no momento.
-                    </td>
-                  </tr>
-                )}
-                {critical.map((t) => {
-                  const sla = slaState(t.resolution_due_at, t.resolved_at, false);
-                  return (
-                    <tr key={t.id}>
-                      <td className="max-w-[260px]">
-                        <Link
-                          to="/chamados/$id"
-                          params={{ id: t.id }}
-                          className="block truncate font-medium hover:text-link hover:underline"
-                        >
-                          {t.title}
-                        </Link>
-                        <span className="font-mono text-[0.68rem] text-muted-foreground">
-                          {ticketCode(t.id)}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap text-muted-foreground">
-                        {t.assignee_id ? (nameById.get(t.assignee_id) ?? "—") : "Não atribuído"}
-                      </td>
-                      <td>
-                        <span className={`pill ${PRIORITY_PILL[t.priority]}`}>
-                          {PRIORITY_LABEL[t.priority]}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`pill ${sla.late ? "pill-danger" : "pill-success"}`}>
-                          <Clock className="size-3" />
-                          {t.resolution_due_at ? formatDate(t.resolution_due_at) : "—"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-      </div>
-
-      {/* Evolução + distribuições */}
-      <div className="mb-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Panel title="Últimos 30 dias" hint="Abertos x solucionados" delay={0}>
-          <div className="h-[240px] w-full p-3 pt-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={evolution} margin={{ top: 6, right: 8, bottom: 0, left: -22 }}>
-                <defs>
-                  <linearGradient id="gAbertos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gSolucionados" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--chart-2)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="var(--chart-2)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="dia"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                  interval={4}
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                />
-                <ChartTooltip
-                  contentStyle={{
-                    background: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                    boxShadow: "0 12px 30px -18px rgb(19 26 43 / 60%)",
-                    color: "var(--popover-foreground)",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="abertos"
-                  name="Abertos"
-                  stroke="var(--chart-1)"
-                  strokeWidth={2.5}
-                  fill="url(#gAbertos)"
-                  animationDuration={900}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="solucionados"
-                  name="Solucionados"
-                  stroke="var(--chart-2)"
-                  strokeWidth={2.5}
-                  fill="url(#gSolucionados)"
-                  animationDuration={1100}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </Panel>
-
-        <Panel title="Chamados por categoria" hint="Top 6" delay={80}>
-          <div className="space-y-3 p-4 pt-2">
-            {byCategory.length === 0 && (
-              <p className="text-xs text-muted-foreground">Sem dados ainda.</p>
-            )}
-            {byCategory.map((c, i) => (
-              <BarRow
-                key={c.name}
-                name={c.name}
-                value={c.total}
-                percent={(c.total / maxCategory) * 100}
-                color={`var(--chart-${(i % 5) + 1})`}
+          <Kpi
+            icon={Inbox}
+            hue="var(--primary)"
+            label="Em aberto"
+            value={abertos.length}
+            to="/chamados"
+            search={{ filtro: "abertos" }}
+            visual={<Sparkline values={historico.map((h) => h.emAberto)} color="var(--primary)" />}
+            foot={
+              novosHoje > 0 ? (
+                <>
+                  <b className="font-medium text-foreground">+{novosHoje}</b>{" "}
+                  {novosHoje === 1 ? "novo" : "novos"} hoje
+                </>
+              ) : (
+                "nenhum novo hoje"
+              )
+            }
+          />
+          <Kpi
+            icon={TriangleAlert}
+            hue="var(--destructive)"
+            label="Prazo estourado"
+            value={estourados.length}
+            bad={estourados.length > 0}
+            to="/chamados"
+            search={{ filtro: "atrasados" }}
+            visual={
+              <Sparkline values={historico.map((h) => h.atrasados)} color="var(--destructive)" />
+            }
+            foot={
+              maisAntigoEstourado
+                ? `o mais antigo passou há ${duracao(prazoDe(maisAntigoEstourado, agora).restanteMs ?? 0)}`
+                : "nenhum agora"
+            }
+          />
+          <Kpi
+            icon={CircleHelp}
+            hue="var(--info)"
+            label="Sem técnico"
+            value={fila.length}
+            to="/chamados"
+            search={{ filtro: "nao_atribuidos" }}
+            visual={
+              <Meter
+                value={abertos.length ? fila.length / abertos.length : 0}
+                color="var(--info)"
               />
-            ))}
-          </div>
-        </Panel>
-      </div>
+            }
+            foot={
+              maisAntigoNaFila
+                ? `o mais antigo espera há ${duracao(agora - new Date(maisAntigoNaFila.created_at).getTime())}`
+                : "todos com técnico"
+            }
+          />
+          <Kpi
+            icon={CircleCheck}
+            hue="var(--success)"
+            label="Solucionados no prazo"
+            value={taxaNoPrazo ?? 0}
+            suffix={taxaNoPrazo === null ? undefined : "%"}
+            placeholder={taxaNoPrazo === null ? "—" : undefined}
+            visual={<Meter value={(taxaNoPrazo ?? 0) / 100} color="var(--success)" />}
+            foot={
+              mediaSolucaoMs === null
+                ? `nenhum solucionado em ${periodo} dias`
+                : `${resolvidosNoPeriodo.length} em ${periodo} dias · média de ${duracao(mediaSolucaoMs)}`
+            }
+          />
+        </div>
 
-      {/* Equipe + recentes */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
-        <Panel title="Carga por técnico" hint="Chamados em aberto" delay={0}>
-          <div className="space-y-3 p-4 pt-2">
-            {byTechnician.length === 0 && (
-              <p className="text-xs text-muted-foreground">Nenhum chamado em aberto.</p>
-            )}
-            {byTechnician.map((t) => (
-              <div key={t.name} className="flex items-center gap-3">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-[0.7rem] font-semibold text-accent-foreground">
-                  {initials(t.name)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-xs font-medium">{t.name}</span>
-                    <span className="text-xs tabular-nums text-muted-foreground">{t.total}</span>
-                  </div>
-                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full transition-[width] duration-700 ease-out"
-                      style={{
-                        width: `${(t.total / maxTech) * 100}%`,
-                        background: "linear-gradient(90deg, var(--chart-1), var(--chart-3))",
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
+        <div
+          style={{ "--i": 2 } as CSSProperties}
+          className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]"
+        >
+          <div className="flex min-w-0 flex-col gap-4">
+            <Atendendo
+              ticket={atendendo}
+              fila={fila.slice(0, 3)}
+              podeAtender={podeAtender}
+              chamando={chamar.isPending}
+              onChamar={() => chamar.mutate()}
+            />
 
-        <Panel title="Chamados recentes" hint={<Users className="size-4 opacity-50" />} delay={80}>
-          <div className="overflow-x-auto">
-            <table className="glpi-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Título</th>
-                  <th>Status</th>
-                  <th>Atualizado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ticketsQuery.isLoading && (
-                  <tr>
-                    <td colSpan={4} className="p-6 text-center text-muted-foreground">
-                      Carregando...
-                    </td>
-                  </tr>
-                )}
-                {!ticketsQuery.isLoading && recent.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-6 text-center text-muted-foreground">
-                      Nenhum chamado registrado ainda.
-                    </td>
-                  </tr>
-                )}
-                {recent.map((t) => (
-                  <tr key={t.id}>
-                    <td className="font-mono text-[0.72rem] text-muted-foreground">
-                      {ticketCode(t.id)}
-                    </td>
-                    <td className="max-w-[320px]">
+            <section className="panel overflow-hidden">
+              <header className="panel-header justify-between">
+                <span>Fila por prazo</span>
+                <Link
+                  to="/chamados"
+                  search={{ filtro: "abertos" } as never}
+                  className="group inline-flex items-center gap-1 text-[0.8125rem] font-medium text-primary"
+                >
+                  Ver todos
+                  <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </Link>
+              </header>
+              {proximos.length === 0 && (
+                <p className="px-5 py-8 text-center text-[0.8125rem] text-muted-foreground">
+                  {carregando ? "Carregando…" : "Nenhum outro chamado em aberto."}
+                </p>
+              )}
+              <ul>
+                {proximos.map((t, k) => {
+                  const p = prazoDe(t, agora);
+                  return (
+                    <li key={t.id} className="border-b border-border last:border-b-0">
                       <Link
                         to="/chamados/$id"
                         params={{ id: t.id }}
-                        className="block truncate font-medium hover:text-link hover:underline"
+                        className="grid grid-cols-[minmax(0,1fr)_7.5rem] items-center gap-3 px-[1.125rem] py-2.5 transition-colors hover:bg-hover sm:grid-cols-[5.5rem_minmax(0,1fr)_8.5rem]"
                       >
-                        {t.title}
+                        <span className="hidden font-mono text-xs text-muted-foreground sm:block">
+                          {ticketCode(t.id)}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">{t.title}</span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {nomeDe(t.assignee_id)} · {STATUS_LABEL[t.status]} · {t.category}
+                          </span>
+                        </span>
+                        <span className="flex flex-col items-end gap-1.5">
+                          <span
+                            className={`text-xs font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
+                          >
+                            {prazoCurto(p)}
+                          </span>
+                          <span className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                            <span
+                              className="bar-grow block h-full rounded-full"
+                              style={
+                                {
+                                  width: `${Math.max(6, p.usado * 100)}%`,
+                                  background: PRAZO_COR[p.estado],
+                                  "--d": `${250 + k * 60}ms`,
+                                } as CSSProperties
+                              }
+                            />
+                          </span>
+                        </span>
                       </Link>
-                    </td>
-                    <td className="whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className={`size-2 rounded-full ${STATUS_DOT[t.status]}`} />
-                        {STATUS_LABEL[t.status]}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap text-muted-foreground">
-                      {relativeTime(t.updated_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           </div>
-        </Panel>
+
+          <div className="flex min-w-0 flex-col gap-4">
+            <section className="panel overflow-hidden">
+              <header className="panel-header justify-between">
+                <span>Carga por técnico</span>
+                <span className="text-xs font-normal text-muted-foreground">em aberto</span>
+              </header>
+              <div className="flex flex-col gap-3 p-[1.125rem]">
+                {carga.length === 0 && fila.length === 0 && (
+                  <p className="text-[0.8125rem] text-muted-foreground">
+                    Nenhum chamado em aberto.
+                  </p>
+                )}
+                {(() => {
+                  const max = Math.max(1, fila.length, ...carga.map((c) => c.total));
+                  const linhas = [
+                    ...carga.map((c) => ({
+                      key: c.id,
+                      nome: nomeDe(c.id),
+                      total: c.total,
+                      eu: c.id === user?.id,
+                    })),
+                    ...(fila.length
+                      ? [{ key: "fila", nome: "Sem técnico", total: fila.length, eu: false }]
+                      : []),
+                  ];
+                  return linhas.map((l, k) => (
+                    <div
+                      key={l.key}
+                      className="grid grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)_1.5rem] items-center gap-3 text-[0.8125rem]"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <Iniciais nome={l.nome} vazio={l.key === "fila"} />
+                        <span className="truncate text-secondary-foreground">{l.nome}</span>
+                      </span>
+                      <span className="h-2 overflow-hidden rounded-full bg-muted">
+                        <span
+                          className="bar-grow block h-full rounded-full"
+                          style={
+                            {
+                              width: `${(l.total / max) * 100}%`,
+                              background:
+                                l.key === "fila"
+                                  ? "var(--destructive)"
+                                  : l.eu
+                                    ? "var(--primary)"
+                                    : "var(--input)",
+                              "--d": `${250 + k * 70}ms`,
+                            } as CSSProperties
+                          }
+                        />
+                      </span>
+                      <span className="text-right font-mono text-xs text-muted-foreground">
+                        {l.total}
+                      </span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </section>
+
+            <section className="panel overflow-hidden">
+              <header className="panel-header justify-between">
+                <span>Por categoria</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  abertos em {periodo} dias
+                </span>
+              </header>
+              <div className="p-[1.125rem]">
+                <Donut itens={categorias} />
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <section style={{ "--i": 3 } as CSSProperties} className="panel overflow-hidden">
+          <header className="panel-header flex-wrap justify-between">
+            <span>Abertos e solucionados</span>
+            <span className="flex gap-4 text-xs font-normal text-secondary-foreground">
+              <span className="flex items-center gap-1.5">
+                <i className="h-[3px] w-2.5 rounded-full bg-primary" /> Abertos
+              </span>
+              <span className="flex items-center gap-1.5">
+                <i className="h-[3px] w-2.5 rounded-full bg-success" /> Solucionados
+              </span>
+            </span>
+          </header>
+          <div className="p-[1.125rem]">
+            <LineChart serie={serie} />
+          </div>
+        </section>
       </div>
     </AppShell>
   );
 }
 
-function initials(name: string) {
-  return name
+function plural(n: number, um: string, varios: string) {
+  return n === 1 ? `1 ${um}` : `${n} ${varios}`;
+}
+
+/* ------------------------------------------------------------------------ */
+
+function Segmented<T extends string | number>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  const index = Math.max(
+    0,
+    options.findIndex((o) => o.value === value),
+  );
+  return (
+    <div
+      role="radiogroup"
+      className="relative inline-grid rounded-[0.5625rem] bg-muted p-[3px]"
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
+      <span
+        aria-hidden="true"
+        className="absolute bottom-[3px] top-[3px] rounded-[0.4375rem] bg-surface shadow-[0_1px_3px_#1018281f] transition-transform duration-[350ms] ease-out-soft"
+        style={{
+          left: 3,
+          width: `calc((100% - 6px) / ${options.length})`,
+          transform: `translateX(${index * 100}%)`,
+        }}
+      />
+      {options.map((o) => (
+        <button
+          key={String(o.value)}
+          type="button"
+          role="radio"
+          aria-checked={o.value === value}
+          onClick={() => onChange(o.value)}
+          className={`relative z-[1] h-7 px-3 text-[0.8125rem] font-medium transition-colors ${
+            o.value === value ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Kpi({
+  icon: Icon,
+  hue,
+  label,
+  value,
+  suffix,
+  placeholder,
+  bad,
+  visual,
+  foot,
+  to,
+  search,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  hue: string;
+  label: string;
+  value: number;
+  suffix?: string | undefined;
+  placeholder?: string | undefined;
+  bad?: boolean;
+  visual: ReactNode;
+  foot: ReactNode;
+  to?: string;
+  search?: Record<string, string>;
+}) {
+  const shown = useCountUp(value);
+  const body = (
+    <>
+      <span className="flex items-center gap-2 text-[0.8125rem] font-medium text-secondary-foreground">
+        <span
+          className="flex size-[1.625rem] items-center justify-center rounded-[0.4375rem]"
+          style={{ background: `color-mix(in oklab, ${hue} 12%, transparent)`, color: hue }}
+        >
+          <Icon className="size-[0.9375rem]" />
+        </span>
+        {label}
+      </span>
+      <span className="mt-2.5 flex items-end justify-between gap-3">
+        <span
+          className={`text-[1.875rem] font-semibold leading-none tracking-[-0.03em] tabular-nums ${
+            bad ? "text-destructive" : ""
+          }`}
+        >
+          {placeholder ?? (
+            <>
+              {shown}
+              {suffix}
+            </>
+          )}
+        </span>
+        <span className="w-24 shrink-0">{visual}</span>
+      </span>
+      <span className="mt-2.5 block truncate text-xs text-muted-foreground">{foot}</span>
+    </>
+  );
+  const cls = "panel panel-interactive block px-[1.125rem] pb-3.5 pt-4";
+  return to ? (
+    <Link to={to} search={search as never} className={cls}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
+  );
+}
+
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  const id = useRef(`sp${Math.random().toString(36).slice(2, 8)}`).current;
+  const w = 96;
+  const h = 34;
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const pts = values.map((v, i) => [
+    (i / Math.max(1, values.length - 1)) * w,
+    h - 4 - ((v - min) / (max - min || 1)) * (h - 8),
+  ]);
+  const d = pts.map((p, i) => `${i ? "L" : "M"}${p[0]!.toFixed(1)} ${p[1]!.toFixed(1)}`).join(" ");
+  const last = pts[pts.length - 1] ?? [0, h];
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="block h-[34px] w-24 overflow-visible"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={color} stopOpacity="0.18" />
+          <stop offset="1" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path className="fade-late" d={`${d} L${w} ${h} L0 ${h} Z`} fill={`url(#${id})`} />
+      <path
+        className="line-draw"
+        pathLength={1}
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <circle className="fade-late" cx={last[0]} cy={last[1]} r="2.6" fill={color} />
+    </svg>
+  );
+}
+
+function Meter({ value, color }: { value: number; color: string }) {
+  return (
+    <span className="mb-1.5 block h-1.5 overflow-hidden rounded-full bg-muted">
+      <span
+        className="bar-grow block h-full rounded-full"
+        style={{
+          width: `${Math.round(Math.min(1, Math.max(0, value)) * 100)}%`,
+          background: color,
+        }}
+      />
+    </span>
+  );
+}
+
+function Iniciais({ nome, vazio }: { nome: string; vazio?: boolean }) {
+  const ini = nome
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
     .join("");
+  return (
+    <span
+      className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-semibold ${
+        vazio
+          ? "border border-dashed border-input text-muted-foreground"
+          : "bg-accent text-accent-foreground"
+      }`}
+    >
+      {vazio ? "–" : ini}
+    </span>
+  );
 }
 
-function Kpi({
-  hue,
-  icon: Icon,
-  value,
-  label,
-  delay,
-  to,
+/* ------------------------------------------------------------------------ */
+
+function Atendendo({
+  ticket,
+  fila,
+  podeAtender,
+  chamando,
+  onChamar,
 }: {
-  hue: string;
-  icon: React.ComponentType<{ className?: string }>;
-  value: string;
-  label: string;
-  delay: number;
-  to?: string;
+  ticket: TicketRow | null;
+  fila: TicketRow[];
+  podeAtender: boolean;
+  chamando: boolean;
+  onChamar: () => void;
 }) {
-  const content = (
-    <>
-      <Icon className="tile-icon size-5" aria-hidden="true" />
-      <span className="tile-number">{value}</span>
-      <span className="tile-label">{label}</span>
-    </>
-  );
-  const style = { "--d": `${delay}ms` } as React.CSSProperties;
-  if (to) {
+  const agora = useAgora(1000);
+
+  if (!ticket) {
     return (
-      <Link to={to} className={`tile rise-in ${hue}`} style={style}>
-        {content}
-      </Link>
+      <section className="panel flex flex-wrap items-center justify-between gap-4 px-[1.375rem] py-5">
+        <div>
+          <h2 className="text-[1.0625rem] font-semibold">Você não está atendendo nenhum chamado</h2>
+          <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+            {fila.length
+              ? `Chame o próximo para assumir o mais urgente da fila (${fila.length === 1 ? "1 esperando" : `${fila.length} esperando`}).`
+              : "A fila está vazia. Quando chegar um chamado sem técnico, ele aparece aqui."}
+          </p>
+        </div>
+        {podeAtender && (
+          <Button className="btn-sheen h-9" disabled={!fila.length || chamando} onClick={onChamar}>
+            <ArrowRight className="size-4" /> {chamando ? "Chamando…" : "Chamar próximo"}
+          </Button>
+        )}
+      </section>
     );
   }
-  return (
-    <div className={`tile rise-in ${hue}`} style={style}>
-      {content}
-    </div>
-  );
-}
 
-/** Anel de percentual, no estilo dos gráficos circulares do exemplo. */
-function Ring({ value, label, color }: { value: number; label: string; color: string }) {
-  const radius = 30;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - Math.min(100, Math.max(0, value)) / 100);
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative">
-        <svg width="76" height="76" viewBox="0 0 76 76" className="-rotate-90">
-          <circle cx="38" cy="38" r={radius} fill="none" stroke="var(--muted)" strokeWidth="8" />
-          <circle
-            className="ring-animated"
-            cx="38"
-            cy="38"
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            style={{ "--ring-circumference": circumference } as React.CSSProperties}
-          />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums">
-          {value}%
-        </span>
-      </div>
-      <span className="text-center text-[0.7rem] text-muted-foreground">{label}</span>
-    </div>
-  );
-}
+  const p = prazoDe(ticket, agora);
+  const r = 48;
+  const c = 2 * Math.PI * r;
+  const temRelogio =
+    p.restanteMs !== null && (p.estado === "late" || p.estado === "warn" || p.estado === "ok");
 
-function BarRow({
-  name,
-  value,
-  percent,
-  color,
-}: {
-  name: string;
-  value: number;
-  percent: number;
-  color: string;
-}) {
   return (
-    <div>
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="truncate">{name}</span>
-        <span className="tabular-nums text-muted-foreground">{value}</span>
+    <section className="panel overflow-hidden">
+      <div
+        key={ticket.id}
+        className="slide-in-right grid gap-5 px-[1.375rem] py-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center"
+      >
+        <div className="relative size-[7.5rem] shrink-0">
+          <svg viewBox="0 0 112 112" className="size-full -rotate-90" aria-hidden="true">
+            <circle cx="56" cy="56" r={r} fill="none" stroke="var(--muted)" strokeWidth="8" />
+            <circle
+              className="ring-animated"
+              cx="56"
+              cy="56"
+              r={r}
+              fill="none"
+              stroke={PRAZO_COR[p.estado]}
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={c}
+              strokeDashoffset={c * (1 - p.usado)}
+              style={
+                {
+                  "--ring-circumference": c,
+                  transition: "stroke-dashoffset 1s ease",
+                } as CSSProperties
+              }
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center leading-tight">
+            <b
+              className={`font-mono text-[0.8125rem] font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
+            >
+              {temRelogio
+                ? `${p.estado === "late" ? "+" : ""}${relogio(p.restanteMs!)}`
+                : prazoCurto(p)}
+            </b>
+            <small className="text-[0.6875rem] text-muted-foreground">
+              {p.estado === "late" ? "além do prazo" : temRelogio ? "até o prazo" : "de prazo"}
+            </small>
+          </div>
+        </div>
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="flex items-center gap-2 text-[0.8125rem] font-medium text-primary">
+            <span className="live-dot" style={{ "--dot": "var(--primary)" } as CSSProperties} />
+            Você está atendendo
+            <span className="font-mono text-xs">{ticketCode(ticket.id)}</span>
+          </span>
+          <h2 className="text-[1.125rem] font-semibold leading-snug tracking-tight [text-wrap:balance]">
+            {ticket.title}
+          </h2>
+          <span className="text-[0.8125rem] text-secondary-foreground">
+            {[ticket.reporter_name, ticket.reporter_sector, ticket.category]
+              .filter(Boolean)
+              .join(" · ")}{" "}
+            · prioridade {PRIORITY_LABEL[ticket.priority].toLowerCase()}
+          </span>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            <Button asChild className="btn-sheen h-9">
+              <Link to="/chamados/$id" params={{ id: ticket.id }}>
+                Abrir chamado
+              </Link>
+            </Button>
+            {podeAtender && (
+              <Button
+                variant="outline"
+                className="h-9"
+                disabled={!fila.length || chamando}
+                onClick={onChamar}
+              >
+                <ArrowRight className="size-4" /> {chamando ? "Chamando…" : "Chamar próximo"}
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full transition-[width] duration-700 ease-out"
-          style={{ width: `${percent}%`, background: color }}
-        />
+      <div className="flex flex-wrap items-center gap-2.5 border-t border-border bg-surface-2 px-[1.375rem] py-3 text-xs text-muted-foreground">
+        <span>A seguir na fila</span>
+        {fila.length === 0 && <span>— vazia</span>}
+        {fila.map((t) => {
+          const pt = prazoDe(t, agora);
+          return (
+            <Link
+              key={t.id}
+              to="/chamados/$id"
+              params={{ id: t.id }}
+              title={t.title}
+              className="inline-flex h-7 items-center gap-2 rounded-full border border-border bg-surface pl-2.5 pr-3 text-secondary-foreground transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-input hover:shadow-[var(--shadow-1)]"
+            >
+              <i className="size-1.5 rounded-full" style={{ background: PRAZO_COR[pt.estado] }} />
+              <span className="font-mono">{ticketCode(t.id)}</span>
+              <span className={PRAZO_TEXTO[pt.estado]}>{prazoCurto(pt)}</span>
+            </Link>
+          );
+        })}
       </div>
-    </div>
-  );
-}
-
-function Panel({
-  title,
-  hint,
-  delay = 0,
-  children,
-}: {
-  title: string;
-  hint?: React.ReactNode;
-  delay?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      className="panel rise-in overflow-hidden"
-      style={{ "--d": `${delay}ms` } as React.CSSProperties}
-    >
-      <header className="panel-header justify-between">
-        <span>{title}</span>
-        {hint && <span className="text-xs font-normal text-muted-foreground">{hint}</span>}
-      </header>
-      {children}
     </section>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+const DONUT_CORES = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--input)",
+];
+
+function Donut({ itens }: { itens: [string, number][] }) {
+  const total = itens.reduce((s, [, n]) => s + n, 0);
+  const shown = useCountUp(total);
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  let acumulado = 0;
+
+  if (total === 0) {
+    return (
+      <p className="text-[0.8125rem] text-muted-foreground">Nenhum chamado aberto no período.</p>
+    );
+  }
+
+  return (
+    <div className="grid items-center gap-5 sm:grid-cols-[8.25rem_minmax(0,1fr)]">
+      <div className="relative mx-auto size-[8.25rem]">
+        <svg viewBox="0 0 132 132" className="size-full -rotate-90" aria-hidden="true">
+          <circle cx="66" cy="66" r={r} fill="none" stroke="var(--muted)" strokeWidth="14" />
+          {itens.map(([nome, n], k) => {
+            const len = Math.max(0, (n / total) * c - (itens.length > 1 ? 2 : 0));
+            const off = acumulado;
+            acumulado += (n / total) * c;
+            return (
+              <circle
+                key={nome}
+                className="arc-grow"
+                cx="66"
+                cy="66"
+                r={r}
+                fill="none"
+                stroke={DONUT_CORES[k % DONUT_CORES.length]}
+                strokeWidth="14"
+                strokeDasharray={`${len} ${c}`}
+                strokeDashoffset={-off}
+                style={{ "--d": `${200 + k * 90}ms` } as CSSProperties}
+              />
+            );
+          })}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <b className="text-[1.375rem] font-semibold tracking-tight tabular-nums">{shown}</b>
+          <small className="text-[0.6875rem] text-muted-foreground">chamados</small>
+        </div>
+      </div>
+      <ul className="flex min-w-0 flex-col gap-2 text-[0.8125rem]">
+        {itens.map(([nome, n], k) => (
+          <li key={nome} className="flex items-center gap-2">
+            <i
+              className="size-2 shrink-0 rounded-[2px]"
+              style={{ background: DONUT_CORES[k % DONUT_CORES.length] }}
+            />
+            <span className="min-w-0 flex-1 truncate text-secondary-foreground">{nome}</span>
+            <span className="font-mono text-xs text-muted-foreground">{n}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function LineChart({ serie }: { serie: { dia: number; abertos: number; solucionados: number }[] }) {
+  const [hover, setHover] = useState<number | null>(null);
+  // Desenha na largura real do cartão, para o texto não esticar nem encolher.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(760);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      if (entry) setW(Math.max(280, Math.round(entry.contentRect.width)));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const H = W < 520 ? 200 : 240;
+  const L = 30;
+  const B = 26;
+  const T = 12;
+  const R = 10;
+  const maxBruto = Math.max(4, ...serie.map((d) => Math.max(d.abertos, d.solucionados)));
+  const passo = maxBruto <= 8 ? 2 : maxBruto <= 20 ? 5 : Math.ceil(maxBruto / 4 / 5) * 5;
+  const max = Math.ceil(maxBruto / passo) * passo;
+  const ih = H - B - T;
+  const iw = W - L - R;
+  const n = serie.length;
+  const x = (i: number) => L + (n > 1 ? (i / (n - 1)) * iw : iw / 2);
+  const y = (v: number) => T + ih - (v / max) * ih;
+  const curva = (k: "abertos" | "solucionados") =>
+    serie
+      .map((d, i) => {
+        if (i === 0) return `M${x(0)} ${y(d[k])}`;
+        const cx = (x(i - 1) + x(i)) / 2;
+        return `C${cx} ${y(serie[i - 1]![k])} ${cx} ${y(d[k])} ${x(i)} ${y(d[k])}`;
+      })
+      .join(" ");
+  const ticks = Array.from({ length: max / passo + 1 }, (_, i) => i * passo);
+  const cada = Math.max(1, Math.ceil(n / Math.max(3, Math.floor(W / 90))));
+  const fmt = (ms: number) =>
+    new Date(ms).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  const h = hover !== null ? serie[hover] : null;
+
+  return (
+    <div ref={boxRef} className="relative">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="block h-auto w-full overflow-visible"
+        role="img"
+        aria-label="Chamados abertos e solucionados por dia"
+        onMouseLeave={() => setHover(null)}
+      >
+        <defs>
+          <linearGradient id="painel-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="var(--primary)" stopOpacity="0.16" />
+            <stop offset="1" stopColor="var(--primary)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {ticks.map((v) => (
+          <g key={v}>
+            <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke="var(--border)" />
+            <text
+              x={L - 10}
+              y={y(v) + 4}
+              textAnchor="end"
+              fontSize="11"
+              fill="var(--muted-foreground)"
+              fontFamily="var(--font-mono)"
+            >
+              {v}
+            </text>
+          </g>
+        ))}
+        {serie.map((d, i) =>
+          (i % cada === 0 && n - 1 - i >= cada * 0.6) || i === n - 1 ? (
+            <text
+              key={d.dia}
+              x={x(i)}
+              y={H - 6}
+              textAnchor="middle"
+              fontSize="11"
+              fill="var(--muted-foreground)"
+              fontFamily="var(--font-mono)"
+            >
+              {fmt(d.dia)}
+            </text>
+          ) : null,
+        )}
+        <path
+          key={`a${n}`}
+          className="fade-late"
+          d={`${curva("abertos")} L${x(n - 1)} ${y(0)} L${x(0)} ${y(0)} Z`}
+          fill="url(#painel-area)"
+        />
+        <path
+          key={`l${n}`}
+          className="line-draw"
+          pathLength={1}
+          d={curva("abertos")}
+          fill="none"
+          stroke="var(--primary)"
+          strokeWidth="2.2"
+        />
+        <path
+          key={`s${n}`}
+          className="line-draw"
+          pathLength={1}
+          d={curva("solucionados")}
+          fill="none"
+          stroke="var(--success)"
+          strokeWidth="2.2"
+          style={{ "--d": "550ms" } as CSSProperties}
+        />
+        {h && hover !== null && (
+          <g>
+            <line
+              x1={x(hover)}
+              x2={x(hover)}
+              y1={T}
+              y2={T + ih}
+              stroke="var(--input)"
+              strokeDasharray="3 3"
+            />
+            <circle
+              cx={x(hover)}
+              cy={y(h.abertos)}
+              r="4.5"
+              fill="var(--surface)"
+              stroke="var(--primary)"
+              strokeWidth="2"
+            />
+            <circle
+              cx={x(hover)}
+              cy={y(h.solucionados)}
+              r="4.5"
+              fill="var(--surface)"
+              stroke="var(--success)"
+              strokeWidth="2"
+            />
+          </g>
+        )}
+        {serie.map((d, i) => (
+          <rect
+            key={`h${d.dia}`}
+            x={x(i) - iw / Math.max(1, n - 1) / 2}
+            y={T}
+            width={iw / Math.max(1, n - 1)}
+            height={ih}
+            fill="transparent"
+            onMouseEnter={() => setHover(i)}
+          />
+        ))}
+      </svg>
+      {h && hover !== null && (
+        <div
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-xs text-background shadow-[var(--shadow-2)]"
+          style={{
+            left: `${(x(hover) / W) * 100}%`,
+            top: `calc(${(y(Math.max(h.abertos, h.solucionados)) / H) * 100}% - 10px)`,
+          }}
+        >
+          <b>{fmt(h.dia)}</b> · {h.abertos} abertos · {h.solucionados} solucionados
+        </div>
+      )}
+    </div>
   );
 }
