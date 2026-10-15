@@ -124,6 +124,7 @@ function AbrirChamado() {
       category: categoriaEscolhida?.rotulo ?? "Outros",
       category_id: categoriaEscolhida?.id,
       urgency,
+      site: String(form.get("site") ?? ""),
     });
 
     if (!parsed.success) {
@@ -138,7 +139,13 @@ function AbrirChamado() {
       const res = await submit({ data: parsed.data });
       setCreated(res.id);
     } catch (error) {
-      toast.error("Não foi possível enviar o chamado. Tente novamente em instantes.");
+      // O servidor só devolve frases escritas para quem abre o chamado:
+      // domínio não autorizado, muitos chamados seguidos ou falha genérica.
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : "Não foi possível enviar o chamado. Tente novamente em instantes.",
+      );
       console.error(error);
     } finally {
       setSaving(false);
@@ -243,6 +250,14 @@ function AbrirChamado() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Armadilha para robô: fora da tela e fora do Tab. */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute -left-[9999px] h-px w-px overflow-hidden"
+                  >
+                    <label htmlFor="site">Não preencha este campo</label>
+                    <input id="site" name="site" type="text" tabIndex={-1} autoComplete="off" />
+                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <Label htmlFor="name" className="text-xs">

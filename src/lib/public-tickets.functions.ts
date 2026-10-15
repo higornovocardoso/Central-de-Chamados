@@ -26,6 +26,11 @@ export const publicTicketSchema = z.object({
    * pessoa era descartada e todo chamado nascia "média".
    */
   urgency: z.number().int().min(1).max(5),
+  /**
+   * Armadilha para robô: campo escondido de quem usa a tela. Gente deixa
+   * vazio; robô que preenche tudo o que acha cai aqui.
+   */
+  site: z.string().max(200).optional(),
 });
 
 const schema = publicTicketSchema;
@@ -35,9 +40,21 @@ const DOMINIO_NAO_AUTORIZADO =
   "Este e-mail não está autorizado a abrir chamados. Use o endereço da sua empresa, " +
   "ou fale com o suporte para cadastrá-lo.";
 
+/**
+ * O que volta para a tela é sempre uma frase para quem está abrindo o
+ * chamado; o detalhe técnico fica só no log do servidor.
+ */
+const FALHA_GENERICA = "Não foi possível enviar o chamado. Tente novamente em instantes.";
+
 export const createPublicTicket = createServerFn({ method: "POST" })
   .validator((data: unknown) => schema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data: { site, ...data } }) => {
+    // Robô: responde como se tivesse dado certo, para ele não aprender a
+    // contornar, e não grava nada.
+    if (site) {
+      return { id: crypto.randomUUID() };
+    }
+
     const url = process.env["SUPABASE_URL"]!;
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const id = crypto.randomUUID();
@@ -52,7 +69,8 @@ export const createPublicTicket = createServerFn({ method: "POST" })
     });
 
     if (!rota.ok) {
-      throw new Error(`Falha ao identificar a empresa (${rota.status})`);
+      console.error(`[chamado público] rota da empresa respondeu ${rota.status}`);
+      throw new Error(FALHA_GENERICA);
     }
 
     const entity_id = (await rota.json()) as string | null;
@@ -82,7 +100,17 @@ export const createPublicTicket = createServerFn({ method: "POST" })
       if (response.status === 401 || response.status === 403) {
         throw new Error(DOMINIO_NAO_AUTORIZADO);
       }
-      throw new Error(`Falha ao registrar chamado (${response.status})`);
+      // P0001 é o limite de chamados por e-mail do banco (fase 31): a
+      // mensagem dele já é escrita para quem está abrindo.
+      const erro = (await response.json().catch(() => null)) as {
+        code?: string;
+        message?: string;
+      } | null;
+      if (erro?.code === "P0001" && erro.message) {
+        throw new Error(erro.message);
+      }
+      console.error(`[chamado público] gravação respondeu ${response.status}`, erro?.code);
+      throw new Error(FALHA_GENERICA);
     }
 
     return { id };
