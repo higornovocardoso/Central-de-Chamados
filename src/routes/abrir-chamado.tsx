@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { CheckCircle2, Loader2, Mail, Send, Building2, User } from "lucide-react";
+import { CheckCircle2, Loader2, Mail, Moon, Send, Building2, Sun, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, ticketCode } from "@/lib/tickets";
+import { useTheme } from "@/lib/theme";
 import { createPublicTicket, publicTicketSchema } from "@/lib/public-tickets.functions";
 
 /**
@@ -69,6 +70,7 @@ const PASSOS = [
 
 function AbrirChamado() {
   const submit = useServerFn(createPublicTicket);
+  const { dark, toggle: toggleTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState<string | null>(null);
   const [urgency, setUrgency] = useState(3);
@@ -111,17 +113,28 @@ function AbrirChamado() {
     <main className="relative min-h-screen overflow-hidden bg-background px-4 py-10 sm:px-6 lg:py-16">
       <div className="aura" aria-hidden="true" />
 
+      <div className="relative z-[1] mx-auto mb-4 flex w-full max-w-6xl justify-end lg:-mt-6 lg:mb-2">
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="size-9 [&_svg]:transition-transform [&_svg]:duration-500 active:[&_svg]:-rotate-45"
+          aria-label={dark ? "Mudar para o tema claro" : "Mudar para o tema escuro"}
+          title={dark ? "Tema claro" : "Tema escuro"}
+          onClick={(e) => toggleTheme({ x: e.clientX, y: e.clientY })}
+        >
+          {dark ? <Sun className="size-[1.1rem]" /> : <Moon className="size-[1.1rem]" />}
+        </Button>
+      </div>
+
       <div className="relative z-[1] mx-auto grid w-full max-w-6xl items-start gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
         {/* Contexto: o que acontece depois de enviar */}
         <section className="rise-in lg:sticky lg:top-16">
-          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.32em] text-primary">
-            Suporte de T.I.
-          </p>
-          <h1 className="mt-3 text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.04em] [text-wrap:balance] sm:text-[2.75rem]">
+          <h1 className="text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.04em] [text-wrap:balance] sm:text-[2.75rem]">
             Conte o que aconteceu. A equipe de T.I. assume daqui.
           </h1>
           <p className="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-muted-foreground">
-            Não precisa de login. Preencha o formulário e guarde o protocolo que aparece no fim.
+            Preencha o formulário e guarde o protocolo que aparece no fim.
           </p>
 
           <ol className="relative mt-9 hidden space-y-6 sm:block">
@@ -147,8 +160,6 @@ function AbrirChamado() {
               </li>
             ))}
           </ol>
-
-          <EntrarEquipe className="mt-9 hidden lg:block" />
         </section>
 
         {/* Formulário, ou o protocolo depois de enviar */}
@@ -318,21 +329,7 @@ function AbrirChamado() {
             </form>
           </section>
         )}
-
-        {/* No celular e no tablet a coluna de contexto vem antes; o atalho fica no fim. */}
-        <EntrarEquipe className="text-center lg:hidden" />
       </div>
     </main>
-  );
-}
-
-function EntrarEquipe({ className }: { className: string }) {
-  return (
-    <p className={`text-[0.8125rem] text-muted-foreground ${className}`}>
-      É da equipe de T.I.?{" "}
-      <Link to="/auth" className="font-medium text-primary hover:underline">
-        Entrar no sistema
-      </Link>
-    </p>
   );
 }

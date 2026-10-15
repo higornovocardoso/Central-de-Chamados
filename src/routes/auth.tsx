@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Eye, EyeOff, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, LockKeyhole, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -78,15 +78,9 @@ function AuthPage() {
 
       <div className="relative z-[1] flex w-full flex-col items-center">
         <header className="rise-in mb-8 max-w-[40rem] text-center">
-          <p className="mb-3 font-mono text-[0.6875rem] uppercase tracking-[0.32em] text-ice/80">
-            Suporte de T.I.
-          </p>
           <h1 className="bg-[linear-gradient(180deg,#ffffff,#b9c6e4)] bg-clip-text text-[2.5rem] font-semibold leading-[1.05] tracking-[-0.045em] text-transparent sm:text-[3rem]">
-            Central de chamados
+            Central de Chamados
           </h1>
-          <p className="mx-auto mt-3 max-w-[22rem] text-[0.9375rem] leading-relaxed text-muted-foreground">
-            Toda solicitação de T.I. chega aqui, com prazo, responsável e histórico.
-          </p>
         </header>
 
         {/* A entrada fica no invólucro de fora: no mesmo elemento, ela travaria o giro do feixe. */}
@@ -162,17 +156,6 @@ function AuthPage() {
                   {loading ? "Entrando…" : "Entrar"}
                 </Button>
               </form>
-
-              <div className="mt-6 border-t border-border pt-5 text-center text-[0.8125rem] text-muted-foreground">
-                Não tem conta?{" "}
-                <Link
-                  to="/abrir-chamado"
-                  className="group inline-flex items-center gap-1 font-medium text-ice transition-colors hover:text-white"
-                >
-                  Abra um chamado sem login
-                  <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </Link>
-              </div>
             </section>
           </div>
         </div>
