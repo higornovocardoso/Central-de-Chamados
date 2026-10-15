@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Moon, Plus, Search, Sun } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Command,
@@ -25,14 +25,10 @@ export function CommandPalette({
   open,
   onOpenChange,
   canRead,
-  dark,
-  onToggleTheme,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canRead: (right: string | undefined) => boolean;
-  dark: boolean;
-  onToggleTheme: () => void;
 }) {
   const navigate = useNavigate();
   const [term, setTerm] = useState("");
@@ -137,9 +133,6 @@ export function CommandPalette({
                     <Plus /> Novo chamado
                   </CommandItem>
                 )}
-                <CommandItem value="alternar tema claro escuro" onSelect={() => go(onToggleTheme)}>
-                  {dark ? <Sun /> : <Moon />} Mudar para o tema {dark ? "claro" : "escuro"}
-                </CommandItem>
               </CommandGroup>
 
               <CommandGroup heading="Ir para">

@@ -20,7 +20,7 @@ export function VisaoToggle({ atual }: { atual: "lista" | "quadro" }) {
         <List className="size-4" /> Lista
       </Link>
       <Link
-        to="/assistencia/kanban"
+        to="/chamados/quadro"
         className={`${base} ${atual === "quadro" ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
         aria-current={atual === "quadro" ? "page" : undefined}
       >

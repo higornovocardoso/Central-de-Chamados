@@ -7,7 +7,7 @@ import { useEntityOptions } from "@/hooks/useEntityOptions";
 
 type Aba = "categorias" | "locais";
 
-export const Route = createFileRoute("/_authenticated/configuracao/categorias")({
+export const Route = createFileRoute("/_authenticated/categorias")({
   validateSearch: (search: Record<string, unknown>): { aba?: Aba | undefined } =>
     search["aba"] === "locais" ? { aba: "locais" } : {},
   head: () => ({
@@ -44,7 +44,7 @@ function Categorias() {
         value={aba}
         onValueChange={(v) =>
           navigate({
-            to: "/configuracao/categorias",
+            to: "/categorias",
             search: v === "locais" ? { aba: "locais" } : {},
           })
         }

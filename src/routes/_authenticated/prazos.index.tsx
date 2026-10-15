@@ -16,7 +16,7 @@ import {
 import { looseDb } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 
-export const Route = createFileRoute("/_authenticated/configuracao/slas")({
+export const Route = createFileRoute("/_authenticated/prazos/")({
   head: () => ({
     meta: [
       { title: "Prazos" },

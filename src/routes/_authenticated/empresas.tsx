@@ -26,13 +26,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db, type EntityEmailDomainRow, type EntityRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 
-export const Route = createFileRoute("/_authenticated/administracao/entidades")({
+export const Route = createFileRoute("/_authenticated/empresas")({
   head: () => ({
     meta: [
-      { title: "Entidades" },
+      { title: "Empresas" },
       {
         name: "description",
-        content: "Árvore de entidades: empresas, filiais e departamentos, com herança.",
+        content: "Empresas, filiais e departamentos, com herança.",
       },
     ],
   }),
@@ -81,7 +81,7 @@ function Entidades() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!form.name.trim()) throw new Error("Informe o nome da entidade.");
+      if (!form.name.trim()) throw new Error("Informe o nome da empresa.");
       const payload = {
         name: form.name.trim(),
         parent_id: form.parent_id === ROOT ? null : form.parent_id,
@@ -104,7 +104,7 @@ function Entidades() {
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      toast.success(editing ? "Entidade atualizada." : "Entidade criada.");
+      toast.success(editing ? "Empresa atualizada." : "Empresa criada.");
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["my_permissions"] });
@@ -173,14 +173,14 @@ function Entidades() {
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      toast.success("Entidade excluída.");
+      toast.success("Empresa excluída.");
       queryClient.invalidateQueries({ queryKey: ["entities"] });
       queryClient.invalidateQueries({ queryKey: ["my_permissions"] });
     },
     onError: (e: Error) =>
       toast.error("Não foi possível excluir", {
         description: e.message.includes("violates foreign key")
-          ? "A entidade tem registros ou entidades filhas vinculadas."
+          ? "A empresa tem registros ou filiais vinculadas."
           : e.message,
       }),
   });
@@ -221,9 +221,9 @@ function Entidades() {
 
   return (
     <AppShell
-      title="Entidades"
-      subtitle="Árvore de empresas, filiais e departamentos. Cada entidade enxerga a si e às suas filhas."
-      breadcrumbTail="Entidades"
+      title="Empresas"
+      subtitle="Empresas, filiais e departamentos. Cada empresa enxerga a si e às suas filiais."
+      breadcrumbTail="Empresas"
       actions={
         can("entity", "create") ? (
           <Button size="sm" className="h-8" onClick={() => openNew()}>
@@ -249,7 +249,7 @@ function Entidades() {
               {entitiesQuery.isLoading && (
                 <tr>
                   <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                    Carregando entidades...
+                    Carregando empresas...
                   </td>
                 </tr>
               )}
@@ -290,7 +290,7 @@ function Entidades() {
                           size="icon"
                           variant="ghost"
                           className="size-7"
-                          aria-label="Adicionar entidade filha"
+                          aria-label="Adicionar filial"
                           onClick={() => openNew(e.id)}
                         >
                           <Plus className="size-3.5" />
@@ -330,13 +330,13 @@ function Entidades() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar entidade" : "Nova entidade"}</DialogTitle>
+            <DialogTitle>{editing ? "Editar empresa" : "Nova empresa"}</DialogTitle>
           </DialogHeader>
 
           <Tabs defaultValue="geral">
             <TabsList className="min-h-8">
               <TabsTrigger value="geral" className="text-xs">
-                Entidade
+                Empresa
               </TabsTrigger>
               <TabsTrigger value="endereco" className="text-xs">
                 Endereço
@@ -365,7 +365,7 @@ function Entidades() {
 
               {!editing ? (
                 <p className="rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
-                  Salve a entidade primeiro. Os domínios precisam de uma empresa já criada para se
+                  Salve a empresa primeiro. Os domínios precisam de uma empresa já criada para se
                   vincular.
                 </p>
               ) : (
@@ -453,7 +453,7 @@ function Entidades() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={ROOT}>Nenhuma (entidade raiz)</SelectItem>
+                    <SelectItem value={ROOT}>Nenhuma (empresa principal)</SelectItem>
                     {parentOptions.map((e) => (
                       <SelectItem key={e.id} value={e.id}>
                         {" ".repeat(e.level * 3)}

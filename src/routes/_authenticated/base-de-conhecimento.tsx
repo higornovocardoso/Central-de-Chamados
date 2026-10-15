@@ -34,7 +34,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { KB_CATEGORIES } from "@/lib/glpi";
 import { Tag } from "@/components/Tag";
 
-export const Route = createFileRoute("/_authenticated/base-conhecimento")({
+export const Route = createFileRoute("/_authenticated/base-de-conhecimento")({
   head: () => ({
     meta: [
       { title: "Base de conhecimento" },

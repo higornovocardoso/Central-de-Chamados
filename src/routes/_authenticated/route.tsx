@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated")({
     // servidor. Este guarda só escolhe entre mostrar a tela e mandar ao login.
     const { data, error } = await supabase.auth.getSession();
     const user = data.session?.user;
-    if (error || !user) throw redirect({ to: "/auth" });
+    if (error || !user) throw redirect({ to: "/entrar" });
     return { user };
   },
   component: () => <Outlet />,

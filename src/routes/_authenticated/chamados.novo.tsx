@@ -29,13 +29,13 @@ import {
 export const Route = createFileRoute("/_authenticated/chamados/novo")({
   head: () => ({
     meta: [
-      { title: "Abrir chamado" },
+      { title: "Novo chamado" },
       {
         name: "description",
         content:
           "Registre um novo chamado de suporte de T.I. informando categoria, prioridade e descrição do problema.",
       },
-      { property: "og:title", content: "Abrir chamado" },
+      { property: "og:title", content: "Novo chamado" },
       {
         property: "og:description",
         content: "Registre um novo chamado de suporte técnico em poucos segundos.",
@@ -115,9 +115,9 @@ function NovoChamado() {
 
   return (
     <AppShell
-      title="Criar chamado"
+      title="Novo chamado"
       subtitle="Descreva o problema com o máximo de detalhes para agilizar o atendimento."
-      breadcrumbTail="Criar chamado"
+      breadcrumbTail="Novo chamado"
     >
       <div className="mx-auto max-w-2xl">
         <form onSubmit={submit} className="panel space-y-5 p-6">

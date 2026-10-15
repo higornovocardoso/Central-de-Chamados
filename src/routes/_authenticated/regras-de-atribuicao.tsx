@@ -11,10 +11,10 @@ import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useEntityOptions } from "@/hooks/useEntityOptions";
 
-export const Route = createFileRoute("/_authenticated/administracao/regras")({
+export const Route = createFileRoute("/_authenticated/regras-de-atribuicao")({
   head: () => ({
     meta: [
-      { title: "Regras de negócio" },
+      { title: "Regras de atribuição" },
       {
         name: "description",
         content: "Regras que alteram o chamado automaticamente na abertura e na atualização.",
@@ -159,7 +159,7 @@ function Regras() {
 
   return (
     <AppShell
-      title="Regras de negócio"
+      title="Regras de atribuição"
       subtitle="Alteram o chamado sozinhas na abertura e na atualização, na ordem da coluna Ordem."
       breadcrumbTail="Regras"
     >

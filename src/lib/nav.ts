@@ -50,7 +50,7 @@ export const NAV_SECTIONS: NavSection[] = [
         to: "/chamados",
         icon: Inbox,
         right: "ticket",
-        also: ["/chamados/novo", "/chamados/$id", "/assistencia/kanban"],
+        also: ["/chamados/novo", "/chamados/$id", "/chamados/quadro"],
         count: "abertos",
       },
       {
@@ -74,21 +74,21 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         id: "agenda",
         label: "Agenda de tarefas",
-        to: "/assistencia/planejamento",
+        to: "/agenda",
         icon: CalendarDays,
         right: "planning",
       },
       {
         id: "recorrentes",
         label: "Recorrentes",
-        to: "/chamados/recorrentes",
+        to: "/recorrentes",
         icon: Repeat,
         right: "recurrent",
       },
       {
         id: "base",
         label: "Base de conhecimento",
-        to: "/base-conhecimento",
+        to: "/base-de-conhecimento",
         icon: BookOpen,
         right: "knowledgebase",
       },
@@ -101,22 +101,22 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         id: "pessoas",
         label: "Pessoas e grupos",
-        to: "/administracao/usuarios",
+        to: "/pessoas",
         icon: Users,
         right: "user",
-        also: ["/administracao/grupos"],
+        also: ["/pessoas/grupos"],
       },
       {
         id: "empresas",
         label: "Empresas",
-        to: "/administracao/entidades",
+        to: "/empresas",
         icon: Building2,
         right: "entity",
       },
       {
         id: "perfis",
         label: "Perfis de acesso",
-        to: "/administracao/perfis",
+        to: "/perfis-de-acesso",
         icon: ShieldCheck,
         right: "profile",
       },
@@ -129,32 +129,32 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         id: "categorias",
         label: "Categorias",
-        to: "/configuracao/categorias",
+        to: "/categorias",
         icon: Tag,
         right: "dropdown",
       },
       {
         id: "prazos",
         label: "Prazos",
-        to: "/configuracao/slas",
+        to: "/prazos",
         icon: Clock,
         right: "sla",
-        also: ["/configuracao/calendarios"],
+        also: ["/prazos/calendarios"],
       },
       {
         id: "regras",
         label: "Regras de atribuição",
-        to: "/administracao/regras",
+        to: "/regras-de-atribuicao",
         icon: RouteIcon,
         right: "business_rule",
       },
       {
         id: "geral",
         label: "Geral",
-        to: "/configuracao/geral",
+        to: "/configuracoes",
         icon: SlidersHorizontal,
         right: "config",
-        also: ["/administracao/logs"],
+        also: ["/configuracoes/logs"],
       },
     ],
   },
@@ -165,16 +165,16 @@ export const NAV_LINKS: NavLink[] = NAV_SECTIONS.flatMap((s) => s.links);
 /** Abas no topo das telas que dividem um mesmo item do menu. */
 export const SECTION_TABS: { label: string; to: string; right?: string }[][] = [
   [
-    { label: "Usuários", to: "/administracao/usuarios", right: "user" },
-    { label: "Grupos", to: "/administracao/grupos", right: "group" },
+    { label: "Usuários", to: "/pessoas", right: "user" },
+    { label: "Grupos", to: "/pessoas/grupos", right: "group" },
   ],
   [
-    { label: "Prazos", to: "/configuracao/slas", right: "sla" },
-    { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
+    { label: "Prazos", to: "/prazos", right: "sla" },
+    { label: "Calendários", to: "/prazos/calendarios", right: "calendar" },
   ],
   [
-    { label: "Configurações", to: "/configuracao/geral", right: "config" },
-    { label: "Logs", to: "/administracao/logs", right: "log" },
+    { label: "Configurações", to: "/configuracoes", right: "config" },
+    { label: "Logs", to: "/configuracoes/logs", right: "log" },
   ],
 ];
 
@@ -211,7 +211,7 @@ export type Crumb = { label: string; to?: string | undefined };
 
 const EXTRA_LABEL: Record<string, string> = {
   "/chamados/novo": "Novo chamado",
-  "/assistencia/kanban": "Quadro",
+  "/chamados/quadro": "Quadro",
 };
 
 /** Caminho do topo: só o nome da tela, ou Chamados › chamado aberto. */

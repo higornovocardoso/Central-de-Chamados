@@ -37,10 +37,10 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { RIGHT_ACTIONS, RIGHT_CATEGORIES, rightTab, type RightAction } from "@/lib/permissions";
 import { STATUS_LABEL, STATUS_ORDER } from "@/lib/tickets";
 
-export const Route = createFileRoute("/_authenticated/administracao/perfis")({
+export const Route = createFileRoute("/_authenticated/perfis-de-acesso")({
   head: () => ({
     meta: [
-      { title: "Perfis" },
+      { title: "Perfis de acesso" },
       {
         name: "description",
         content: "Perfis de acesso e a matriz de direitos por objeto, no modelo do GLPI.",
@@ -253,9 +253,9 @@ function Perfis() {
 
   return (
     <AppShell
-      title="Perfis"
+      title="Perfis de acesso"
       subtitle="Cada perfil define o que o usuário enxerga e pode fazer, objeto por objeto."
-      breadcrumbTail="Perfis"
+      breadcrumbTail="Perfis de acesso"
       actions={
         can("profile", "create") ? (
           <Button

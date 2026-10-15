@@ -19,7 +19,7 @@ import {
   type TicketStatus,
 } from "@/lib/tickets";
 
-export const Route = createFileRoute("/_authenticated/assistencia/kanban")({
+export const Route = createFileRoute("/_authenticated/chamados/quadro")({
   head: () => ({
     meta: [
       { title: "Quadro de chamados" },
