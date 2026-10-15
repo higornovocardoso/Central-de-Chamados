@@ -79,7 +79,7 @@ function AuthPage() {
       <div className="relative z-[1] flex w-full flex-col items-center">
         <header className="rise-in mb-8 max-w-[40rem] text-center">
           <h1 className="bg-[linear-gradient(180deg,#ffffff,#b9c6e4)] bg-clip-text text-[2.5rem] font-semibold leading-[1.05] tracking-[-0.045em] text-transparent sm:text-[3rem]">
-            Central de chamados
+            Central de Chamados
           </h1>
         </header>
 
