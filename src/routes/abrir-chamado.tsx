@@ -148,12 +148,7 @@ function AbrirChamado() {
             ))}
           </ol>
 
-          <p className="mt-9 hidden text-[0.8125rem] text-muted-foreground lg:block">
-            É da equipe de T.I.?{" "}
-            <Link to="/auth" className="font-medium text-primary hover:underline">
-              Entrar no sistema
-            </Link>
-          </p>
+          <EntrarEquipe className="mt-9 hidden lg:block" />
         </section>
 
         {/* Formulário, ou o protocolo depois de enviar */}
@@ -316,7 +311,21 @@ function AbrirChamado() {
             </form>
           </section>
         )}
+
+        {/* No celular e no tablet a coluna de contexto vem antes; o atalho fica no fim. */}
+        <EntrarEquipe className="text-center lg:hidden" />
       </div>
     </main>
+  );
+}
+
+function EntrarEquipe({ className }: { className: string }) {
+  return (
+    <p className={`text-[0.8125rem] text-muted-foreground ${className}`}>
+      É da equipe de T.I.?{" "}
+      <Link to="/auth" className="font-medium text-primary hover:underline">
+        Entrar no sistema
+      </Link>
+    </p>
   );
 }
