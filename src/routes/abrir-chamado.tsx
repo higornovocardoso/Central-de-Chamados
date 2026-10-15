@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { CheckCircle2, Clock3, Headset, Loader2, Mail, Send, Building2, User } from "lucide-react";
+import { CheckCircle2, Loader2, Mail, Send, Building2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,21 +51,19 @@ export const Route = createFileRoute("/abrir-chamado")({
   component: AbrirChamado,
 });
 
-const HIGHLIGHTS = [
+/** O caminho do chamado, do lado de quem pede: é uma sequência de verdade. */
+const PASSOS = [
   {
-    icon: Headset,
-    title: "Atendimento centralizado",
-    text: "Sua solicitação vai direto para a fila da equipe de T.I.",
+    titulo: "Descreva o problema",
+    texto: "Assunto, o que acontece e desde quando. Quanto mais detalhe, mais rápido.",
   },
   {
-    icon: Clock3,
-    title: "Prazos acompanhados",
-    text: "Cada chamado recebe prazos de resposta e solução automáticos.",
+    titulo: "A equipe recebe na hora",
+    texto: "O chamado entra na fila com prazo de atendimento e de solução.",
   },
   {
-    icon: Mail,
-    title: "Retorno por e-mail",
-    text: "As atualizações chegam no e-mail que você informar aqui.",
+    titulo: "Acompanhe pelo e-mail",
+    texto: "Cada resposta do técnico chega no endereço que você informar.",
   },
 ];
 
@@ -110,199 +108,231 @@ function AbrirChamado() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="rise-in grid w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl lg:grid-cols-[0.9fr_1.1fr]">
-        {/* Vitrine — contexto do atendimento */}
-        <section className="relative hidden flex-col items-center justify-center bg-[#131a2b] p-8 text-white lg:flex">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-primary/40 blur-3xl"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-20 -left-16 size-56 rounded-full bg-primary/25 blur-3xl"
-          />
+    <main className="relative min-h-screen overflow-hidden bg-background px-4 py-10 sm:px-6 lg:py-16">
+      <div className="aura" aria-hidden="true" />
 
-          <div className="relative text-center">
-            <h1 className="text-2xl font-semibold leading-tight">Suporte de T.I.</h1>
-            <p className="mt-2 max-w-xs text-sm text-white/70">
-              Registre seu problema e acompanhe a solução.
-            </p>
-          </div>
+      <div className="relative z-[1] mx-auto grid w-full max-w-6xl items-start gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
+        {/* Contexto: o que acontece depois de enviar */}
+        <section className="rise-in lg:sticky lg:top-16">
+          <p className="font-mono text-[0.6875rem] uppercase tracking-[0.32em] text-primary">
+            Suporte de T.I.
+          </p>
+          <h1 className="mt-3 text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.04em] [text-wrap:balance] sm:text-[2.75rem]">
+            Conte o que aconteceu. A equipe de T.I. assume daqui.
+          </h1>
+          <p className="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-muted-foreground">
+            Não precisa de login. Preencha o formulário e guarde o protocolo que aparece no fim.
+          </p>
 
-          <ul className="relative mt-8 space-y-4">
-            {HIGHLIGHTS.map((item, index) => (
+          <ol className="relative mt-9 hidden space-y-6 sm:block">
+            <span
+              aria-hidden="true"
+              className="absolute bottom-3 left-[0.9375rem] top-3 w-px bg-[linear-gradient(180deg,var(--primary),var(--ice),transparent)] opacity-50"
+            />
+            {PASSOS.map((passo, i) => (
               <li
-                key={item.title}
-                className="rise-in flex gap-3"
-                style={{ animationDelay: `${120 + index * 90}ms` }}
+                key={passo.titulo}
+                className="rise-in relative flex gap-4"
+                style={{ "--d": `${150 + i * 110}ms` } as React.CSSProperties}
               >
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
-                  <item.icon className="size-4" />
+                <span className="relative z-[1] flex size-[1.875rem] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-surface font-mono text-xs font-medium text-primary shadow-[0_0_0_4px_var(--background)]">
+                  {i + 1}
                 </span>
-                <span>
-                  <span className="block text-sm font-medium">{item.title}</span>
-                  <span className="block text-xs text-white/65">{item.text}</span>
+                <span className="pt-1">
+                  <span className="block text-sm font-semibold">{passo.titulo}</span>
+                  <span className="mt-0.5 block text-[0.8125rem] text-muted-foreground">
+                    {passo.texto}
+                  </span>
                 </span>
               </li>
             ))}
-          </ul>
+          </ol>
+
+          <EntrarEquipe className="mt-9 hidden lg:block" />
         </section>
 
-        {/* Formulário */}
-        <section className="flex flex-col justify-center p-7 sm:p-9">
-          {created ? (
-            <div className="space-y-4 text-center">
-              <CheckCircle2 className="mx-auto size-10 text-success" />
-              <h2 className="text-xl font-semibold tracking-tight">Chamado enviado!</h2>
-              <p className="text-sm text-muted-foreground">
-                Seu protocolo é <strong className="text-foreground">{ticketCode(created)}</strong>.
-                A equipe de T.I. já recebeu a solicitação e entrará em contato pelo e-mail
-                informado.
-              </p>
-              <Button
-                variant="secondary"
-                className="h-11 w-full rounded-lg"
-                onClick={() => setCreated(null)}
+        {/* Formulário, ou o protocolo depois de enviar */}
+        {created ? (
+          // A entrada fica no invólucro de fora: no mesmo elemento, ela travaria o giro do feixe.
+          <div className="rise-in">
+            <div
+              className="feixe dark text-foreground shadow-[0_40px_100px_-30px_rgb(42_91_255/0.45)]"
+              style={{ borderRadius: 20 }}
+            >
+              <section
+                className="palco flex flex-col items-center px-7 py-12 text-center sm:px-12"
+                style={{ borderRadius: 19 }}
               >
-                Abrir outro chamado
-              </Button>
+                <span className="flex size-14 items-center justify-center rounded-full bg-success/15 text-success shadow-[0_0_40px_-6px_var(--success)]">
+                  <CheckCircle2 className="size-7" />
+                </span>
+                <h2 className="mt-5 text-2xl font-semibold tracking-tight">Chamado enviado</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Guarde o seu protocolo:</p>
+                <p className="mt-3 rounded-xl border border-border bg-white/[0.04] px-5 py-2.5 font-mono text-2xl tracking-[0.08em] text-ice">
+                  {ticketCode(created)}
+                </p>
+                <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  Ele já está na fila da equipe de T.I. As respostas chegam no e-mail que você
+                  informou.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-8 h-11 px-6"
+                  onClick={() => setCreated(null)}
+                >
+                  Abrir outro chamado
+                </Button>
+              </section>
             </div>
-          ) : (
-            <>
-              <div className="mb-6 text-center">
-                <h2 className="text-xl font-semibold tracking-tight">Abrir chamado de suporte</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Preencha o formulário abaixo.</p>
-              </div>
+          </div>
+        ) : (
+          <section
+            className="panel rise-in p-6 sm:p-8"
+            style={{ "--d": "90ms" } as React.CSSProperties}
+          >
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold tracking-tight">Abrir chamado</h2>
+              <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+                Os campos com nome e e-mail servem para a equipe responder você.
+              </p>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="name" className="text-xs">
-                      Seu nome
-                    </Label>
-                    <div className="relative">
-                      <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="name"
-                        name="name"
-                        required
-                        minLength={2}
-                        placeholder="Nome completo"
-                        className="h-11 rounded-lg pl-9"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs">
-                      E-mail para contato
-                    </Label>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        placeholder="voce@empresa.com"
-                        className="h-11 rounded-lg pl-9"
-                      />
-                    </div>
-                  </div>
-                </div>
-
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="sector" className="text-xs">
-                    Setor / departamento
+                  <Label htmlFor="name" className="text-xs">
+                    Seu nome
                   </Label>
                   <div className="relative">
-                    <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      id="sector"
-                      name="sector"
-                      placeholder="Ex.: Financeiro"
-                      className="h-11 rounded-lg pl-9"
+                      id="name"
+                      name="name"
+                      required
+                      minLength={2}
+                      placeholder="Nome completo"
+                      className="h-11 pl-9"
                     />
                   </div>
                 </div>
-
                 <div className="space-y-1.5">
-                  <Label htmlFor="title" className="text-xs">
-                    Assunto
+                  <Label htmlFor="email" className="text-xs">
+                    E-mail para contato
                   </Label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="voce@empresa.com"
+                      className="h-11 pl-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="sector" className="text-xs">
+                  Setor / departamento
+                </Label>
+                <div className="relative">
+                  <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="title"
-                    name="title"
-                    required
-                    minLength={3}
-                    placeholder="Resumo do problema"
-                    className="h-11 rounded-lg"
+                    id="sector"
+                    name="sector"
+                    placeholder="Ex.: Financeiro"
+                    className="h-11 pl-9"
                   />
                 </div>
+              </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Categoria</Label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="h-11 rounded-lg">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Urgência</Label>
-                    <Select value={String(urgency)} onValueChange={(v) => setUrgency(Number(v))}>
-                      <SelectTrigger className="h-11 rounded-lg">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {URGENCIAS.map((item) => (
-                          <SelectItem key={item.valor} value={String(item.valor)}>
-                            {item.rotulo}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[0.7rem] text-muted-foreground">
-                      O quanto isso atrapalha seu trabalho agora. A equipe de T.I. define a
-                      prioridade final considerando quantas pessoas foram afetadas.
-                    </p>
-                  </div>
-                </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="title" className="text-xs">
+                  Assunto
+                </Label>
+                <Input
+                  id="title"
+                  name="title"
+                  required
+                  minLength={3}
+                  placeholder="Resumo do problema"
+                  className="h-11"
+                />
+              </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="description" className="text-xs">
-                    Descrição
-                  </Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    rows={4}
-                    placeholder="Descreva o que está acontecendo, mensagens de erro e desde quando ocorre."
-                    className="rounded-lg"
-                  />
+                  <Label className="text-xs">Categoria</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Urgência</Label>
+                  <Select value={String(urgency)} onValueChange={(v) => setUrgency(Number(v))}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {URGENCIAS.map((item) => (
+                        <SelectItem key={item.valor} value={String(item.valor)}>
+                          {item.rotulo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="-mt-2 text-xs text-muted-foreground">
+                A urgência é o quanto isso atrapalha seu trabalho agora. A equipe define a
+                prioridade final considerando quantas pessoas foram afetadas.
+              </p>
 
-                <Button type="submit" disabled={saving} className="h-11 w-full rounded-lg text-sm">
-                  {saving ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Send className="size-4" />
-                  )}
-                  {saving ? "Enviando..." : "Enviar chamado"}
-                </Button>
-              </form>
-            </>
-          )}
-        </section>
+              <div className="space-y-1.5">
+                <Label htmlFor="description" className="text-xs">
+                  Descrição
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  rows={5}
+                  placeholder="O que está acontecendo, mensagens de erro e desde quando ocorre."
+                />
+              </div>
+
+              <Button type="submit" disabled={saving} className="h-11 w-full text-sm">
+                {saving ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                {saving ? "Enviando…" : "Enviar chamado"}
+              </Button>
+            </form>
+          </section>
+        )}
+
+        {/* No celular e no tablet a coluna de contexto vem antes; o atalho fica no fim. */}
+        <EntrarEquipe className="text-center lg:hidden" />
       </div>
     </main>
+  );
+}
+
+function EntrarEquipe({ className }: { className: string }) {
+  return (
+    <p className={`text-[0.8125rem] text-muted-foreground ${className}`}>
+      É da equipe de T.I.?{" "}
+      <Link to="/auth" className="font-medium text-primary hover:underline">
+        Entrar no sistema
+      </Link>
+    </p>
   );
 }

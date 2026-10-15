@@ -13,6 +13,7 @@ import {
   PRAZO_COR,
   PRAZO_TEXTO,
   duracao,
+  emAtendimento,
   porPrazo,
   prazoCurto,
   prazoDe,
@@ -122,14 +123,7 @@ function Painel() {
     [abertos],
   );
 
-  // O chamado que a pessoa está atendendo: o mais urgente dos dela em atendimento.
-  const atendendo = useMemo(
-    () =>
-      abertos
-        .filter((t) => t.assignee_id === user?.id && t.status !== "aguardando")
-        .sort(porPrazo)[0] ?? null,
-    [abertos, user?.id],
-  );
+  const atendendo = useMemo(() => emAtendimento(abertos, user?.id), [abertos, user?.id]);
 
   const proximos = useMemo(
     () =>
@@ -304,6 +298,11 @@ function Painel() {
     "";
   const hora = new Date().getHours();
   const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+  const hoje = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   const resumo =
     estourados.length === 0 && fila.length === 0
@@ -324,7 +323,10 @@ function Painel() {
           className="flex flex-wrap items-end justify-between gap-3"
         >
           <div>
-            <h1 className="text-[1.5rem] font-semibold leading-tight tracking-tight">
+            <p className="mb-1.5 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              {hoje}
+            </p>
+            <h1 className="text-[1.75rem] font-semibold leading-tight tracking-[-0.03em]">
               {saudacao}
               {primeiroNome ? `, ${primeiroNome}` : ""}
             </h1>
@@ -668,6 +670,14 @@ function Kpi({
   const shown = useCountUp(value);
   const body = (
     <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-6 top-0 h-px"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${hue}, transparent)`,
+          opacity: 0.6,
+        }}
+      />
       <span className="flex items-center gap-2 text-[0.8125rem] font-medium text-secondary-foreground">
         <span
           className="flex size-[1.625rem] items-center justify-center rounded-[0.4375rem]"
@@ -679,7 +689,7 @@ function Kpi({
       </span>
       <span className="mt-2.5 flex items-end justify-between gap-3">
         <span
-          className={`text-[1.875rem] font-semibold leading-none tracking-[-0.03em] tabular-nums ${
+          className={`text-[2.125rem] font-semibold leading-none tracking-[-0.04em] tabular-nums ${
             bad ? "text-destructive" : ""
           }`}
         >
@@ -821,105 +831,146 @@ function Atendendo({
   const c = 2 * Math.PI * r;
   const temRelogio =
     p.restanteMs !== null && (p.estado === "late" || p.estado === "warn" || p.estado === "ok");
+  // O feixe na borda acompanha o prazo: gelo com folga, âmbar perto de
+  // vencer, vermelho (e mais rápido) depois de estourar; parado se pausado.
+  const estadoFeixe = p.estado === "done" ? "none" : p.estado;
+  const [cor1, cor2] = ANEL_CORES[p.estado];
+  const angulo = p.usado * 2 * Math.PI;
 
   return (
-    <section className="panel overflow-hidden">
-      <div
-        key={ticket.id}
-        className="slide-in-right grid gap-5 px-[1.375rem] py-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center"
+    <div className="feixe dark text-foreground" data-estado={estadoFeixe}>
+      <section
+        className="panel palco overflow-hidden"
+        style={{ borderRadius: "calc(var(--radius-xl) - 1px)" }}
       >
-        <div className="relative size-[7.5rem] shrink-0">
-          <svg viewBox="0 0 112 112" className="size-full -rotate-90" aria-hidden="true">
-            <circle cx="56" cy="56" r={r} fill="none" stroke="var(--muted)" strokeWidth="8" />
-            <circle
-              className="ring-animated"
-              cx="56"
-              cy="56"
-              r={r}
-              fill="none"
-              stroke={PRAZO_COR[p.estado]}
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={c}
-              strokeDashoffset={c * (1 - p.usado)}
-              style={
-                {
-                  "--ring-circumference": c,
-                  transition: "stroke-dashoffset 1s ease",
-                } as CSSProperties
-              }
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center leading-tight">
-            <b
-              className={`font-mono text-[0.8125rem] font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
+        <div
+          key={ticket.id}
+          className="slide-in-right grid gap-5 px-[1.375rem] py-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center"
+        >
+          <div className="relative size-[7.5rem] shrink-0">
+            <svg
+              viewBox="0 0 112 112"
+              className="size-full -rotate-90 overflow-visible"
+              aria-hidden="true"
             >
-              {temRelogio
-                ? `${p.estado === "late" ? "+" : ""}${relogio(p.restanteMs!)}`
-                : prazoCurto(p)}
-            </b>
-            <small className="text-[0.6875rem] text-muted-foreground">
-              {p.estado === "late" ? "além do prazo" : temRelogio ? "até o prazo" : "de prazo"}
-            </small>
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-col gap-2">
-          <span className="flex items-center gap-2 text-[0.8125rem] font-medium text-primary">
-            <span className="live-dot" style={{ "--dot": "var(--primary)" } as CSSProperties} />
-            Você está atendendo
-            <span className="font-mono text-xs">{ticketCode(ticket.id)}</span>
-          </span>
-          <h2 className="text-[1.125rem] font-semibold leading-snug tracking-tight [text-wrap:balance]">
-            {ticket.title}
-          </h2>
-          <span className="text-[0.8125rem] text-secondary-foreground">
-            {[ticket.reporter_name, ticket.reporter_sector, ticket.category]
-              .filter(Boolean)
-              .join(" · ")}{" "}
-            · prioridade {PRIORITY_LABEL[ticket.priority].toLowerCase()}
-          </span>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            <Button asChild className="btn-sheen h-9">
-              <Link to="/chamados/$id" params={{ id: ticket.id }}>
-                Abrir chamado
-              </Link>
-            </Button>
-            {podeAtender && (
-              <Button
-                variant="outline"
-                className="h-9"
-                disabled={!fila.length || chamando}
-                onClick={onChamar}
+              <defs>
+                <linearGradient id="anel-prazo" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor={cor1} />
+                  <stop offset="1" stopColor={cor2} />
+                </linearGradient>
+              </defs>
+              <circle cx="56" cy="56" r={r} fill="none" stroke="var(--muted)" strokeWidth="8" />
+              <circle
+                className="ring-animated"
+                cx="56"
+                cy="56"
+                r={r}
+                fill="none"
+                stroke="url(#anel-prazo)"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={c}
+                strokeDashoffset={c * (1 - p.usado)}
+                style={
+                  {
+                    "--ring-circumference": c,
+                    transition: "stroke-dashoffset 1s ease",
+                    filter: `drop-shadow(0 0 5px color-mix(in oklab, ${cor1} 55%, transparent))`,
+                  } as CSSProperties
+                }
+              />
+              {/* Ponta de luz onde o anel termina. */}
+              <circle
+                className="fade-late"
+                cx={56 + r * Math.cos(angulo)}
+                cy={56 + r * Math.sin(angulo)}
+                r="4.5"
+                fill="var(--surface)"
+                stroke={cor2}
+                strokeWidth="2.5"
+                style={{ filter: `drop-shadow(0 0 6px ${cor1})` }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center leading-tight">
+              <b
+                className={`font-mono text-[0.8125rem] font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
               >
-                <ArrowRight className="size-4" /> {chamando ? "Chamando…" : "Chamar próximo"}
+                {temRelogio
+                  ? `${p.estado === "late" ? "+" : ""}${relogio(p.restanteMs!)}`
+                  : prazoCurto(p)}
+              </b>
+              <small className="text-[0.6875rem] text-muted-foreground">
+                {p.estado === "late" ? "além do prazo" : temRelogio ? "até o prazo" : "de prazo"}
+              </small>
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-col gap-2">
+            <span className="flex items-center gap-2 text-[0.8125rem] font-medium text-primary">
+              <span className="live-dot" style={{ "--dot": "var(--primary)" } as CSSProperties} />
+              Você está atendendo
+              <span className="font-mono text-xs">{ticketCode(ticket.id)}</span>
+            </span>
+            <h2 className="text-[1.125rem] font-semibold leading-snug tracking-tight [text-wrap:balance]">
+              {ticket.title}
+            </h2>
+            <span className="text-[0.8125rem] text-secondary-foreground">
+              {[ticket.reporter_name, ticket.reporter_sector, ticket.category]
+                .filter(Boolean)
+                .join(" · ")}{" "}
+              · prioridade {PRIORITY_LABEL[ticket.priority].toLowerCase()}
+            </span>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              <Button asChild className="btn-sheen h-9">
+                <Link to="/chamados/$id" params={{ id: ticket.id }}>
+                  Abrir chamado
+                </Link>
               </Button>
-            )}
+              {podeAtender && (
+                <Button
+                  variant="outline"
+                  className="h-9"
+                  disabled={!fila.length || chamando}
+                  onClick={onChamar}
+                >
+                  <ArrowRight className="size-4" /> {chamando ? "Chamando…" : "Chamar próximo"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2.5 border-t border-border bg-surface-2 px-[1.375rem] py-3 text-xs text-muted-foreground">
-        <span>A seguir na fila</span>
-        {fila.length === 0 && <span>— vazia</span>}
-        {fila.map((t) => {
-          const pt = prazoDe(t, agora);
-          return (
-            <Link
-              key={t.id}
-              to="/chamados/$id"
-              params={{ id: t.id }}
-              title={t.title}
-              className="inline-flex h-7 items-center gap-2 rounded-full border border-border bg-surface pl-2.5 pr-3 text-secondary-foreground transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-input hover:shadow-[var(--shadow-1)]"
-            >
-              <i className="size-1.5 rounded-full" style={{ background: PRAZO_COR[pt.estado] }} />
-              <span className="font-mono">{ticketCode(t.id)}</span>
-              <span className={PRAZO_TEXTO[pt.estado]}>{prazoCurto(pt)}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
+        <div className="flex flex-wrap items-center gap-2.5 border-t border-border bg-surface-2 px-[1.375rem] py-3 text-xs text-muted-foreground">
+          <span>A seguir na fila</span>
+          {fila.length === 0 && <span>— vazia</span>}
+          {fila.map((t) => {
+            const pt = prazoDe(t, agora);
+            return (
+              <Link
+                key={t.id}
+                to="/chamados/$id"
+                params={{ id: t.id }}
+                title={t.title}
+                className="inline-flex h-7 items-center gap-2 rounded-full border border-border bg-surface pl-2.5 pr-3 text-secondary-foreground transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-input hover:shadow-[var(--shadow-1)]"
+              >
+                <i className="size-1.5 rounded-full" style={{ background: PRAZO_COR[pt.estado] }} />
+                <span className="font-mono">{ticketCode(t.id)}</span>
+                <span className={PRAZO_TEXTO[pt.estado]}>{prazoCurto(pt)}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
+
+const ANEL_CORES: Record<ReturnType<typeof prazoDe>["estado"], [string, string]> = {
+  ok: ["var(--primary)", "var(--ice)"],
+  warn: ["var(--warning)", "#ffc46b"],
+  late: ["var(--destructive)", "#ff8fa0"],
+  paused: ["var(--input)", "var(--input)"],
+  none: ["var(--input)", "var(--input)"],
+  done: ["var(--success)", "var(--success)"],
+};
 
 /* ------------------------------------------------------------------------ */
 
