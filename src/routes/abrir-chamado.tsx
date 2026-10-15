@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, Mail, Moon, Send, Building2, Sun, User } from "lucide-react";
+import { CheckCircle2, Loader2, Mail, Send, Building2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { ticketCode } from "@/lib/tickets";
 import { supabase } from "@/integrations/supabase/client";
-import { useTheme } from "@/lib/theme";
+import { Convergencia } from "@/components/Convergencia";
 import { createPublicTicket, publicTicketSchema } from "@/lib/public-tickets.functions";
 
 /**
@@ -72,7 +72,6 @@ const PASSOS = [
 
 function AbrirChamado() {
   const submit = useServerFn(createPublicTicket);
-  const { dark, toggle: toggleTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [created, setCreated] = useState<string | null>(null);
   const [urgency, setUrgency] = useState(3);
@@ -147,27 +146,19 @@ function AbrirChamado() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background px-4 py-10 sm:px-6 lg:py-16">
-      <div className="aura" aria-hidden="true" />
-
-      <div className="relative z-[1] mx-auto mb-4 flex w-full max-w-6xl justify-end lg:-mt-6 lg:mb-2">
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          className="size-9 [&_svg]:transition-transform [&_svg]:duration-500 active:[&_svg]:-rotate-45"
-          aria-label={dark ? "Mudar para o tema claro" : "Mudar para o tema escuro"}
-          title={dark ? "Tema claro" : "Tema escuro"}
-          onClick={(e) => toggleTheme({ x: e.clientX, y: e.clientY })}
-        >
-          {dark ? <Sun className="size-[1.1rem]" /> : <Moon className="size-[1.1rem]" />}
-        </Button>
+    // Sempre escura, como a tela de entrada, com o mesmo fundo: luz no centro,
+    // grade fina e as linhas que convergem. O fundo fica parado ao rolar.
+    <main className="dark relative min-h-screen bg-[#04060c] px-4 py-10 text-foreground sm:px-6 lg:py-16">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(60%_55%_at_50%_50%,color-mix(in_oklab,var(--primary)_22%,transparent),transparent_70%)]" />
+        <div className="absolute inset-0 [background-image:linear-gradient(var(--grid-line)_1px,transparent_1px),linear-gradient(90deg,var(--grid-line)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_70%_65%_at_50%_50%,#000_20%,transparent_75%)]" />
+        <Convergencia />
       </div>
 
       <div className="relative z-[1] mx-auto grid w-full max-w-6xl items-start gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14">
         {/* Contexto: o que acontece depois de enviar */}
         <section className="rise-in lg:sticky lg:top-16">
-          <h1 className="text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.04em] [text-wrap:balance] sm:text-[2.75rem]">
+          <h1 className="bg-[linear-gradient(180deg,#ffffff,#b9c6e4)] bg-clip-text text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.04em] text-transparent [text-wrap:balance] sm:text-[2.75rem]">
             Conte o que aconteceu. A equipe de T.I. assume daqui.
           </h1>
           <p className="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-muted-foreground">
@@ -233,141 +224,154 @@ function AbrirChamado() {
             </div>
           </div>
         ) : (
-          <section
-            className="panel rise-in p-6 sm:p-8"
-            style={{ "--d": "90ms" } as React.CSSProperties}
-          >
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold tracking-tight">Abrir chamado</h2>
-              <p className="mt-1 text-[0.8125rem] text-muted-foreground">
-                Seu nome e e-mail servem para a equipe saber quem pediu e falar com você.
-              </p>
-            </div>
+          // Mesmo cartão da tela de entrada: o feixe gira na borda. A entrada fica
+          // no invólucro de fora, senão travaria o giro do feixe.
+          <div className="rise-in" style={{ "--d": "90ms" } as React.CSSProperties}>
+            <div
+              className="feixe shadow-[0_40px_100px_-30px_rgb(42_91_255/0.45)]"
+              style={{ borderRadius: 20 }}
+            >
+              <section
+                className="bg-[linear-gradient(180deg,#0d1424,#0a0f1c)] p-6 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)] sm:p-8"
+                style={{ borderRadius: 19 }}
+              >
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold tracking-tight">Abrir chamado</h2>
+                  <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+                    Seu nome e e-mail servem para a equipe saber quem pediu e falar com você.
+                  </p>
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-xs">
-                    Seu nome
-                  </Label>
-                  <div className="relative">
-                    <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="name"
-                      name="name"
-                      required
-                      minLength={2}
-                      placeholder="Nome completo"
-                      className="h-11 pl-9"
-                    />
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="name" className="text-xs">
+                        Seu nome
+                      </Label>
+                      <div className="relative">
+                        <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="name"
+                          name="name"
+                          required
+                          minLength={2}
+                          placeholder="Nome completo"
+                          className="h-11 pl-9"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email" className="text-xs">
+                        E-mail para contato
+                      </Label>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          required
+                          placeholder="voce@empresa.com"
+                          className="h-11 pl-9"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs">
-                    E-mail para contato
-                  </Label>
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      placeholder="voce@empresa.com"
-                      className="h-11 pl-9"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="sector" className="text-xs">
-                  Setor / departamento
-                </Label>
-                <div className="relative">
-                  <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="sector"
-                    name="sector"
-                    placeholder="Ex.: Financeiro"
-                    className="h-11 pl-9"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="title" className="text-xs">
-                  Assunto
-                </Label>
-                <Input
-                  id="title"
-                  name="title"
-                  required
-                  minLength={3}
-                  placeholder="Resumo do problema"
-                  className="h-11"
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Categoria</Label>
-                  <Select value={categoriaId} onValueChange={setCategoriaId}>
-                    <SelectTrigger className="h-11" aria-label="Categoria">
-                      <SelectValue
-                        placeholder={
-                          categoriasQuery.isLoading ? "Carregando…" : "Escolha a categoria"
-                        }
+                  <div className="space-y-1.5">
+                    <Label htmlFor="sector" className="text-xs">
+                      Setor / departamento
+                    </Label>
+                    <div className="relative">
+                      <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="sector"
+                        name="sector"
+                        placeholder="Ex.: Financeiro"
+                        className="h-11 pl-9"
                       />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categorias.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.rotulo}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Urgência</Label>
-                  <Select value={String(urgency)} onValueChange={(v) => setUrgency(Number(v))}>
-                    <SelectTrigger className="h-11">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {URGENCIAS.map((item) => (
-                        <SelectItem key={item.valor} value={String(item.valor)}>
-                          {item.rotulo}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <p className="-mt-2 text-xs text-muted-foreground">
-                A urgência é o quanto isso atrapalha seu trabalho agora. A equipe define a
-                prioridade final considerando quantas pessoas foram afetadas.
-              </p>
+                    </div>
+                  </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="description" className="text-xs">
-                  Descrição
-                </Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  rows={5}
-                  placeholder="O que está acontecendo, mensagens de erro e desde quando ocorre."
-                />
-              </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="title" className="text-xs">
+                      Assunto
+                    </Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      required
+                      minLength={3}
+                      placeholder="Resumo do problema"
+                      className="h-11"
+                    />
+                  </div>
 
-              <Button type="submit" disabled={saving} className="h-11 w-full text-sm">
-                {saving ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                {saving ? "Enviando…" : "Enviar chamado"}
-              </Button>
-            </form>
-          </section>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Categoria</Label>
+                      <Select value={categoriaId} onValueChange={setCategoriaId}>
+                        <SelectTrigger className="h-11" aria-label="Categoria">
+                          <SelectValue
+                            placeholder={
+                              categoriasQuery.isLoading ? "Carregando…" : "Escolha a categoria"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categorias.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.rotulo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Urgência</Label>
+                      <Select value={String(urgency)} onValueChange={(v) => setUrgency(Number(v))}>
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {URGENCIAS.map((item) => (
+                            <SelectItem key={item.valor} value={String(item.valor)}>
+                              {item.rotulo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <p className="-mt-2 text-xs text-muted-foreground">
+                    A urgência é o quanto isso atrapalha seu trabalho agora. A equipe define a
+                    prioridade final considerando quantas pessoas foram afetadas.
+                  </p>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="description" className="text-xs">
+                      Descrição
+                    </Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      rows={5}
+                      placeholder="O que está acontecendo, mensagens de erro e desde quando ocorre."
+                    />
+                  </div>
+
+                  <Button type="submit" disabled={saving} className="h-11 w-full text-sm">
+                    {saving ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Send className="size-4" />
+                    )}
+                    {saving ? "Enviando…" : "Enviar chamado"}
+                  </Button>
+                </form>
+              </section>
+            </div>
+          </div>
         )}
       </div>
     </main>

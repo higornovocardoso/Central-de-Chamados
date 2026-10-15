@@ -214,7 +214,7 @@ const EXTRA_LABEL: Record<string, string> = {
   "/assistencia/kanban": "Quadro",
 };
 
-/** Caminho do topo: Central › Tela, ou Chamados › chamado aberto. */
+/** Caminho do topo: só o nome da tela, ou Chamados › chamado aberto. */
 export function breadcrumbFor(
   pathname: string,
   search: Record<string, unknown>,
@@ -222,7 +222,7 @@ export function breadcrumbFor(
 ): Crumb[] {
   const id = activeNavId(pathname, search);
   const link = NAV_LINKS.find((l) => l.id === id);
-  if (!link) return [{ label: "Central", to: "/painel" }, { label: tail ?? "Início" }];
+  if (!link) return [{ label: tail ?? "Início" }];
   // Na tela do próprio item, o nome do item já basta; o complemento só
   // entra nas telas de dentro dele (um chamado aberto, uma aba).
   if (pathname !== link.to) {
@@ -232,5 +232,5 @@ export function breadcrumbFor(
       { label: tail ?? tabLabel ?? EXTRA_LABEL[pathname] ?? pathname.split("/").pop() ?? "" },
     ];
   }
-  return [{ label: "Central", to: "/painel" }, { label: link.label }];
+  return [{ label: link.label }];
 }
