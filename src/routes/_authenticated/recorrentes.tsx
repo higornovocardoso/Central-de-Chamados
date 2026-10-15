@@ -7,7 +7,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useEntityOptions } from "@/hooks/useEntityOptions";
 import { LEVELS, levelLabel } from "@/lib/itil";
 
-export const Route = createFileRoute("/_authenticated/chamados/recorrentes")({
+export const Route = createFileRoute("/_authenticated/recorrentes")({
   head: () => ({
     meta: [
       { title: "Chamados recorrentes" },

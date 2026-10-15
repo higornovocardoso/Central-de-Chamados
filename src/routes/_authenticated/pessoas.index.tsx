@@ -46,7 +46,7 @@ import {
 import { usePermissions } from "@/hooks/usePermissions";
 import { createSystemUser, deleteSystemUser, updateSystemUser } from "@/lib/users.functions";
 
-export const Route = createFileRoute("/_authenticated/administracao/usuarios")({
+export const Route = createFileRoute("/_authenticated/pessoas/")({
   head: () => ({
     meta: [
       { title: "Usuários" },

@@ -11,7 +11,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { applySearch, type MatchMode, type SearchCriterion } from "@/lib/search";
 import { formatDate } from "@/lib/tickets";
 
-export const Route = createFileRoute("/_authenticated/administracao/logs")({
+export const Route = createFileRoute("/_authenticated/configuracoes/logs")({
   head: () => ({
     meta: [
       { title: "Logs" },

@@ -4,6 +4,8 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
+  Navigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -25,7 +27,30 @@ function TelaSolta({ children }: { children: ReactNode }) {
   );
 }
 
+/** Endereços antigos das telas, de antes de as URLs levarem o nome de cada uma. */
+const ENDERECOS_ANTIGOS: Record<string, string> = {
+  "/auth": "/entrar",
+  "/administracao/entidades": "/empresas",
+  "/administracao/usuarios": "/pessoas",
+  "/administracao/grupos": "/pessoas/grupos",
+  "/administracao/perfis": "/perfis-de-acesso",
+  "/administracao/regras": "/regras-de-atribuicao",
+  "/administracao/logs": "/configuracoes/logs",
+  "/configuracao/geral": "/configuracoes",
+  "/configuracao/slas": "/prazos",
+  "/configuracao/calendarios": "/prazos/calendarios",
+  "/configuracao/categorias": "/categorias",
+  "/assistencia/kanban": "/chamados/quadro",
+  "/assistencia/planejamento": "/agenda",
+  "/chamados/recorrentes": "/recorrentes",
+  "/base-conhecimento": "/base-de-conhecimento",
+};
+
 function NotFoundComponent() {
+  const { pathname } = useLocation();
+  const novo = ENDERECOS_ANTIGOS[pathname.replace(/\/+$/, "")];
+  // Favorito ou link salvo com o endereço antigo: leva direto para o novo.
+  if (novo) return <Navigate to={novo} replace />;
   return (
     <TelaSolta>
       <p className="font-mono text-sm tracking-[0.3em] text-muted-foreground">ERRO 404</p>
@@ -114,15 +139,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-const THEME_BOOT = `try{if(localStorage.getItem("central.tema")==="escuro")document.documentElement.classList.add("dark")}catch(e){}`;
+// Escuro é o padrão: só fica claro quem escolheu o claro (a escolha fica
+// salva no navegador). Sem acesso ao armazenamento, também abre escuro.
+const THEME_BOOT = `try{if(localStorage.getItem("central.tema")!=="claro")document.documentElement.classList.add("dark")}catch(e){document.documentElement.classList.add("dark")}`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
-        {/* Aplica o tema salvo antes da primeira pintura, para a tela não
-            piscar clara em quem escolheu o escuro. */}
+        {/* Aplica o tema antes da primeira pintura, para a tela não piscar
+            clara antes de ficar escura. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       </head>
       <body>

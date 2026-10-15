@@ -153,7 +153,7 @@ export function AppShell({
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/entrar", replace: true });
   }
 
   const crumbs = breadcrumbFor(location.pathname, search, breadcrumbTail);
@@ -209,7 +209,17 @@ export function AppShell({
         <DropdownMenuItem onClick={() => setProfileOpen(true)}>
           <User className="size-4" /> Minha conta
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => toggleTheme()}>
+        {/* A troca de tema fica só aqui. O círculo da transição nasce do ponto
+            clicado; pelo teclado (sem coordenada), do centro do item. */}
+        <DropdownMenuItem
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            toggleTheme({
+              x: e.clientX || r.left + r.width / 2,
+              y: e.clientY || r.top + r.height / 2,
+            });
+          }}
+        >
           {dark ? <Sun className="size-4" /> : <Moon className="size-4" />} Tema{" "}
           {dark ? "claro" : "escuro"}
         </DropdownMenuItem>
@@ -310,18 +320,6 @@ export function AppShell({
               </kbd>
             </button>
 
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="size-9 [&_svg]:transition-transform [&_svg]:duration-500 active:[&_svg]:-rotate-45"
-              aria-label={dark ? "Mudar para o tema claro" : "Mudar para o tema escuro"}
-              title={dark ? "Tema claro" : "Tema escuro"}
-              onClick={(e) => toggleTheme({ x: e.clientX, y: e.clientY })}
-            >
-              {dark ? <Sun className="size-[1.1rem]" /> : <Moon className="size-[1.1rem]" />}
-            </Button>
-
             {can("ticket", "create") && (
               <Button size="sm" asChild className="h-9 rounded-[0.625rem] px-3">
                 <Link to="/chamados/novo">
@@ -381,13 +379,7 @@ export function AppShell({
       </div>
 
       <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
-      <CommandPalette
-        open={paletteOpen}
-        onOpenChange={setPaletteOpen}
-        canRead={canRead}
-        dark={dark}
-        onToggleTheme={() => toggleTheme()}
-      />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} canRead={canRead} />
     </div>
   );
 }

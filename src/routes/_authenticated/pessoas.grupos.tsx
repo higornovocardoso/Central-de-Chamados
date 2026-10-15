@@ -32,7 +32,7 @@ import {
 } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 
-export const Route = createFileRoute("/_authenticated/administracao/grupos")({
+export const Route = createFileRoute("/_authenticated/pessoas/grupos")({
   head: () => ({
     meta: [
       { title: "Grupos" },

@@ -12,7 +12,7 @@ import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useEntityOptions } from "@/hooks/useEntityOptions";
 
-export const Route = createFileRoute("/_authenticated/configuracao/calendarios")({
+export const Route = createFileRoute("/_authenticated/prazos/calendarios")({
   head: () => ({
     meta: [
       { title: "Calendários" },

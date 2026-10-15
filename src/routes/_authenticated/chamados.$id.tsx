@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -98,6 +98,10 @@ import {
 } from "@/lib/tickets";
 
 export const Route = createFileRoute("/_authenticated/chamados/$id")({
+  // Endereço antigo da tela de recorrentes, que agora mora em /recorrentes.
+  beforeLoad: ({ params }) => {
+    if (params.id === "recorrentes") throw redirect({ to: "/recorrentes", replace: true });
+  },
   head: () => ({
     meta: [
       { title: "Chamado" },

@@ -19,7 +19,7 @@ import {
 import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 
-export const Route = createFileRoute("/_authenticated/configuracao/geral")({
+export const Route = createFileRoute("/_authenticated/configuracoes/")({
   head: () => ({
     meta: [
       { title: "Configurações gerais" },

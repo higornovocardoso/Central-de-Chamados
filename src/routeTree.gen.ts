@@ -12,25 +12,25 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AbrirChamadoRouteImport } from './routes/abrir-chamado'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedBaseConhecimentoRouteImport } from './routes/_authenticated/base-conhecimento'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
+import { Route as AuthenticatedBaseDeConhecimentoRouteImport } from './routes/_authenticated/base-de-conhecimento'
+import { Route as AuthenticatedCategoriasRouteImport } from './routes/_authenticated/categorias'
+import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticated/empresas'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as AuthenticatedAdministracaoEntidadesRouteImport } from './routes/_authenticated/administracao.entidades'
-import { Route as AuthenticatedAdministracaoGruposRouteImport } from './routes/_authenticated/administracao.grupos'
-import { Route as AuthenticatedAdministracaoLogsRouteImport } from './routes/_authenticated/administracao.logs'
-import { Route as AuthenticatedAdministracaoPerfisRouteImport } from './routes/_authenticated/administracao.perfis'
-import { Route as AuthenticatedAdministracaoRegrasRouteImport } from './routes/_authenticated/administracao.regras'
-import { Route as AuthenticatedAdministracaoUsuariosRouteImport } from './routes/_authenticated/administracao.usuarios'
-import { Route as AuthenticatedAssistenciaKanbanRouteImport } from './routes/_authenticated/assistencia.kanban'
-import { Route as AuthenticatedAssistenciaPlanejamentoRouteImport } from './routes/_authenticated/assistencia.planejamento'
+import { Route as AuthenticatedPerfisDeAcessoRouteImport } from './routes/_authenticated/perfis-de-acesso'
+import { Route as AuthenticatedRecorrentesRouteImport } from './routes/_authenticated/recorrentes'
+import { Route as AuthenticatedRegrasDeAtribuicaoRouteImport } from './routes/_authenticated/regras-de-atribuicao'
 import { Route as AuthenticatedChamadosIndexRouteImport } from './routes/_authenticated/chamados.index'
 import { Route as AuthenticatedChamadosIdRouteImport } from './routes/_authenticated/chamados.$id'
 import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authenticated/chamados.novo'
-import { Route as AuthenticatedChamadosRecorrentesRouteImport } from './routes/_authenticated/chamados.recorrentes'
-import { Route as AuthenticatedConfiguracaoCalendariosRouteImport } from './routes/_authenticated/configuracao.calendarios'
-import { Route as AuthenticatedConfiguracaoCategoriasRouteImport } from './routes/_authenticated/configuracao.categorias'
-import { Route as AuthenticatedConfiguracaoGeralRouteImport } from './routes/_authenticated/configuracao.geral'
-import { Route as AuthenticatedConfiguracaoSlasRouteImport } from './routes/_authenticated/configuracao.slas'
+import { Route as AuthenticatedChamadosQuadroRouteImport } from './routes/_authenticated/chamados.quadro'
+import { Route as AuthenticatedConfiguracoesIndexRouteImport } from './routes/_authenticated/configuracoes.index'
+import { Route as AuthenticatedConfiguracoesLogsRouteImport } from './routes/_authenticated/configuracoes.logs'
+import { Route as AuthenticatedPessoasIndexRouteImport } from './routes/_authenticated/pessoas.index'
+import { Route as AuthenticatedPessoasGruposRouteImport } from './routes/_authenticated/pessoas.grupos'
+import { Route as AuthenticatedPrazosIndexRouteImport } from './routes/_authenticated/prazos.index'
+import { Route as AuthenticatedPrazosCalendariosRouteImport } from './routes/_authenticated/prazos.calendarios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,68 +46,53 @@ const AbrirChamadoRoute = AbrirChamadoRouteImport.update({
   path: '/abrir-chamado',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedBaseConhecimentoRoute =
-  AuthenticatedBaseConhecimentoRouteImport.update({
-    id: '/base-conhecimento',
-    path: '/base-conhecimento',
+const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBaseDeConhecimentoRoute =
+  AuthenticatedBaseDeConhecimentoRouteImport.update({
+    id: '/base-de-conhecimento',
+    path: '/base-de-conhecimento',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCategoriasRoute = AuthenticatedCategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEmpresasRoute = AuthenticatedEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdministracaoEntidadesRoute =
-  AuthenticatedAdministracaoEntidadesRouteImport.update({
-    id: '/administracao/entidades',
-    path: '/administracao/entidades',
+const AuthenticatedPerfisDeAcessoRoute =
+  AuthenticatedPerfisDeAcessoRouteImport.update({
+    id: '/perfis-de-acesso',
+    path: '/perfis-de-acesso',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdministracaoGruposRoute =
-  AuthenticatedAdministracaoGruposRouteImport.update({
-    id: '/administracao/grupos',
-    path: '/administracao/grupos',
+const AuthenticatedRecorrentesRoute =
+  AuthenticatedRecorrentesRouteImport.update({
+    id: '/recorrentes',
+    path: '/recorrentes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdministracaoLogsRoute =
-  AuthenticatedAdministracaoLogsRouteImport.update({
-    id: '/administracao/logs',
-    path: '/administracao/logs',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdministracaoPerfisRoute =
-  AuthenticatedAdministracaoPerfisRouteImport.update({
-    id: '/administracao/perfis',
-    path: '/administracao/perfis',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdministracaoRegrasRoute =
-  AuthenticatedAdministracaoRegrasRouteImport.update({
-    id: '/administracao/regras',
-    path: '/administracao/regras',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdministracaoUsuariosRoute =
-  AuthenticatedAdministracaoUsuariosRouteImport.update({
-    id: '/administracao/usuarios',
-    path: '/administracao/usuarios',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAssistenciaKanbanRoute =
-  AuthenticatedAssistenciaKanbanRouteImport.update({
-    id: '/assistencia/kanban',
-    path: '/assistencia/kanban',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAssistenciaPlanejamentoRoute =
-  AuthenticatedAssistenciaPlanejamentoRouteImport.update({
-    id: '/assistencia/planejamento',
-    path: '/assistencia/planejamento',
+const AuthenticatedRegrasDeAtribuicaoRoute =
+  AuthenticatedRegrasDeAtribuicaoRouteImport.update({
+    id: '/regras-de-atribuicao',
+    path: '/regras-de-atribuicao',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChamadosIndexRoute =
@@ -127,186 +112,198 @@ const AuthenticatedChamadosNovoRoute =
     path: '/chamados/novo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedChamadosRecorrentesRoute =
-  AuthenticatedChamadosRecorrentesRouteImport.update({
-    id: '/chamados/recorrentes',
-    path: '/chamados/recorrentes',
+const AuthenticatedChamadosQuadroRoute =
+  AuthenticatedChamadosQuadroRouteImport.update({
+    id: '/chamados/quadro',
+    path: '/chamados/quadro',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedConfiguracaoCalendariosRoute =
-  AuthenticatedConfiguracaoCalendariosRouteImport.update({
-    id: '/configuracao/calendarios',
-    path: '/configuracao/calendarios',
+const AuthenticatedConfiguracoesIndexRoute =
+  AuthenticatedConfiguracoesIndexRouteImport.update({
+    id: '/configuracoes/',
+    path: '/configuracoes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedConfiguracaoCategoriasRoute =
-  AuthenticatedConfiguracaoCategoriasRouteImport.update({
-    id: '/configuracao/categorias',
-    path: '/configuracao/categorias',
+const AuthenticatedConfiguracoesLogsRoute =
+  AuthenticatedConfiguracoesLogsRouteImport.update({
+    id: '/configuracoes/logs',
+    path: '/configuracoes/logs',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedConfiguracaoGeralRoute =
-  AuthenticatedConfiguracaoGeralRouteImport.update({
-    id: '/configuracao/geral',
-    path: '/configuracao/geral',
+const AuthenticatedPessoasIndexRoute =
+  AuthenticatedPessoasIndexRouteImport.update({
+    id: '/pessoas/',
+    path: '/pessoas/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedConfiguracaoSlasRoute =
-  AuthenticatedConfiguracaoSlasRouteImport.update({
-    id: '/configuracao/slas',
-    path: '/configuracao/slas',
+const AuthenticatedPessoasGruposRoute =
+  AuthenticatedPessoasGruposRouteImport.update({
+    id: '/pessoas/grupos',
+    path: '/pessoas/grupos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPrazosIndexRoute =
+  AuthenticatedPrazosIndexRouteImport.update({
+    id: '/prazos/',
+    path: '/prazos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPrazosCalendariosRoute =
+  AuthenticatedPrazosCalendariosRouteImport.update({
+    id: '/prazos/calendarios',
+    path: '/prazos/calendarios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/abrir-chamado': typeof AbrirChamadoRoute
-  '/auth': typeof AuthRoute
-  '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
+  '/entrar': typeof EntrarRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
+  '/base-de-conhecimento': typeof AuthenticatedBaseDeConhecimentoRoute
+  '/categorias': typeof AuthenticatedCategoriasRoute
+  '/empresas': typeof AuthenticatedEmpresasRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
-  '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
-  '/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
-  '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
-  '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
-  '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
-  '/assistencia/kanban': typeof AuthenticatedAssistenciaKanbanRoute
-  '/assistencia/planejamento': typeof AuthenticatedAssistenciaPlanejamentoRoute
+  '/perfis-de-acesso': typeof AuthenticatedPerfisDeAcessoRoute
+  '/recorrentes': typeof AuthenticatedRecorrentesRoute
+  '/regras-de-atribuicao': typeof AuthenticatedRegrasDeAtribuicaoRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
-  '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
-  '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
-  '/configuracao/categorias': typeof AuthenticatedConfiguracaoCategoriasRoute
-  '/configuracao/geral': typeof AuthenticatedConfiguracaoGeralRoute
-  '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/chamados/quadro': typeof AuthenticatedChamadosQuadroRoute
+  '/configuracoes/logs': typeof AuthenticatedConfiguracoesLogsRoute
+  '/pessoas/grupos': typeof AuthenticatedPessoasGruposRoute
+  '/prazos/calendarios': typeof AuthenticatedPrazosCalendariosRoute
   '/chamados/': typeof AuthenticatedChamadosIndexRoute
+  '/configuracoes/': typeof AuthenticatedConfiguracoesIndexRoute
+  '/pessoas/': typeof AuthenticatedPessoasIndexRoute
+  '/prazos/': typeof AuthenticatedPrazosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/abrir-chamado': typeof AbrirChamadoRoute
-  '/auth': typeof AuthRoute
-  '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
+  '/entrar': typeof EntrarRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
+  '/base-de-conhecimento': typeof AuthenticatedBaseDeConhecimentoRoute
+  '/categorias': typeof AuthenticatedCategoriasRoute
+  '/empresas': typeof AuthenticatedEmpresasRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
-  '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
-  '/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
-  '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
-  '/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
-  '/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
-  '/assistencia/kanban': typeof AuthenticatedAssistenciaKanbanRoute
-  '/assistencia/planejamento': typeof AuthenticatedAssistenciaPlanejamentoRoute
+  '/perfis-de-acesso': typeof AuthenticatedPerfisDeAcessoRoute
+  '/recorrentes': typeof AuthenticatedRecorrentesRoute
+  '/regras-de-atribuicao': typeof AuthenticatedRegrasDeAtribuicaoRoute
   '/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/chamados/novo': typeof AuthenticatedChamadosNovoRoute
-  '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
-  '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
-  '/configuracao/categorias': typeof AuthenticatedConfiguracaoCategoriasRoute
-  '/configuracao/geral': typeof AuthenticatedConfiguracaoGeralRoute
-  '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/chamados/quadro': typeof AuthenticatedChamadosQuadroRoute
+  '/configuracoes/logs': typeof AuthenticatedConfiguracoesLogsRoute
+  '/pessoas/grupos': typeof AuthenticatedPessoasGruposRoute
+  '/prazos/calendarios': typeof AuthenticatedPrazosCalendariosRoute
   '/chamados': typeof AuthenticatedChamadosIndexRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesIndexRoute
+  '/pessoas': typeof AuthenticatedPessoasIndexRoute
+  '/prazos': typeof AuthenticatedPrazosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/abrir-chamado': typeof AbrirChamadoRoute
-  '/auth': typeof AuthRoute
-  '/_authenticated/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
+  '/entrar': typeof EntrarRoute
+  '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
+  '/_authenticated/base-de-conhecimento': typeof AuthenticatedBaseDeConhecimentoRoute
+  '/_authenticated/categorias': typeof AuthenticatedCategoriasRoute
+  '/_authenticated/empresas': typeof AuthenticatedEmpresasRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/_authenticated/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
-  '/_authenticated/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
-  '/_authenticated/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
-  '/_authenticated/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
-  '/_authenticated/administracao/regras': typeof AuthenticatedAdministracaoRegrasRoute
-  '/_authenticated/administracao/usuarios': typeof AuthenticatedAdministracaoUsuariosRoute
-  '/_authenticated/assistencia/kanban': typeof AuthenticatedAssistenciaKanbanRoute
-  '/_authenticated/assistencia/planejamento': typeof AuthenticatedAssistenciaPlanejamentoRoute
+  '/_authenticated/perfis-de-acesso': typeof AuthenticatedPerfisDeAcessoRoute
+  '/_authenticated/recorrentes': typeof AuthenticatedRecorrentesRoute
+  '/_authenticated/regras-de-atribuicao': typeof AuthenticatedRegrasDeAtribuicaoRoute
   '/_authenticated/chamados/$id': typeof AuthenticatedChamadosIdRoute
   '/_authenticated/chamados/novo': typeof AuthenticatedChamadosNovoRoute
-  '/_authenticated/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
-  '/_authenticated/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
-  '/_authenticated/configuracao/categorias': typeof AuthenticatedConfiguracaoCategoriasRoute
-  '/_authenticated/configuracao/geral': typeof AuthenticatedConfiguracaoGeralRoute
-  '/_authenticated/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
+  '/_authenticated/chamados/quadro': typeof AuthenticatedChamadosQuadroRoute
+  '/_authenticated/configuracoes/logs': typeof AuthenticatedConfiguracoesLogsRoute
+  '/_authenticated/pessoas/grupos': typeof AuthenticatedPessoasGruposRoute
+  '/_authenticated/prazos/calendarios': typeof AuthenticatedPrazosCalendariosRoute
   '/_authenticated/chamados/': typeof AuthenticatedChamadosIndexRoute
+  '/_authenticated/configuracoes/': typeof AuthenticatedConfiguracoesIndexRoute
+  '/_authenticated/pessoas/': typeof AuthenticatedPessoasIndexRoute
+  '/_authenticated/prazos/': typeof AuthenticatedPrazosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/abrir-chamado'
-    | '/auth'
-    | '/base-conhecimento'
+    | '/entrar'
+    | '/agenda'
+    | '/base-de-conhecimento'
+    | '/categorias'
+    | '/empresas'
     | '/painel'
-    | '/administracao/entidades'
-    | '/administracao/grupos'
-    | '/administracao/logs'
-    | '/administracao/perfis'
-    | '/administracao/regras'
-    | '/administracao/usuarios'
-    | '/assistencia/kanban'
-    | '/assistencia/planejamento'
+    | '/perfis-de-acesso'
+    | '/recorrentes'
+    | '/regras-de-atribuicao'
     | '/chamados/$id'
     | '/chamados/novo'
-    | '/chamados/recorrentes'
-    | '/configuracao/calendarios'
-    | '/configuracao/categorias'
-    | '/configuracao/geral'
-    | '/configuracao/slas'
+    | '/chamados/quadro'
+    | '/configuracoes/logs'
+    | '/pessoas/grupos'
+    | '/prazos/calendarios'
     | '/chamados/'
+    | '/configuracoes/'
+    | '/pessoas/'
+    | '/prazos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/abrir-chamado'
-    | '/auth'
-    | '/base-conhecimento'
+    | '/entrar'
+    | '/agenda'
+    | '/base-de-conhecimento'
+    | '/categorias'
+    | '/empresas'
     | '/painel'
-    | '/administracao/entidades'
-    | '/administracao/grupos'
-    | '/administracao/logs'
-    | '/administracao/perfis'
-    | '/administracao/regras'
-    | '/administracao/usuarios'
-    | '/assistencia/kanban'
-    | '/assistencia/planejamento'
+    | '/perfis-de-acesso'
+    | '/recorrentes'
+    | '/regras-de-atribuicao'
     | '/chamados/$id'
     | '/chamados/novo'
-    | '/chamados/recorrentes'
-    | '/configuracao/calendarios'
-    | '/configuracao/categorias'
-    | '/configuracao/geral'
-    | '/configuracao/slas'
+    | '/chamados/quadro'
+    | '/configuracoes/logs'
+    | '/pessoas/grupos'
+    | '/prazos/calendarios'
     | '/chamados'
+    | '/configuracoes'
+    | '/pessoas'
+    | '/prazos'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/abrir-chamado'
-    | '/auth'
-    | '/_authenticated/base-conhecimento'
+    | '/entrar'
+    | '/_authenticated/agenda'
+    | '/_authenticated/base-de-conhecimento'
+    | '/_authenticated/categorias'
+    | '/_authenticated/empresas'
     | '/_authenticated/painel'
-    | '/_authenticated/administracao/entidades'
-    | '/_authenticated/administracao/grupos'
-    | '/_authenticated/administracao/logs'
-    | '/_authenticated/administracao/perfis'
-    | '/_authenticated/administracao/regras'
-    | '/_authenticated/administracao/usuarios'
-    | '/_authenticated/assistencia/kanban'
-    | '/_authenticated/assistencia/planejamento'
+    | '/_authenticated/perfis-de-acesso'
+    | '/_authenticated/recorrentes'
+    | '/_authenticated/regras-de-atribuicao'
     | '/_authenticated/chamados/$id'
     | '/_authenticated/chamados/novo'
-    | '/_authenticated/chamados/recorrentes'
-    | '/_authenticated/configuracao/calendarios'
-    | '/_authenticated/configuracao/categorias'
-    | '/_authenticated/configuracao/geral'
-    | '/_authenticated/configuracao/slas'
+    | '/_authenticated/chamados/quadro'
+    | '/_authenticated/configuracoes/logs'
+    | '/_authenticated/pessoas/grupos'
+    | '/_authenticated/prazos/calendarios'
     | '/_authenticated/chamados/'
+    | '/_authenticated/configuracoes/'
+    | '/_authenticated/pessoas/'
+    | '/_authenticated/prazos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AbrirChamadoRoute: typeof AbrirChamadoRoute
-  AuthRoute: typeof AuthRoute
+  EntrarRoute: typeof EntrarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -332,18 +329,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AbrirChamadoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/base-conhecimento': {
-      id: '/_authenticated/base-conhecimento'
-      path: '/base-conhecimento'
-      fullPath: '/base-conhecimento'
-      preLoaderRoute: typeof AuthenticatedBaseConhecimentoRouteImport
+    '/_authenticated/agenda': {
+      id: '/_authenticated/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AuthenticatedAgendaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/base-de-conhecimento': {
+      id: '/_authenticated/base-de-conhecimento'
+      path: '/base-de-conhecimento'
+      fullPath: '/base-de-conhecimento'
+      preLoaderRoute: typeof AuthenticatedBaseDeConhecimentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/categorias': {
+      id: '/_authenticated/categorias'
+      path: '/categorias'
+      fullPath: '/categorias'
+      preLoaderRoute: typeof AuthenticatedCategoriasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/empresas': {
+      id: '/_authenticated/empresas'
+      path: '/empresas'
+      fullPath: '/empresas'
+      preLoaderRoute: typeof AuthenticatedEmpresasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/painel': {
@@ -353,60 +371,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/administracao/entidades': {
-      id: '/_authenticated/administracao/entidades'
-      path: '/administracao/entidades'
-      fullPath: '/administracao/entidades'
-      preLoaderRoute: typeof AuthenticatedAdministracaoEntidadesRouteImport
+    '/_authenticated/perfis-de-acesso': {
+      id: '/_authenticated/perfis-de-acesso'
+      path: '/perfis-de-acesso'
+      fullPath: '/perfis-de-acesso'
+      preLoaderRoute: typeof AuthenticatedPerfisDeAcessoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/administracao/grupos': {
-      id: '/_authenticated/administracao/grupos'
-      path: '/administracao/grupos'
-      fullPath: '/administracao/grupos'
-      preLoaderRoute: typeof AuthenticatedAdministracaoGruposRouteImport
+    '/_authenticated/recorrentes': {
+      id: '/_authenticated/recorrentes'
+      path: '/recorrentes'
+      fullPath: '/recorrentes'
+      preLoaderRoute: typeof AuthenticatedRecorrentesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/administracao/logs': {
-      id: '/_authenticated/administracao/logs'
-      path: '/administracao/logs'
-      fullPath: '/administracao/logs'
-      preLoaderRoute: typeof AuthenticatedAdministracaoLogsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/administracao/perfis': {
-      id: '/_authenticated/administracao/perfis'
-      path: '/administracao/perfis'
-      fullPath: '/administracao/perfis'
-      preLoaderRoute: typeof AuthenticatedAdministracaoPerfisRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/administracao/regras': {
-      id: '/_authenticated/administracao/regras'
-      path: '/administracao/regras'
-      fullPath: '/administracao/regras'
-      preLoaderRoute: typeof AuthenticatedAdministracaoRegrasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/administracao/usuarios': {
-      id: '/_authenticated/administracao/usuarios'
-      path: '/administracao/usuarios'
-      fullPath: '/administracao/usuarios'
-      preLoaderRoute: typeof AuthenticatedAdministracaoUsuariosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/assistencia/kanban': {
-      id: '/_authenticated/assistencia/kanban'
-      path: '/assistencia/kanban'
-      fullPath: '/assistencia/kanban'
-      preLoaderRoute: typeof AuthenticatedAssistenciaKanbanRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/assistencia/planejamento': {
-      id: '/_authenticated/assistencia/planejamento'
-      path: '/assistencia/planejamento'
-      fullPath: '/assistencia/planejamento'
-      preLoaderRoute: typeof AuthenticatedAssistenciaPlanejamentoRouteImport
+    '/_authenticated/regras-de-atribuicao': {
+      id: '/_authenticated/regras-de-atribuicao'
+      path: '/regras-de-atribuicao'
+      fullPath: '/regras-de-atribuicao'
+      preLoaderRoute: typeof AuthenticatedRegrasDeAtribuicaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chamados/': {
@@ -430,89 +413,98 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChamadosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/chamados/recorrentes': {
-      id: '/_authenticated/chamados/recorrentes'
-      path: '/chamados/recorrentes'
-      fullPath: '/chamados/recorrentes'
-      preLoaderRoute: typeof AuthenticatedChamadosRecorrentesRouteImport
+    '/_authenticated/chamados/quadro': {
+      id: '/_authenticated/chamados/quadro'
+      path: '/chamados/quadro'
+      fullPath: '/chamados/quadro'
+      preLoaderRoute: typeof AuthenticatedChamadosQuadroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/configuracao/calendarios': {
-      id: '/_authenticated/configuracao/calendarios'
-      path: '/configuracao/calendarios'
-      fullPath: '/configuracao/calendarios'
-      preLoaderRoute: typeof AuthenticatedConfiguracaoCalendariosRouteImport
+    '/_authenticated/configuracoes/': {
+      id: '/_authenticated/configuracoes/'
+      path: '/configuracoes'
+      fullPath: '/configuracoes/'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/configuracao/categorias': {
-      id: '/_authenticated/configuracao/categorias'
-      path: '/configuracao/categorias'
-      fullPath: '/configuracao/categorias'
-      preLoaderRoute: typeof AuthenticatedConfiguracaoCategoriasRouteImport
+    '/_authenticated/configuracoes/logs': {
+      id: '/_authenticated/configuracoes/logs'
+      path: '/configuracoes/logs'
+      fullPath: '/configuracoes/logs'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesLogsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/configuracao/geral': {
-      id: '/_authenticated/configuracao/geral'
-      path: '/configuracao/geral'
-      fullPath: '/configuracao/geral'
-      preLoaderRoute: typeof AuthenticatedConfiguracaoGeralRouteImport
+    '/_authenticated/pessoas/': {
+      id: '/_authenticated/pessoas/'
+      path: '/pessoas'
+      fullPath: '/pessoas/'
+      preLoaderRoute: typeof AuthenticatedPessoasIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/configuracao/slas': {
-      id: '/_authenticated/configuracao/slas'
-      path: '/configuracao/slas'
-      fullPath: '/configuracao/slas'
-      preLoaderRoute: typeof AuthenticatedConfiguracaoSlasRouteImport
+    '/_authenticated/pessoas/grupos': {
+      id: '/_authenticated/pessoas/grupos'
+      path: '/pessoas/grupos'
+      fullPath: '/pessoas/grupos'
+      preLoaderRoute: typeof AuthenticatedPessoasGruposRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prazos/': {
+      id: '/_authenticated/prazos/'
+      path: '/prazos'
+      fullPath: '/prazos/'
+      preLoaderRoute: typeof AuthenticatedPrazosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prazos/calendarios': {
+      id: '/_authenticated/prazos/calendarios'
+      path: '/prazos/calendarios'
+      fullPath: '/prazos/calendarios'
+      preLoaderRoute: typeof AuthenticatedPrazosCalendariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedBaseConhecimentoRoute: typeof AuthenticatedBaseConhecimentoRoute
+  AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
+  AuthenticatedBaseDeConhecimentoRoute: typeof AuthenticatedBaseDeConhecimentoRoute
+  AuthenticatedCategoriasRoute: typeof AuthenticatedCategoriasRoute
+  AuthenticatedEmpresasRoute: typeof AuthenticatedEmpresasRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
-  AuthenticatedAdministracaoEntidadesRoute: typeof AuthenticatedAdministracaoEntidadesRoute
-  AuthenticatedAdministracaoGruposRoute: typeof AuthenticatedAdministracaoGruposRoute
-  AuthenticatedAdministracaoLogsRoute: typeof AuthenticatedAdministracaoLogsRoute
-  AuthenticatedAdministracaoPerfisRoute: typeof AuthenticatedAdministracaoPerfisRoute
-  AuthenticatedAdministracaoRegrasRoute: typeof AuthenticatedAdministracaoRegrasRoute
-  AuthenticatedAdministracaoUsuariosRoute: typeof AuthenticatedAdministracaoUsuariosRoute
-  AuthenticatedAssistenciaKanbanRoute: typeof AuthenticatedAssistenciaKanbanRoute
-  AuthenticatedAssistenciaPlanejamentoRoute: typeof AuthenticatedAssistenciaPlanejamentoRoute
+  AuthenticatedPerfisDeAcessoRoute: typeof AuthenticatedPerfisDeAcessoRoute
+  AuthenticatedRecorrentesRoute: typeof AuthenticatedRecorrentesRoute
+  AuthenticatedRegrasDeAtribuicaoRoute: typeof AuthenticatedRegrasDeAtribuicaoRoute
   AuthenticatedChamadosIdRoute: typeof AuthenticatedChamadosIdRoute
   AuthenticatedChamadosNovoRoute: typeof AuthenticatedChamadosNovoRoute
-  AuthenticatedChamadosRecorrentesRoute: typeof AuthenticatedChamadosRecorrentesRoute
-  AuthenticatedConfiguracaoCalendariosRoute: typeof AuthenticatedConfiguracaoCalendariosRoute
-  AuthenticatedConfiguracaoCategoriasRoute: typeof AuthenticatedConfiguracaoCategoriasRoute
-  AuthenticatedConfiguracaoGeralRoute: typeof AuthenticatedConfiguracaoGeralRoute
-  AuthenticatedConfiguracaoSlasRoute: typeof AuthenticatedConfiguracaoSlasRoute
+  AuthenticatedChamadosQuadroRoute: typeof AuthenticatedChamadosQuadroRoute
+  AuthenticatedConfiguracoesLogsRoute: typeof AuthenticatedConfiguracoesLogsRoute
+  AuthenticatedPessoasGruposRoute: typeof AuthenticatedPessoasGruposRoute
+  AuthenticatedPrazosCalendariosRoute: typeof AuthenticatedPrazosCalendariosRoute
   AuthenticatedChamadosIndexRoute: typeof AuthenticatedChamadosIndexRoute
+  AuthenticatedConfiguracoesIndexRoute: typeof AuthenticatedConfiguracoesIndexRoute
+  AuthenticatedPessoasIndexRoute: typeof AuthenticatedPessoasIndexRoute
+  AuthenticatedPrazosIndexRoute: typeof AuthenticatedPrazosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedBaseConhecimentoRoute: AuthenticatedBaseConhecimentoRoute,
+  AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
+  AuthenticatedBaseDeConhecimentoRoute: AuthenticatedBaseDeConhecimentoRoute,
+  AuthenticatedCategoriasRoute: AuthenticatedCategoriasRoute,
+  AuthenticatedEmpresasRoute: AuthenticatedEmpresasRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
-  AuthenticatedAdministracaoEntidadesRoute:
-    AuthenticatedAdministracaoEntidadesRoute,
-  AuthenticatedAdministracaoGruposRoute: AuthenticatedAdministracaoGruposRoute,
-  AuthenticatedAdministracaoLogsRoute: AuthenticatedAdministracaoLogsRoute,
-  AuthenticatedAdministracaoPerfisRoute: AuthenticatedAdministracaoPerfisRoute,
-  AuthenticatedAdministracaoRegrasRoute: AuthenticatedAdministracaoRegrasRoute,
-  AuthenticatedAdministracaoUsuariosRoute:
-    AuthenticatedAdministracaoUsuariosRoute,
-  AuthenticatedAssistenciaKanbanRoute: AuthenticatedAssistenciaKanbanRoute,
-  AuthenticatedAssistenciaPlanejamentoRoute:
-    AuthenticatedAssistenciaPlanejamentoRoute,
+  AuthenticatedPerfisDeAcessoRoute: AuthenticatedPerfisDeAcessoRoute,
+  AuthenticatedRecorrentesRoute: AuthenticatedRecorrentesRoute,
+  AuthenticatedRegrasDeAtribuicaoRoute: AuthenticatedRegrasDeAtribuicaoRoute,
   AuthenticatedChamadosIdRoute: AuthenticatedChamadosIdRoute,
   AuthenticatedChamadosNovoRoute: AuthenticatedChamadosNovoRoute,
-  AuthenticatedChamadosRecorrentesRoute: AuthenticatedChamadosRecorrentesRoute,
-  AuthenticatedConfiguracaoCalendariosRoute:
-    AuthenticatedConfiguracaoCalendariosRoute,
-  AuthenticatedConfiguracaoCategoriasRoute:
-    AuthenticatedConfiguracaoCategoriasRoute,
-  AuthenticatedConfiguracaoGeralRoute: AuthenticatedConfiguracaoGeralRoute,
-  AuthenticatedConfiguracaoSlasRoute: AuthenticatedConfiguracaoSlasRoute,
+  AuthenticatedChamadosQuadroRoute: AuthenticatedChamadosQuadroRoute,
+  AuthenticatedConfiguracoesLogsRoute: AuthenticatedConfiguracoesLogsRoute,
+  AuthenticatedPessoasGruposRoute: AuthenticatedPessoasGruposRoute,
+  AuthenticatedPrazosCalendariosRoute: AuthenticatedPrazosCalendariosRoute,
   AuthenticatedChamadosIndexRoute: AuthenticatedChamadosIndexRoute,
+  AuthenticatedConfiguracoesIndexRoute: AuthenticatedConfiguracoesIndexRoute,
+  AuthenticatedPessoasIndexRoute: AuthenticatedPessoasIndexRoute,
+  AuthenticatedPrazosIndexRoute: AuthenticatedPrazosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -522,7 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AbrirChamadoRoute: AbrirChamadoRoute,
-  AuthRoute: AuthRoute,
+  EntrarRoute: EntrarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

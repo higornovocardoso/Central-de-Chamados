@@ -11,10 +11,10 @@ import { looseDb, type LooseRow } from "@/integrations/supabase/glpi-db";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ticketCode } from "@/lib/tickets";
 
-export const Route = createFileRoute("/_authenticated/assistencia/planejamento")({
+export const Route = createFileRoute("/_authenticated/agenda")({
   head: () => ({
     meta: [
-      { title: "Planejamento" },
+      { title: "Agenda de tarefas" },
       {
         name: "description",
         content: "A agenda da equipe: tarefas de chamado com data marcada.",
@@ -124,7 +124,7 @@ function Planejamento() {
   if (acesso !== "liberado") {
     return (
       <AvisoAcesso
-        titulo="Planejamento"
+        titulo="Agenda de tarefas"
         estado={acesso}
         mensagem="Seu perfil não tem acesso ao planejamento."
       />
@@ -133,9 +133,9 @@ function Planejamento() {
 
   return (
     <AppShell
-      title="Planejamento"
+      title="Agenda de tarefas"
       subtitle="As tarefas de chamado com data marcada, semana a semana."
-      breadcrumbTail="Planejamento"
+      breadcrumbTail="Agenda de tarefas"
       actions={
         <div className="flex items-center gap-1">
           <Button

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Convergencia } from "@/components/Convergencia";
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/entrar")({
   head: () => ({
     meta: [
       { title: "Entrar" },
