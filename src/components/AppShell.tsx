@@ -206,34 +206,10 @@ export function AppShell({
     </DropdownMenu>
   );
 
-  const brand = (
-    <Link to="/painel" className="flex items-center gap-2.5 px-2 pb-1">
-      <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-[#5f84ff] text-white shadow-[0_4px_12px_-4px_var(--primary)]">
-        <svg
-          viewBox="0 0 24 24"
-          className="size-[1.05rem]"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <path d="M4 7h16M4 12h10M4 17h6" />
-          <circle cx="18" cy="16" r="3" />
-        </svg>
-      </span>
-      <span className="leading-tight">
-        <span className="block text-[0.9rem] font-semibold tracking-tight">Central</span>
-        <span className="block text-xs text-muted-foreground">Chamados de T.I.</span>
-      </span>
-    </Link>
-  );
-
   return (
     <div className="flex min-h-screen bg-background">
       {/* Barra lateral fixa no desktop */}
       <aside className="sticky top-0 hidden h-screen w-[244px] shrink-0 flex-col gap-4 border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground transition-colors duration-300 lg:flex">
-        {brand}
         <div className="-mx-1 flex-1 overflow-y-auto px-1">{nav()}</div>
         <div className="border-t border-sidebar-border pt-3">{userMenu}</div>
       </aside>
@@ -242,7 +218,6 @@ export function AppShell({
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="flex w-[17rem] flex-col gap-4 bg-sidebar p-3 pt-5">
           <SheetTitle className="sr-only">Menu</SheetTitle>
-          {brand}
           <div className="flex-1 overflow-y-auto">{nav(() => setMobileOpen(false))}</div>
           <div className="border-t border-sidebar-border pt-3">{userMenu}</div>
         </SheetContent>
