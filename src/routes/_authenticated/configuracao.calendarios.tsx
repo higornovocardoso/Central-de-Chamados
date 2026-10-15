@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/configuracao/calendarios")
       { title: "Calendários" },
       {
         name: "description",
-        content: "Horários de expediente e feriados usados no cálculo dos prazos de SLA.",
+        content: "Horários de expediente e feriados usados na contagem dos prazos.",
       },
     ],
   }),
@@ -133,7 +133,7 @@ function Calendarios() {
   return (
     <AppShell
       title="Calendários"
-      subtitle="O expediente e os feriados que o SLA usa para contar o prazo."
+      subtitle="O expediente e os feriados que os prazos usam para contar o tempo."
       breadcrumbTail="Calendários"
     >
       <div className="grid gap-3 lg:grid-cols-[1fr_360px]">

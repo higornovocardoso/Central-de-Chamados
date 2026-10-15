@@ -62,9 +62,6 @@ const EMPTY = {
 
 const CHARACTERISTICS = [
   { key: "visible_in_ticket", label: "Visível no chamado (grupo requerente ou atribuído)" },
-  { key: "can_be_notified", label: "Pode ser notificado" },
-  { key: "can_be_manager", label: "Pode ser gerente de projeto" },
-  { key: "contains_assets", label: "Pode conter ativos" },
   { key: "contains_users", label: "Pode conter usuários" },
 ] as const;
 
@@ -304,8 +301,6 @@ function Grupos() {
                     <td className="text-[0.72rem] text-muted-foreground">
                       {[
                         g.visible_in_ticket ? "chamado" : null,
-                        g.can_be_notified ? "notificável" : null,
-                        g.contains_assets ? "ativos" : null,
                         g.contains_users ? "usuários" : null,
                       ]
                         .filter(Boolean)

@@ -131,20 +131,7 @@ async function legacyPermissions(): Promise<Permissions> {
   );
   grant(["supplier", "contract", "document"], isTech ? FULL : READ_ONLY);
   if (isAdmin) {
-    grant(
-      [
-        "user",
-        "group",
-        "entity",
-        "profile",
-        "config",
-        "sla",
-        "dropdown",
-        "calendar",
-        "notification",
-      ],
-      FULL,
-    );
+    grant(["user", "group", "entity", "profile", "config", "sla", "dropdown", "calendar"], FULL);
   }
 
   return {

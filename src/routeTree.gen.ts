@@ -16,7 +16,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedBaseConhecimentoRouteImport } from './routes/_authenticated/base-conhecimento'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedAdministracaoEntidadesRouteImport } from './routes/_authenticated/administracao.entidades'
-import { Route as AuthenticatedAdministracaoFilaDeEmailsRouteImport } from './routes/_authenticated/administracao.fila-de-emails'
 import { Route as AuthenticatedAdministracaoGruposRouteImport } from './routes/_authenticated/administracao.grupos'
 import { Route as AuthenticatedAdministracaoLogsRouteImport } from './routes/_authenticated/administracao.logs'
 import { Route as AuthenticatedAdministracaoPerfisRouteImport } from './routes/_authenticated/administracao.perfis'
@@ -30,9 +29,7 @@ import { Route as AuthenticatedChamadosNovoRouteImport } from './routes/_authent
 import { Route as AuthenticatedChamadosRecorrentesRouteImport } from './routes/_authenticated/chamados.recorrentes'
 import { Route as AuthenticatedConfiguracaoCalendariosRouteImport } from './routes/_authenticated/configuracao.calendarios'
 import { Route as AuthenticatedConfiguracaoCategoriasRouteImport } from './routes/_authenticated/configuracao.categorias'
-import { Route as AuthenticatedConfiguracaoColetoresRouteImport } from './routes/_authenticated/configuracao.coletores'
 import { Route as AuthenticatedConfiguracaoGeralRouteImport } from './routes/_authenticated/configuracao.geral'
-import { Route as AuthenticatedConfiguracaoNotificacoesRouteImport } from './routes/_authenticated/configuracao.notificacoes'
 import { Route as AuthenticatedConfiguracaoSlasRouteImport } from './routes/_authenticated/configuracao.slas'
 
 const IndexRoute = IndexRouteImport.update({
@@ -69,12 +66,6 @@ const AuthenticatedAdministracaoEntidadesRoute =
   AuthenticatedAdministracaoEntidadesRouteImport.update({
     id: '/administracao/entidades',
     path: '/administracao/entidades',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAdministracaoFilaDeEmailsRoute =
-  AuthenticatedAdministracaoFilaDeEmailsRouteImport.update({
-    id: '/administracao/fila-de-emails',
-    path: '/administracao/fila-de-emails',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdministracaoGruposRoute =
@@ -154,22 +145,10 @@ const AuthenticatedConfiguracaoCategoriasRoute =
     path: '/configuracao/categorias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedConfiguracaoColetoresRoute =
-  AuthenticatedConfiguracaoColetoresRouteImport.update({
-    id: '/configuracao/coletores',
-    path: '/configuracao/coletores',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedConfiguracaoGeralRoute =
   AuthenticatedConfiguracaoGeralRouteImport.update({
     id: '/configuracao/geral',
     path: '/configuracao/geral',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedConfiguracaoNotificacoesRoute =
-  AuthenticatedConfiguracaoNotificacoesRouteImport.update({
-    id: '/configuracao/notificacoes',
-    path: '/configuracao/notificacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConfiguracaoSlasRoute =
@@ -186,7 +165,6 @@ export interface FileRoutesByFullPath {
   '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
-  '/administracao/fila-de-emails': typeof AuthenticatedAdministracaoFilaDeEmailsRoute
   '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
   '/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
@@ -199,9 +177,7 @@ export interface FileRoutesByFullPath {
   '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
   '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
   '/configuracao/categorias': typeof AuthenticatedConfiguracaoCategoriasRoute
-  '/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
   '/configuracao/geral': typeof AuthenticatedConfiguracaoGeralRoute
-  '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
   '/chamados/': typeof AuthenticatedChamadosIndexRoute
 }
@@ -212,7 +188,6 @@ export interface FileRoutesByTo {
   '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
-  '/administracao/fila-de-emails': typeof AuthenticatedAdministracaoFilaDeEmailsRoute
   '/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
   '/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
   '/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
@@ -225,9 +200,7 @@ export interface FileRoutesByTo {
   '/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
   '/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
   '/configuracao/categorias': typeof AuthenticatedConfiguracaoCategoriasRoute
-  '/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
   '/configuracao/geral': typeof AuthenticatedConfiguracaoGeralRoute
-  '/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
   '/chamados': typeof AuthenticatedChamadosIndexRoute
 }
@@ -240,7 +213,6 @@ export interface FileRoutesById {
   '/_authenticated/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/administracao/entidades': typeof AuthenticatedAdministracaoEntidadesRoute
-  '/_authenticated/administracao/fila-de-emails': typeof AuthenticatedAdministracaoFilaDeEmailsRoute
   '/_authenticated/administracao/grupos': typeof AuthenticatedAdministracaoGruposRoute
   '/_authenticated/administracao/logs': typeof AuthenticatedAdministracaoLogsRoute
   '/_authenticated/administracao/perfis': typeof AuthenticatedAdministracaoPerfisRoute
@@ -253,9 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/chamados/recorrentes': typeof AuthenticatedChamadosRecorrentesRoute
   '/_authenticated/configuracao/calendarios': typeof AuthenticatedConfiguracaoCalendariosRoute
   '/_authenticated/configuracao/categorias': typeof AuthenticatedConfiguracaoCategoriasRoute
-  '/_authenticated/configuracao/coletores': typeof AuthenticatedConfiguracaoColetoresRoute
   '/_authenticated/configuracao/geral': typeof AuthenticatedConfiguracaoGeralRoute
-  '/_authenticated/configuracao/notificacoes': typeof AuthenticatedConfiguracaoNotificacoesRoute
   '/_authenticated/configuracao/slas': typeof AuthenticatedConfiguracaoSlasRoute
   '/_authenticated/chamados/': typeof AuthenticatedChamadosIndexRoute
 }
@@ -268,7 +238,6 @@ export interface FileRouteTypes {
     | '/base-conhecimento'
     | '/painel'
     | '/administracao/entidades'
-    | '/administracao/fila-de-emails'
     | '/administracao/grupos'
     | '/administracao/logs'
     | '/administracao/perfis'
@@ -281,9 +250,7 @@ export interface FileRouteTypes {
     | '/chamados/recorrentes'
     | '/configuracao/calendarios'
     | '/configuracao/categorias'
-    | '/configuracao/coletores'
     | '/configuracao/geral'
-    | '/configuracao/notificacoes'
     | '/configuracao/slas'
     | '/chamados/'
   fileRoutesByTo: FileRoutesByTo
@@ -294,7 +261,6 @@ export interface FileRouteTypes {
     | '/base-conhecimento'
     | '/painel'
     | '/administracao/entidades'
-    | '/administracao/fila-de-emails'
     | '/administracao/grupos'
     | '/administracao/logs'
     | '/administracao/perfis'
@@ -307,9 +273,7 @@ export interface FileRouteTypes {
     | '/chamados/recorrentes'
     | '/configuracao/calendarios'
     | '/configuracao/categorias'
-    | '/configuracao/coletores'
     | '/configuracao/geral'
-    | '/configuracao/notificacoes'
     | '/configuracao/slas'
     | '/chamados'
   id:
@@ -321,7 +285,6 @@ export interface FileRouteTypes {
     | '/_authenticated/base-conhecimento'
     | '/_authenticated/painel'
     | '/_authenticated/administracao/entidades'
-    | '/_authenticated/administracao/fila-de-emails'
     | '/_authenticated/administracao/grupos'
     | '/_authenticated/administracao/logs'
     | '/_authenticated/administracao/perfis'
@@ -334,9 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chamados/recorrentes'
     | '/_authenticated/configuracao/calendarios'
     | '/_authenticated/configuracao/categorias'
-    | '/_authenticated/configuracao/coletores'
     | '/_authenticated/configuracao/geral'
-    | '/_authenticated/configuracao/notificacoes'
     | '/_authenticated/configuracao/slas'
     | '/_authenticated/chamados/'
   fileRoutesById: FileRoutesById
@@ -397,13 +358,6 @@ declare module '@tanstack/react-router' {
       path: '/administracao/entidades'
       fullPath: '/administracao/entidades'
       preLoaderRoute: typeof AuthenticatedAdministracaoEntidadesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/administracao/fila-de-emails': {
-      id: '/_authenticated/administracao/fila-de-emails'
-      path: '/administracao/fila-de-emails'
-      fullPath: '/administracao/fila-de-emails'
-      preLoaderRoute: typeof AuthenticatedAdministracaoFilaDeEmailsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/administracao/grupos': {
@@ -497,25 +451,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracaoCategoriasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/configuracao/coletores': {
-      id: '/_authenticated/configuracao/coletores'
-      path: '/configuracao/coletores'
-      fullPath: '/configuracao/coletores'
-      preLoaderRoute: typeof AuthenticatedConfiguracaoColetoresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/configuracao/geral': {
       id: '/_authenticated/configuracao/geral'
       path: '/configuracao/geral'
       fullPath: '/configuracao/geral'
       preLoaderRoute: typeof AuthenticatedConfiguracaoGeralRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/configuracao/notificacoes': {
-      id: '/_authenticated/configuracao/notificacoes'
-      path: '/configuracao/notificacoes'
-      fullPath: '/configuracao/notificacoes'
-      preLoaderRoute: typeof AuthenticatedConfiguracaoNotificacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracao/slas': {
@@ -532,7 +472,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBaseConhecimentoRoute: typeof AuthenticatedBaseConhecimentoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedAdministracaoEntidadesRoute: typeof AuthenticatedAdministracaoEntidadesRoute
-  AuthenticatedAdministracaoFilaDeEmailsRoute: typeof AuthenticatedAdministracaoFilaDeEmailsRoute
   AuthenticatedAdministracaoGruposRoute: typeof AuthenticatedAdministracaoGruposRoute
   AuthenticatedAdministracaoLogsRoute: typeof AuthenticatedAdministracaoLogsRoute
   AuthenticatedAdministracaoPerfisRoute: typeof AuthenticatedAdministracaoPerfisRoute
@@ -545,9 +484,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChamadosRecorrentesRoute: typeof AuthenticatedChamadosRecorrentesRoute
   AuthenticatedConfiguracaoCalendariosRoute: typeof AuthenticatedConfiguracaoCalendariosRoute
   AuthenticatedConfiguracaoCategoriasRoute: typeof AuthenticatedConfiguracaoCategoriasRoute
-  AuthenticatedConfiguracaoColetoresRoute: typeof AuthenticatedConfiguracaoColetoresRoute
   AuthenticatedConfiguracaoGeralRoute: typeof AuthenticatedConfiguracaoGeralRoute
-  AuthenticatedConfiguracaoNotificacoesRoute: typeof AuthenticatedConfiguracaoNotificacoesRoute
   AuthenticatedConfiguracaoSlasRoute: typeof AuthenticatedConfiguracaoSlasRoute
   AuthenticatedChamadosIndexRoute: typeof AuthenticatedChamadosIndexRoute
 }
@@ -557,8 +494,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedAdministracaoEntidadesRoute:
     AuthenticatedAdministracaoEntidadesRoute,
-  AuthenticatedAdministracaoFilaDeEmailsRoute:
-    AuthenticatedAdministracaoFilaDeEmailsRoute,
   AuthenticatedAdministracaoGruposRoute: AuthenticatedAdministracaoGruposRoute,
   AuthenticatedAdministracaoLogsRoute: AuthenticatedAdministracaoLogsRoute,
   AuthenticatedAdministracaoPerfisRoute: AuthenticatedAdministracaoPerfisRoute,
@@ -575,11 +510,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedConfiguracaoCalendariosRoute,
   AuthenticatedConfiguracaoCategoriasRoute:
     AuthenticatedConfiguracaoCategoriasRoute,
-  AuthenticatedConfiguracaoColetoresRoute:
-    AuthenticatedConfiguracaoColetoresRoute,
   AuthenticatedConfiguracaoGeralRoute: AuthenticatedConfiguracaoGeralRoute,
-  AuthenticatedConfiguracaoNotificacoesRoute:
-    AuthenticatedConfiguracaoNotificacoesRoute,
   AuthenticatedConfiguracaoSlasRoute: AuthenticatedConfiguracaoSlasRoute,
   AuthenticatedChamadosIndexRoute: AuthenticatedChamadosIndexRoute,
 }

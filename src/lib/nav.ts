@@ -6,7 +6,6 @@ import {
   Clock,
   Inbox,
   LayoutDashboard,
-  Mail,
   Repeat,
   Route as RouteIcon,
   ShieldCheck,
@@ -136,7 +135,7 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       {
         id: "prazos",
-        label: "Prazos (SLA)",
+        label: "Prazos",
         to: "/configuracao/slas",
         icon: Clock,
         right: "sla",
@@ -148,14 +147,6 @@ export const NAV_SECTIONS: NavSection[] = [
         to: "/administracao/regras",
         icon: RouteIcon,
         right: "business_rule",
-      },
-      {
-        id: "email",
-        label: "E-mail",
-        to: "/configuracao/notificacoes",
-        icon: Mail,
-        right: "notification",
-        also: ["/configuracao/coletores", "/administracao/fila-de-emails"],
       },
       {
         id: "geral",
@@ -178,13 +169,8 @@ export const SECTION_TABS: { label: string; to: string; right?: string }[][] = [
     { label: "Grupos", to: "/administracao/grupos", right: "group" },
   ],
   [
-    { label: "Níveis de serviço", to: "/configuracao/slas", right: "sla" },
+    { label: "Prazos", to: "/configuracao/slas", right: "sla" },
     { label: "Calendários", to: "/configuracao/calendarios", right: "calendar" },
-  ],
-  [
-    { label: "Notificações", to: "/configuracao/notificacoes", right: "notification" },
-    { label: "Coletores", to: "/configuracao/coletores", right: "collector" },
-    { label: "Fila de envio", to: "/administracao/fila-de-emails", right: "mailqueue" },
   ],
   [
     { label: "Configurações", to: "/configuracao/geral", right: "config" },

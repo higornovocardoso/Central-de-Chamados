@@ -45,7 +45,7 @@ declare
   msg text;
 begin
   delete from public.entity_email_domains where entity_id in (ent_a, ent_b);
-  delete from public.assets               where entity_id in (ent_a, ent_b);
+  delete from public.locations            where entity_id in (ent_a, ent_b);
   delete from public.tickets              where entity_id in (ent_a, ent_b);
   delete from public.user_authorizations  where user_id   in (usr_a, usr_b);
   delete from public.user_roles           where user_id   in (usr_a, usr_b);
@@ -83,7 +83,7 @@ begin
     (ent_a, 'TESTE chamado da Empresa A'),
     (ent_b, 'TESTE chamado da Empresa B');
 
-  insert into public.assets (entity_id, name) values (ent_a, 'TESTE ativo da A');
+  insert into public.locations (entity_id, name) values (ent_a, 'TESTE local da A');
 
   perform set_config('role', 'authenticated', true);
   perform set_config('request.jwt.claims',
@@ -118,8 +118,8 @@ begin
   cenario := 'usuario da B lendo chamado da A';
   esperado := '0'; obtido := n::text; passou := (n = 0); return next;
 
-  select count(*) into n from public.assets where entity_id = ent_a;
-  cenario := 'usuario da B lendo ativo da A';
+  select count(*) into n from public.locations where entity_id = ent_a;
+  cenario := 'usuario da B lendo local da A';
   esperado := '0'; obtido := n::text; passou := (n = 0); return next;
 
   -- Formulario publico: o dominio do e-mail decide a empresa.
@@ -161,7 +161,7 @@ begin
   perform set_config('request.jwt.claims', null, true);
 
   delete from public.entity_email_domains where entity_id in (ent_a, ent_b);
-  delete from public.assets               where entity_id in (ent_a, ent_b);
+  delete from public.locations            where entity_id in (ent_a, ent_b);
   delete from public.tickets              where entity_id in (ent_a, ent_b);
   delete from public.user_authorizations  where user_id   in (usr_a, usr_b);
   delete from public.user_roles           where user_id   in (usr_a, usr_b);
@@ -175,7 +175,7 @@ exception when others then
   perform set_config('role', papel_original, true);
   perform set_config('request.jwt.claims', null, true);
   delete from public.entity_email_domains where entity_id in (ent_a, ent_b);
-  delete from public.assets               where entity_id in (ent_a, ent_b);
+  delete from public.locations            where entity_id in (ent_a, ent_b);
   delete from public.tickets              where entity_id in (ent_a, ent_b);
   delete from public.user_authorizations  where user_id   in (usr_a, usr_b);
   delete from public.user_roles           where user_id   in (usr_a, usr_b);
