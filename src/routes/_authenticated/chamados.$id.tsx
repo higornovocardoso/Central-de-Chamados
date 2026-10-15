@@ -164,25 +164,16 @@ function DetalheChamado() {
   const lookupsQuery = useQuery({
     queryKey: ["itil_lookups"],
     queryFn: async () => {
-      const [
-        categories,
-        taskCategories,
-        solutionTypes,
-        sources,
-        groups,
-        suppliers,
-        assets,
-        locations,
-      ] = await Promise.all([
-        db.from("itil_categories").select("*").order("path"),
-        db.from("task_categories").select("*").order("name"),
-        db.from("solution_types").select("*").order("name"),
-        db.from("request_sources").select("*").order("name"),
-        db.from("user_groups").select("id,name").order("name"),
-        supabase.from("suppliers").select("id,name").order("name"),
-        supabase.from("assets").select("id,name,asset_tag").order("name"),
-        supabase.from("locations").select("id,name").order("name"),
-      ]);
+      const [categories, taskCategories, solutionTypes, sources, groups, suppliers, locations] =
+        await Promise.all([
+          db.from("itil_categories").select("*").order("path"),
+          db.from("task_categories").select("*").order("name"),
+          db.from("solution_types").select("*").order("name"),
+          db.from("request_sources").select("*").order("name"),
+          db.from("user_groups").select("id,name").order("name"),
+          supabase.from("suppliers").select("id,name").order("name"),
+          supabase.from("locations").select("id,name").order("name"),
+        ]);
       return {
         categories: (categories.data ?? []) as ItilCategoryRow[],
         taskCategories: taskCategories.data ?? [],
@@ -190,7 +181,6 @@ function DetalheChamado() {
         sources: sources.data ?? [],
         groups: groups.data ?? [],
         suppliers: suppliers.data ?? [],
-        assets: assets.data ?? [],
         locations: locations.data ?? [],
         available: !categories.error,
       };
@@ -264,14 +254,6 @@ function DetalheChamado() {
     queryFn: async () => {
       const { data } = await db.from("ticket_links").select("*").eq("ticket_id", id);
       return (data ?? []) as TicketLinkRow[];
-    },
-  });
-
-  const itemsQuery = useQuery({
-    queryKey: ["ticket_items", id],
-    queryFn: async () => {
-      const { data } = await db.from("ticket_items").select("*").eq("ticket_id", id);
-      return data ?? [];
     },
   });
 
@@ -777,20 +759,6 @@ function DetalheChamado() {
                   canRequest={hasFlag("validation_request") && phase3}
                   userId={user?.id ?? null}
                   onChanged={() => invalidate("ticket_validations")}
-                />
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="itens">
-              <AccordionTrigger className="px-3 py-2 text-xs font-semibold">
-                Itens ({itemsQuery.data?.length ?? 0})
-              </AccordionTrigger>
-              <AccordionContent className="px-1 pb-2">
-                <ItemsPanel
-                  ticketId={id}
-                  items={(itemsQuery.data ?? []) as { id: string; asset_id: string }[]}
-                  assets={lookups?.assets ?? []}
-                  canEdit={canEdit && phase3}
-                  onChanged={() => invalidate("ticket_items")}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -2124,106 +2092,6 @@ function ValidationsPanel({
             placeholder="Por que precisa de aprovação..."
             className="text-xs"
           />
-        </div>
-      )}
-    </section>
-  );
-}
-
-function ItemsPanel({
-  ticketId,
-  items,
-  assets,
-  canEdit,
-  onChanged,
-}: {
-  ticketId: string;
-  items: { id: string; asset_id: string }[];
-  assets: { id: string; name: string; asset_tag: string }[];
-  canEdit: boolean;
-  onChanged: () => void;
-}) {
-  const [assetId, setAssetId] = useState("");
-
-  const add = useMutation({
-    mutationFn: async () => {
-      const { error } = await db.from("ticket_items").insert({
-        ticket_id: ticketId,
-        asset_id: assetId,
-      });
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      setAssetId("");
-      onChanged();
-    },
-    onError: (e: Error) =>
-      toast.error("Não foi possível associar", {
-        description: e.message.includes("duplicate") ? "Esse ativo já está no chamado." : e.message,
-      }),
-  });
-
-  const remove = useMutation({
-    mutationFn: async (itemId: string) => {
-      const { error } = await db.from("ticket_items").delete().eq("id", itemId);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: onChanged,
-    onError: (e: Error) => toast.error("Não foi possível remover", { description: e.message }),
-  });
-
-  return (
-    <section className="panel overflow-hidden">
-      <header className="panel-header">Itens associados</header>
-      <ul className="divide-y divide-border">
-        {items.length === 0 && (
-          <li className="px-3 py-6 text-center text-xs text-muted-foreground">
-            Nenhum ativo associado.
-          </li>
-        )}
-        {items.map((i) => {
-          const asset = assets.find((a) => a.id === i.asset_id);
-          return (
-            <li key={i.id} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
-              <span>
-                {asset?.name ?? "Ativo removido"}
-                {asset?.asset_tag ? ` (${asset.asset_tag})` : ""}
-              </span>
-              {canEdit && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="size-6"
-                  aria-label="Remover item"
-                  onClick={() => remove.mutate(i.id)}
-                >
-                  <X className="size-3" />
-                </Button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      {canEdit && (
-        <div className="flex gap-2 border-t border-border p-2">
-          <Select value={assetId} onValueChange={setAssetId}>
-            <SelectTrigger className="h-8 flex-1 text-xs">
-              <SelectValue placeholder="Associar um ativo" />
-            </SelectTrigger>
-            <SelectContent>
-              {assets
-                .filter((a) => !items.some((i) => i.asset_id === a.id))
-                .map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.name}
-                    {a.asset_tag ? ` (${a.asset_tag})` : ""}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-          <Button size="sm" className="h-8" onClick={() => add.mutate()} disabled={!assetId}>
-            <Plus className="size-3.5" />
-          </Button>
         </div>
       )}
     </section>

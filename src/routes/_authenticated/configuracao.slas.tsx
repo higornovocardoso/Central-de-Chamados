@@ -485,8 +485,7 @@ function NiveisDeServico() {
 
       <div className="mt-3">
         <Label className="text-[0.7rem] text-muted-foreground">
-          O escalonamento é executado pela ação automática "Escalonamento de SLA", em Configurar ›
-          Ações automáticas.
+          O escalonamento roda sozinho a cada 15 minutos.
         </Label>
       </div>
     </AppShell>

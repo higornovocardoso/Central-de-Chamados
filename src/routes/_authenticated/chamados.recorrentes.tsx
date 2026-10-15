@@ -127,8 +127,7 @@ function Recorrentes() {
       />
 
       <p className="mt-2 text-[0.7rem] text-muted-foreground">
-        A criação é feita pela ação automática "Chamados recorrentes", em Configurar › Ações
-        automáticas — de onde também dá para forçar a execução na hora.
+        O sistema confere a programação de hora em hora e abre os chamados que estiverem no prazo.
       </p>
     </AppShell>
   );

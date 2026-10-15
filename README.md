@@ -1,8 +1,9 @@
 # Central de chamados de T.I.
 
-Central de atendimento de T.I. no modelo do [GLPI](https://glpi-project.org/):
-chamados, ativos, base de conhecimento e SLA, com controle de permissões por
-perfil e separação por entidade.
+Central de chamados de T.I. inspirada no [GLPI](https://glpi-project.org/), só
+com a parte de atendimento: fila de chamados, prazos (SLA), regras de
+atribuição, e-mail que vira chamado e base de conhecimento, com controle de
+permissões por perfil e separação por empresa.
 
 ## Stack
 

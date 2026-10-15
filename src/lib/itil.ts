@@ -29,12 +29,12 @@ export const LEVELS: number[] = [1, 2, 3, 4, 5];
 export const PRIORITY_LEVELS: number[] = [1, 2, 3, 4, 5, 6];
 
 export const LEVEL_CLASS: Record<number, string> = {
-  1: "bg-secondary text-muted-foreground border-border",
-  2: "bg-secondary text-muted-foreground border-border",
-  3: "bg-info/15 text-info border-info/30",
-  4: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
-  5: "bg-destructive/15 text-destructive border-destructive/40",
-  6: "bg-destructive text-destructive-foreground border-destructive",
+  1: "bg-secondary text-muted-foreground",
+  2: "bg-secondary text-muted-foreground",
+  3: "bg-info/15 text-info",
+  4: "bg-warning/20 text-warning",
+  5: "bg-destructive/15 text-destructive",
+  6: "bg-destructive text-destructive-foreground",
 };
 
 export const LEVEL_DOT: Record<number, string> = {
@@ -73,9 +73,9 @@ export const TASK_STATE_LABEL: Record<TaskState, string> = {
 export const TASK_STATES: TaskState[] = ["informacao", "a_fazer", "concluida"];
 
 export const TASK_STATE_CLASS: Record<TaskState, string> = {
-  informacao: "bg-secondary text-muted-foreground border-border",
-  a_fazer: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
-  concluida: "bg-success/15 text-success border-success/30",
+  informacao: "bg-secondary text-muted-foreground",
+  a_fazer: "bg-warning/20 text-warning",
+  concluida: "bg-success/15 text-success",
 };
 
 export type ValidationState = "nao_sujeito" | "aguardando" | "aprovado" | "recusado";
@@ -88,10 +88,10 @@ export const VALIDATION_LABEL: Record<ValidationState, string> = {
 };
 
 export const VALIDATION_CLASS: Record<ValidationState, string> = {
-  nao_sujeito: "bg-secondary text-muted-foreground border-border",
-  aguardando: "bg-warning/20 text-warning-foreground border-warning/40 dark:text-warning",
-  aprovado: "bg-success/15 text-success border-success/30",
-  recusado: "bg-destructive/15 text-destructive border-destructive/40",
+  nao_sujeito: "bg-secondary text-muted-foreground",
+  aguardando: "bg-warning/20 text-warning",
+  aprovado: "bg-success/15 text-success",
+  recusado: "bg-destructive/15 text-destructive",
 };
 
 /** Mínimo de aprovações exigido, como no GLPI. */
