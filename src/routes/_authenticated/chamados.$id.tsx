@@ -54,6 +54,7 @@ import {
   type LooseRow,
 } from "@/integrations/supabase/glpi-db";
 import { useSessionUser } from "@/hooks/useSession";
+import { prazoDe } from "@/lib/prazo";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
@@ -91,6 +92,7 @@ import {
   STATUS_LABEL,
   STATUS_ORDER,
   formatDate,
+  isOpenStatus,
   ticketCode,
   type TicketStatus,
 } from "@/lib/tickets";
@@ -425,6 +427,19 @@ function DetalheChamado() {
     ? personName(str(ticket, "requester_id"))
     : str(ticket, "reporter_name") || "Formulário público";
 
+  // Quem está atendendo vê o cabeçalho com o feixe, na cor do prazo — o
+  // mesmo sinal do cartão "Você está atendendo" no painel.
+  const atendendoAgora =
+    Boolean(user?.id) && str(ticket, "assignee_id") === user?.id && isOpenStatus(status);
+  const prazoAtual = prazoDe(
+    {
+      status,
+      created_at: str(ticket, "created_at"),
+      resolution_due_at: str(ticket, "resolution_due_at") || null,
+    },
+    Date.now(),
+  );
+
   return (
     <AppShell breadcrumbTail={ticketCode(ticket.id)}>
       <Link
@@ -435,41 +450,57 @@ function DetalheChamado() {
       </Link>
 
       {/* Cabeçalho */}
-      <div className="panel mb-3 p-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[0.72rem] text-muted-foreground">
-            {ticketCode(ticket.id)}
-          </span>
-          <Tag className="border-border bg-secondary text-muted-foreground">
-            {TICKET_TYPE_LABEL[type] ?? "Incidente"}
-          </Tag>
-          <Tag className={STATUS_CLASS[status]}>
-            <span className={`mr-1.5 size-2 rounded-full ${STATUS_DOT[status]}`} />
-            {STATUS_LABEL[status]}
-          </Tag>
-          <Tag className={LEVEL_CLASS[priorityLevel] ?? ""}>{levelLabel(priorityLevel)}</Tag>
-          {validationState !== "nao_sujeito" && (
-            <Tag className={VALIDATION_CLASS[validationState]}>
-              {VALIDATION_LABEL[validationState]}
+      <Vivo ativo={atendendoAgora} estado={prazoAtual.estado}>
+        <div
+          className={`panel p-4 ${atendendoAgora ? "palco" : "mb-3"}`}
+          style={atendendoAgora ? { borderRadius: "calc(var(--radius-xl) - 1px)" } : undefined}
+        >
+          {atendendoAgora && (
+            <span className="mb-2 flex items-center gap-2 text-[0.8125rem] font-medium text-primary">
+              <span
+                className="live-dot"
+                style={{ "--dot": "var(--primary)" } as React.CSSProperties}
+              />
+              Você está atendendo este chamado
+            </span>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[0.72rem] text-muted-foreground">
+              {ticketCode(ticket.id)}
+            </span>
+            <Tag className="border-border bg-secondary text-muted-foreground">
+              {TICKET_TYPE_LABEL[type] ?? "Incidente"}
             </Tag>
-          )}
-          <span className={`text-xs ${resolutionSla.className}`}>SLA: {resolutionSla.label}</span>
-          {can("ticket", "delete") && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="ml-auto h-7 text-xs"
-              onClick={() => trashTicket.mutate()}
-            >
-              <Trash2 className="size-3.5" /> Excluir
-            </Button>
-          )}
+            <Tag className={STATUS_CLASS[status]}>
+              <span className={`mr-1.5 size-2 rounded-full ${STATUS_DOT[status]}`} />
+              {STATUS_LABEL[status]}
+            </Tag>
+            <Tag className={LEVEL_CLASS[priorityLevel] ?? ""}>{levelLabel(priorityLevel)}</Tag>
+            {validationState !== "nao_sujeito" && (
+              <Tag className={VALIDATION_CLASS[validationState]}>
+                {VALIDATION_LABEL[validationState]}
+              </Tag>
+            )}
+            <span className={`text-xs ${resolutionSla.className}`}>SLA: {resolutionSla.label}</span>
+            {can("ticket", "delete") && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-auto h-7 text-xs"
+                onClick={() => trashTicket.mutate()}
+              >
+                <Trash2 className="size-3.5" /> Excluir
+              </Button>
+            )}
+          </div>
+          <h1 className="mt-2.5 text-[1.375rem] font-semibold leading-snug tracking-[-0.02em] [text-wrap:balance]">
+            {str(ticket, "title")}
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Aberto por {requesterName} em {formatDate(str(ticket, "created_at") || null)}
+          </p>
         </div>
-        <h1 className="mt-2 text-base font-semibold">{str(ticket, "title")}</h1>
-        <p className="mt-0.5 text-[0.72rem] text-muted-foreground">
-          Aberto por {requesterName} em {formatDate(str(ticket, "created_at") || null)}
-        </p>
-      </div>
+      </Vivo>
 
       {!phase3 && (
         <div className="panel mb-3 border-warning/40 p-3 text-xs text-muted-foreground">
@@ -2547,6 +2578,27 @@ function Picker({
         </SelectTrigger>
         <SelectContent>{children}</SelectContent>
       </Select>
+    </div>
+  );
+}
+
+/** Envolve o bloco com o feixe quando ativo; sem isso, devolve o bloco como está. */
+function Vivo({
+  ativo,
+  estado,
+  children,
+}: {
+  ativo: boolean;
+  estado: string;
+  children: React.ReactNode;
+}) {
+  if (!ativo) return <>{children}</>;
+  return (
+    <div
+      className="feixe dark mb-3 text-foreground"
+      data-estado={estado === "done" ? "none" : estado}
+    >
+      {children}
     </div>
   );
 }

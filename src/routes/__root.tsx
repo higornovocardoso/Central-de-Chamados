@@ -11,28 +11,36 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { buttonVariants } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EntityProvider } from "@/contexts/entity";
 
+/** Fundo das telas soltas (404, erro): a mesma luz e grade do topo das páginas. */
+function TelaSolta({ children }: { children: ReactNode }) {
+  return (
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      <div className="aura" aria-hidden="true" />
+      <div className="rise-in relative z-[1] max-w-md text-center">{children}</div>
+    </div>
+  );
+}
+
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          A página que você procura não existe ou foi movida.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Ir para o início
-          </Link>
-        </div>
+    <TelaSolta>
+      <p className="font-mono text-sm tracking-[0.3em] text-muted-foreground">ERRO 404</p>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+        Esta página não existe
+      </h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        O endereço pode ter mudado. Volte ao painel para continuar de onde estava.
+      </p>
+      <div className="mt-7">
+        <Link to="/" className={buttonVariants({ className: "h-10 px-5" })}>
+          Ir para o painel
+        </Link>
       </div>
-    </div>
+    </TelaSolta>
   );
 }
 
@@ -40,33 +48,30 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Esta página não carregou
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Algo deu errado do nosso lado. Tente recarregar ou voltar ao início.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Tentar de novo
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Ir para o início
-          </a>
-        </div>
+    <TelaSolta>
+      <p className="font-mono text-sm tracking-[0.3em] text-destructive">FALHA</p>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+        Esta página não carregou
+      </h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Algo deu errado do nosso lado. Tente de novo; se continuar, volte ao painel.
+      </p>
+      <div className="mt-7 flex flex-wrap justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+          className={buttonVariants({ className: "h-10 px-5" })}
+        >
+          Tentar de novo
+        </button>
+        <a href="/" className={buttonVariants({ variant: "outline", className: "h-10 px-5" })}>
+          Ir para o painel
+        </a>
       </div>
-    </div>
+    </TelaSolta>
   );
 }
 
@@ -91,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap",
       },
       {
         rel: "stylesheet",

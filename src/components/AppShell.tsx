@@ -134,6 +134,21 @@ export function AppShell({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Luz que segue o mouse dentro dos cartões (.panel): só atualiza duas
+  // variáveis de CSS no cartão sob o ponteiro; o desenho fica no styles.css.
+  useEffect(() => {
+    function onMove(event: PointerEvent) {
+      const alvo = event.target as Element | null;
+      const card = alvo?.closest?.<HTMLElement>(".panel");
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${event.clientX - r.left}px`);
+      card.style.setProperty("--my", `${event.clientY - r.top}px`);
+    }
+    document.addEventListener("pointermove", onMove, { passive: true });
+    return () => document.removeEventListener("pointermove", onMove);
+  }, []);
+
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -172,7 +187,7 @@ export function AppShell({
           type="button"
           className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-hover"
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[0.7rem] font-semibold text-primary-foreground">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),color-mix(in_oklab,var(--ice)_75%,var(--primary)))] text-[0.7rem] font-semibold text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.3),0_4px_12px_-4px_var(--primary)]">
             {initials}
           </span>
           <span className="min-w-0 flex-1 leading-tight">
@@ -194,7 +209,7 @@ export function AppShell({
         <DropdownMenuItem onClick={() => setProfileOpen(true)}>
           <User className="size-4" /> Minha conta
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={toggleTheme}>
+        <DropdownMenuItem onClick={() => toggleTheme()}>
           {dark ? <Sun className="size-4" /> : <Moon className="size-4" />} Tema{" "}
           {dark ? "claro" : "escuro"}
         </DropdownMenuItem>
@@ -209,7 +224,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-background">
       {/* Barra lateral fixa no desktop */}
-      <aside className="sticky top-0 hidden h-screen w-[244px] shrink-0 flex-col gap-4 border-r border-sidebar-border bg-sidebar px-3 py-4 text-sidebar-foreground transition-colors duration-300 lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-[244px] shrink-0 flex-col gap-4 border-r border-sidebar-border bg-[linear-gradient(180deg,var(--sidebar),color-mix(in_oklab,var(--sidebar)_94%,var(--primary)))] px-3 py-4 text-sidebar-foreground transition-colors duration-300 lg:flex">
         <div className="-mx-1 flex-1 overflow-y-auto px-1">{nav()}</div>
         <div className="border-t border-sidebar-border pt-3">{userMenu}</div>
       </aside>
@@ -224,7 +239,7 @@ export function AppShell({
       </Sheet>
 
       <div className="relative flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-topbar px-3 text-topbar-foreground backdrop-blur-md backdrop-saturate-150 transition-colors duration-300 sm:px-5 lg:px-7">
+        <header className="hairline-b sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-topbar px-3 text-topbar-foreground backdrop-blur-xl backdrop-saturate-150 transition-colors duration-300 sm:px-5 lg:px-7">
           <Button
             type="button"
             size="icon"
@@ -283,10 +298,10 @@ export function AppShell({
             <button
               type="button"
               onClick={() => setPaletteOpen(true)}
-              className="flex h-9 items-center gap-2.5 rounded-lg border border-border bg-surface-2 px-2.5 text-[0.8125rem] text-muted-foreground transition-colors hover:border-input hover:bg-surface sm:w-[260px]"
+              className="group flex h-9 items-center gap-2.5 rounded-[0.625rem] border border-border bg-surface-2 px-2.5 text-[0.8125rem] text-muted-foreground transition-[border-color,background-color,box-shadow] duration-200 hover:border-primary/35 hover:bg-surface hover:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_12%,transparent)] dark:bg-white/[0.03] sm:w-[260px]"
               aria-label="Buscar (Ctrl+K)"
             >
-              <Search className="size-4 shrink-0" />
+              <Search className="size-4 shrink-0 transition-colors group-hover:text-primary" />
               <span className="hidden flex-1 truncate text-left sm:block">
                 Buscar chamado ou ação
               </span>
@@ -302,13 +317,13 @@ export function AppShell({
               className="size-9 [&_svg]:transition-transform [&_svg]:duration-500 active:[&_svg]:-rotate-45"
               aria-label={dark ? "Mudar para o tema claro" : "Mudar para o tema escuro"}
               title={dark ? "Tema claro" : "Tema escuro"}
-              onClick={toggleTheme}
+              onClick={(e) => toggleTheme({ x: e.clientX, y: e.clientY })}
             >
               {dark ? <Sun className="size-[1.1rem]" /> : <Moon className="size-[1.1rem]" />}
             </Button>
 
             {can("ticket", "create") && (
-              <Button size="sm" asChild className="btn-sheen h-9 rounded-lg px-3">
+              <Button size="sm" asChild className="h-9 rounded-[0.625rem] px-3">
                 <Link to="/chamados/novo">
                   <Plus className="size-4" />
                   <span className="hidden sm:inline">Novo chamado</span>
@@ -346,7 +361,7 @@ export function AppShell({
               <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
                 <div className="min-w-0">
                   {title && (
-                    <h1 className="text-[1.375rem] font-semibold leading-tight tracking-tight">
+                    <h1 className="text-[1.5rem] font-semibold leading-tight tracking-[-0.025em]">
                       {title}
                     </h1>
                   )}
@@ -371,7 +386,7 @@ export function AppShell({
         onOpenChange={setPaletteOpen}
         canRead={canRead}
         dark={dark}
-        onToggleTheme={toggleTheme}
+        onToggleTheme={() => toggleTheme()}
       />
     </div>
   );
@@ -421,7 +436,10 @@ function SidebarNav({
           opacity: marker ? 1 : 0,
           top: 0,
         }}
-      />
+      >
+        {/* Filete de luz na borda do item ativo. */}
+        <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[linear-gradient(180deg,var(--ice),var(--primary))] shadow-[0_0_10px_var(--primary)]" />
+      </span>
       {NAV_SECTIONS.map((section) => {
         const links = section.links.filter((l) => canRead(l.right));
         if (links.length === 0) return null;
