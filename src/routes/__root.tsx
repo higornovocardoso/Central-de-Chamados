@@ -9,9 +9,10 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { aplicaTemaSalvo } from "@/lib/theme";
 import { Toaster } from "@/components/ui/sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,6 +145,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 const THEME_BOOT = `try{if(localStorage.getItem("central.tema")!=="claro")document.documentElement.classList.add("dark")}catch(e){document.documentElement.classList.add("dark")}`;
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Antes da pintura, para não piscar claro se o React tiver refeito o <html>.
+  useLayoutEffect(aplicaTemaSalvo, []);
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
