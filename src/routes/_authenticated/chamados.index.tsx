@@ -31,7 +31,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useRoles } from "@/hooks/useRoles";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import { slaState } from "@/lib/glpi";
-import { PRAZO_TEXTO, porPrazo, prazoCurto, prazoDe, useAgora } from "@/lib/prazo";
+import { PRAZO_COR, PRAZO_TEXTO, porPrazo, prazoCurto, prazoDe, useAgora } from "@/lib/prazo";
 import { levelLabel } from "@/lib/itil";
 import {
   PRIORITY_LABEL,
@@ -881,10 +881,30 @@ function ListaChamados() {
                         </span>
                       </span>
                     </td>
-                    <td
-                      className={`text-[0.8125rem] font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
-                    >
-                      {prazoCurto(p)}
+                    <td>
+                      <span
+                        className={`block text-[0.8125rem] font-medium tabular-nums ${PRAZO_TEXTO[p.estado]}`}
+                      >
+                        {prazoCurto(p)}
+                      </span>
+                      {/* Quanto do prazo já foi consumido, na mesma cor do painel. */}
+                      {p.estado !== "done" && p.estado !== "none" && (
+                        <span
+                          aria-hidden="true"
+                          className="mt-1.5 block h-1 w-[4.5rem] overflow-hidden rounded-full bg-muted"
+                        >
+                          <span
+                            className="bar-grow block h-full rounded-full"
+                            style={
+                              {
+                                width: `${Math.max(6, p.usado * 100)}%`,
+                                background: PRAZO_COR[p.estado],
+                                "--d": `${200 + Math.min(k, 12) * 25}ms`,
+                              } as React.CSSProperties
+                            }
+                          />
+                        </span>
+                      )}
                     </td>
                     <td className="text-right text-xs text-muted-foreground">
                       {relativeTime(t.updated_at)}

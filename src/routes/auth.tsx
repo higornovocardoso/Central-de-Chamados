@@ -89,86 +89,92 @@ function AuthPage() {
           </p>
         </header>
 
+        {/* A entrada fica no invólucro de fora: no mesmo elemento, ela travaria o giro do feixe. */}
         <div
-          className="feixe rise-in w-full max-w-[25rem] shadow-[0_40px_100px_-30px_rgb(42_91_255/0.45)]"
-          style={{ borderRadius: 20, "--d": "120ms" } as React.CSSProperties}
+          className="rise-in w-full max-w-[25rem]"
+          style={{ "--d": "120ms" } as React.CSSProperties}
         >
-          {/* Cartão opaco: o feixe aparece só na borda, não atravessa o miolo. */}
-          <section
-            className="bg-[linear-gradient(180deg,#0d1424,#0a0f1c)] px-6 pb-6 pt-7 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)] sm:px-8"
-            style={{ borderRadius: 19 }}
+          <div
+            className="feixe shadow-[0_40px_100px_-30px_rgb(42_91_255/0.45)]"
+            style={{ borderRadius: 20 }}
           >
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold tracking-tight">Entrar</h2>
-              <p className="mt-1 text-[0.8125rem] text-muted-foreground">
-                Use o e-mail e a senha da sua conta.
-              </p>
-            </div>
-
-            <form onSubmit={signIn} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs text-secondary-foreground">
-                  E-mail
-                </Label>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="voce@empresa.com"
-                    className="h-11 pl-9"
-                  />
-                </div>
+            {/* Cartão opaco: o feixe aparece só na borda, não atravessa o miolo. */}
+            <section
+              className="bg-[linear-gradient(180deg,#0d1424,#0a0f1c)] px-6 pb-6 pt-7 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)] sm:px-8"
+              style={{ borderRadius: 19 }}
+            >
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold tracking-tight">Entrar</h2>
+                <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+                  Use o e-mail e a senha da sua conta.
+                </p>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="senha" className="text-xs text-secondary-foreground">
-                  Senha
-                </Label>
-                <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="senha"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="h-11 pl-9 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    className="absolute right-1.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-hover hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
+              <form onSubmit={signIn} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs text-secondary-foreground">
+                    E-mail
+                  </Label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="voce@empresa.com"
+                      className="h-11 pl-9"
+                    />
+                  </div>
                 </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="senha" className="text-xs text-secondary-foreground">
+                    Senha
+                  </Label>
+                  <div className="relative">
+                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="senha"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="h-11 pl-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      className="absolute right-1.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-hover hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button type="submit" className="mt-2 h-11 w-full text-sm" disabled={loading}>
+                  {loading ? <Loader2 className="size-4 animate-spin" /> : null}
+                  {loading ? "Entrando…" : "Entrar"}
+                </Button>
+              </form>
+
+              <div className="mt-6 border-t border-border pt-5 text-center text-[0.8125rem] text-muted-foreground">
+                Não tem conta?{" "}
+                <Link
+                  to="/abrir-chamado"
+                  className="group inline-flex items-center gap-1 font-medium text-ice transition-colors hover:text-white"
+                >
+                  Abra um chamado sem login
+                  <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </Link>
               </div>
-
-              <Button type="submit" className="mt-2 h-11 w-full text-sm" disabled={loading}>
-                {loading ? <Loader2 className="size-4 animate-spin" /> : null}
-                {loading ? "Entrando…" : "Entrar"}
-              </Button>
-            </form>
-
-            <div className="mt-6 border-t border-border pt-5 text-center text-[0.8125rem] text-muted-foreground">
-              Não tem conta?{" "}
-              <Link
-                to="/abrir-chamado"
-                className="group inline-flex items-center gap-1 font-medium text-ice transition-colors hover:text-white"
-              >
-                Abra um chamado sem login
-                <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </div>
     </main>

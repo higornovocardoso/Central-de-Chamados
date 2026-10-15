@@ -428,9 +428,12 @@ function DetalheChamado() {
     : str(ticket, "reporter_name") || "Formulário público";
 
   // Quem está atendendo vê o cabeçalho com o feixe, na cor do prazo — o
-  // mesmo sinal do cartão "Você está atendendo" no painel.
+  // mesmo sinal do painel e do quadro. Pendente não conta: o relógio parou.
   const atendendoAgora =
-    Boolean(user?.id) && str(ticket, "assignee_id") === user?.id && isOpenStatus(status);
+    Boolean(user?.id) &&
+    str(ticket, "assignee_id") === user?.id &&
+    isOpenStatus(status) &&
+    status !== "aguardando";
   const prazoAtual = prazoDe(
     {
       status,

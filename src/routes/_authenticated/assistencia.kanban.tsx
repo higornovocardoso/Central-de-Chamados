@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { VisaoToggle } from "@/components/VisaoToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useSessionUser } from "@/hooks/useSession";
 import { levelLabel } from "@/lib/itil";
-import { PRAZO_TEXTO, prazoCurto, prazoDe, useAgora } from "@/lib/prazo";
+import { PRAZO_TEXTO, emAtendimento, prazoCurto, prazoDe, useAgora } from "@/lib/prazo";
 import {
   PRIORITY_LABEL,
   STATUS_DOT,
@@ -46,6 +47,7 @@ type Card = {
 
 function Kanban() {
   const { can } = usePermissions();
+  const { user } = useSessionUser();
   const queryClient = useQueryClient();
   const [dragging, setDragging] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
@@ -96,6 +98,11 @@ function Kanban() {
 
   const cards = ticketsQuery.data ?? [];
   const canMove = can("ticket", "update");
+  // O chamado que você está atendendo ganha o feixe, como no painel.
+  const atual = useMemo(
+    () => emAtendimento(ticketsQuery.data ?? [], user?.id),
+    [ticketsQuery.data, user?.id],
+  );
 
   return (
     <AppShell
@@ -152,7 +159,12 @@ function Kanban() {
                   {coluna.map((card, k) => {
                     const p = prazoDe(card, agora);
                     const tecnico = nome(card.assignee_id);
-                    return (
+                    const emFoco = card.id === atual?.id;
+                    const atraso = { "--d": `${Math.min(k, 8) * 40}ms` } as CSSProperties;
+                    const movimento = `transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)] ${
+                      canMove ? "cursor-grab active:cursor-grabbing" : ""
+                    } ${dragging === card.id ? "opacity-40" : ""}`;
+                    const cartao = (
                       <article
                         key={card.id}
                         draggable={canMove}
@@ -161,11 +173,16 @@ function Kanban() {
                           setDragging(null);
                           setOver(null);
                         }}
-                        style={{ "--d": `${Math.min(k, 8) * 40}ms` } as CSSProperties}
-                        className={`rise-in rounded-[0.625rem] border border-border bg-surface p-3 shadow-[var(--shadow-1)] transition-[transform,box-shadow,opacity] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-2)] ${
-                          canMove ? "cursor-grab active:cursor-grabbing" : ""
-                        } ${dragging === card.id ? "opacity-40" : ""}`}
+                        style={emFoco ? undefined : atraso}
+                        className={
+                          emFoco
+                            ? "rounded-[0.625rem] bg-surface p-3"
+                            : `rise-in rounded-[0.625rem] border border-border bg-surface p-3 shadow-[var(--shadow-1)] ${movimento}`
+                        }
                       >
+                        {emFoco && (
+                          <span className="sr-only">Você está atendendo este chamado.</span>
+                        )}
                         <div className="mb-1.5 flex items-center justify-between gap-2 text-xs">
                           <span className="font-mono text-muted-foreground">
                             {ticketCode(card.id)}
@@ -206,6 +223,20 @@ function Kanban() {
                           </span>
                         </div>
                       </article>
+                    );
+                    if (!emFoco) return cartao;
+                    // A entrada vai num invólucro próprio: no mesmo elemento, a
+                    // animação de entrada tomaria o lugar do giro do feixe.
+                    return (
+                      <div key={card.id} className="rise-in" style={atraso}>
+                        <div
+                          className={`feixe ${movimento}`}
+                          data-estado={p.estado}
+                          style={{ borderRadius: 11 }}
+                        >
+                          {cartao}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>

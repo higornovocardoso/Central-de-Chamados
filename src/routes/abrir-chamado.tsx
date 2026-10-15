@@ -153,30 +153,37 @@ function AbrirChamado() {
 
         {/* Formulário, ou o protocolo depois de enviar */}
         {created ? (
-          <div
-            className="feixe dark rise-in text-foreground shadow-[0_40px_100px_-30px_rgb(42_91_255/0.45)]"
-            style={{ borderRadius: 20 }}
-          >
-            <section
-              className="palco flex flex-col items-center px-7 py-12 text-center sm:px-12"
-              style={{ borderRadius: 19 }}
+          // A entrada fica no invólucro de fora: no mesmo elemento, ela travaria o giro do feixe.
+          <div className="rise-in">
+            <div
+              className="feixe dark text-foreground shadow-[0_40px_100px_-30px_rgb(42_91_255/0.45)]"
+              style={{ borderRadius: 20 }}
             >
-              <span className="flex size-14 items-center justify-center rounded-full bg-success/15 text-success shadow-[0_0_40px_-6px_var(--success)]">
-                <CheckCircle2 className="size-7" />
-              </span>
-              <h2 className="mt-5 text-2xl font-semibold tracking-tight">Chamado enviado</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Guarde o seu protocolo:</p>
-              <p className="mt-3 rounded-xl border border-border bg-white/[0.04] px-5 py-2.5 font-mono text-2xl tracking-[0.08em] text-ice">
-                {ticketCode(created)}
-              </p>
-              <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                Ele já está na fila da equipe de T.I. As respostas chegam no e-mail que você
-                informou.
-              </p>
-              <Button variant="outline" className="mt-8 h-11 px-6" onClick={() => setCreated(null)}>
-                Abrir outro chamado
-              </Button>
-            </section>
+              <section
+                className="palco flex flex-col items-center px-7 py-12 text-center sm:px-12"
+                style={{ borderRadius: 19 }}
+              >
+                <span className="flex size-14 items-center justify-center rounded-full bg-success/15 text-success shadow-[0_0_40px_-6px_var(--success)]">
+                  <CheckCircle2 className="size-7" />
+                </span>
+                <h2 className="mt-5 text-2xl font-semibold tracking-tight">Chamado enviado</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Guarde o seu protocolo:</p>
+                <p className="mt-3 rounded-xl border border-border bg-white/[0.04] px-5 py-2.5 font-mono text-2xl tracking-[0.08em] text-ice">
+                  {ticketCode(created)}
+                </p>
+                <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  Ele já está na fila da equipe de T.I. As respostas chegam no e-mail que você
+                  informou.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-8 h-11 px-6"
+                  onClick={() => setCreated(null)}
+                >
+                  Abrir outro chamado
+                </Button>
+              </section>
+            </div>
           </div>
         ) : (
           <section

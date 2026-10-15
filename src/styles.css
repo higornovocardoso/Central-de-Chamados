@@ -626,6 +626,9 @@
  * atendimento, a busca aberta, o login. Vai num invólucro com 1px de folga;
  * o cartão de dentro cobre o miolo e a luz aparece só na borda, com um halo
  * difuso por fora. A cor segue o prazo pelo atributo data-estado.
+ *
+ * Não junte com rise-in no mesmo elemento: as duas usam animation e a de
+ * entrada vence, deixando o feixe parado. A entrada vai num invólucro de fora.
  */
 @property --feixe-angulo {
   syntax: "<angle>";

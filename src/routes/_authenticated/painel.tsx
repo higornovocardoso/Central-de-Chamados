@@ -13,6 +13,7 @@ import {
   PRAZO_COR,
   PRAZO_TEXTO,
   duracao,
+  emAtendimento,
   porPrazo,
   prazoCurto,
   prazoDe,
@@ -122,14 +123,7 @@ function Painel() {
     [abertos],
   );
 
-  // O chamado que a pessoa está atendendo: o mais urgente dos dela em atendimento.
-  const atendendo = useMemo(
-    () =>
-      abertos
-        .filter((t) => t.assignee_id === user?.id && t.status !== "aguardando")
-        .sort(porPrazo)[0] ?? null,
-    [abertos, user?.id],
-  );
+  const atendendo = useMemo(() => emAtendimento(abertos, user?.id), [abertos, user?.id]);
 
   const proximos = useMemo(
     () =>

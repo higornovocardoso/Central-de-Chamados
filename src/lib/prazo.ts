@@ -117,6 +117,24 @@ export function porPrazo(
   return da - db;
 }
 
+/**
+ * O chamado que a pessoa está atendendo agora: o mais urgente dos dela em
+ * aberto, fora os pendentes (o relógio deles está parado). É o que ganha o
+ * feixe no painel e no quadro.
+ */
+export function emAtendimento<
+  T extends { assignee_id: string | null; status: TicketStatus; resolution_due_at: string | null },
+>(tickets: T[], userId: string | null | undefined): T | null {
+  if (!userId) return null;
+  return (
+    tickets
+      .filter(
+        (t) => t.assignee_id === userId && isOpenStatus(t.status) && t.status !== "aguardando",
+      )
+      .sort(porPrazo)[0] ?? null
+  );
+}
+
 /** Hora atual que se renova no intervalo dado, para relógios ao vivo. */
 export function useAgora(intervaloMs = 1000) {
   const [agora, setAgora] = useState(() => Date.now());
