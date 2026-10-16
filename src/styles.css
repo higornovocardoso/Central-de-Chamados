@@ -1,0 +1,993 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system — central de chamados de T.I.
+ *
+ * Formal e preciso, com luz: fundo porcelana fria, cartões brancos de borda
+ * fina e sombra em camadas, cobalto como cor de marca e azul-gelo como a luz
+ * que acompanha o que está vivo. No tema escuro (classe .dark no <html>) os
+ * cartões viram vidro sobre um fundo azul-abismo.
+ *
+ * Assinatura: o "feixe" — uma luz que percorre a borda do que está em
+ * atendimento agora, na cor do prazo (gelo, âmbar, vermelho).
+ *
+ * Tipografia Geist: Sans para a interface, Mono para números e códigos.
+ */
+
+@theme inline {
+  --font-sans: "Geist", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-display: "Geist", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --radius-3xl: calc(var(--radius) + 8px);
+  --radius-4xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-2: var(--surface-2);
+  --color-hover: var(--hover);
+  --color-ice: var(--ice);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-plan: var(--plan);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-link: var(--link);
+  --color-topbar: var(--topbar);
+  --color-topbar-foreground: var(--topbar-foreground);
+  --ease-out-soft: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #f3f5fa;
+  --foreground: #0b1022;
+  --surface: #ffffff;
+  --surface-foreground: #0b1022;
+  --surface-2: #f7f9fc;
+  --hover: #f0f3f9;
+  --card: #ffffff;
+  --card-foreground: #0b1022;
+  --popover: #ffffff;
+  --popover-foreground: #0b1022;
+
+  --primary: #2a5bff;
+  --primary-foreground: #ffffff;
+  --ice: #34b9f5;
+
+  --secondary: #eff2f8;
+  --secondary-foreground: #2f3a52;
+  --muted: #eff2f8;
+  --muted-foreground: #5f6b86;
+  --accent: #edf2ff;
+  --accent-foreground: #1c45e8;
+
+  --destructive: #e0263f;
+  --destructive-foreground: #ffffff;
+  --success: #04875f;
+  --success-foreground: #ffffff;
+  --warning: #c46a06;
+  --warning-foreground: #7a4306;
+  --info: #0b8fd4;
+  --info-foreground: #ffffff;
+  --plan: #7c3aed;
+
+  --border: #e3e7ef;
+  --input: #d3dae6;
+  --ring: #2a5bff;
+
+  --link: #2a5bff;
+
+  --chart-1: #2a5bff;
+  --chart-2: #0ea5e9;
+  --chart-3: #7c3aed;
+  --chart-4: #04875f;
+  --chart-5: #c46a06;
+
+  --topbar: #f8fafdc7;
+  --topbar-foreground: #0b1022;
+
+  --sidebar: #fbfcfe;
+  --sidebar-foreground: #46526b;
+  --sidebar-primary: #2a5bff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #edf2ff;
+  --sidebar-accent-foreground: #1c45e8;
+  --sidebar-border: #e3e7ef;
+  --sidebar-ring: #2a5bff;
+
+  /* Profundidade: um brilho de cima e duas sombras, uma curta e uma longa. */
+  --shadow-1: inset 0 1px 0 #ffffffe6, 0 1px 2px #0b10220a, 0 6px 20px -12px #0b10221f;
+  --shadow-2: inset 0 1px 0 #ffffffe6, 0 2px 4px #0b10220a, 0 18px 40px -16px #0b102238;
+  --shadow-3: 0 32px 72px -20px #0b102259, 0 0 0 1px #0b10220f;
+  --glass: #ffffffd9;
+  --panel-bg: #ffffff;
+  --spot: #2a5bff12;
+  --grid-line: #2a5bff0f;
+  --aura-1: #2a5bff26;
+  --aura-2: #34b9f524;
+  --glow: var(--shadow-2);
+  --feixe-halo: 0.85;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #05070d;
+  --foreground: #e8edf7;
+  --surface: #0b101b;
+  --surface-foreground: #e8edf7;
+  --surface-2: #0f1522;
+  --hover: #131b2b;
+  --card: #0b101b;
+  --card-foreground: #e8edf7;
+  --popover: #0e1420;
+  --popover-foreground: #e8edf7;
+
+  --primary: #6e8fff;
+  --primary-foreground: #050811;
+  --ice: #62d6ff;
+
+  --secondary: #131b2b;
+  --secondary-foreground: #c8d1e2;
+  --muted: #131b2b;
+  --muted-foreground: #8995ad;
+  --accent: #6e8fff21;
+  --accent-foreground: #b7c6ff;
+
+  --destructive: #ff5a6e;
+  --destructive-foreground: #ffffff;
+  --success: #3ddc97;
+  --success-foreground: #05281a;
+  --warning: #f6ad3b;
+  --warning-foreground: #f6ad3b;
+  --info: #4cc3ff;
+  --info-foreground: #04202f;
+  --plan: #a78bfa;
+
+  --border: #182133;
+  --input: #243049;
+  --ring: #6e8fff;
+
+  --link: #93a9ff;
+
+  --chart-1: #6e8fff;
+  --chart-2: #4cc3ff;
+  --chart-3: #a78bfa;
+  --chart-4: #3ddc97;
+  --chart-5: #f6ad3b;
+
+  --topbar: #070a12b3;
+  --topbar-foreground: #e8edf7;
+
+  --sidebar: #070a12;
+  --sidebar-foreground: #9aa6bd;
+  --sidebar-primary: #6e8fff;
+  --sidebar-primary-foreground: #050811;
+  --sidebar-accent: #6e8fff1f;
+  --sidebar-accent-foreground: #c3cfff;
+  --sidebar-border: #141c2c;
+  --sidebar-ring: #6e8fff;
+
+  --shadow-1: inset 0 1px 0 #ffffff0b, 0 1px 2px #00000066, 0 18px 40px -24px #000000e6;
+  --shadow-2: inset 0 1px 0 #ffffff12, 0 2px 4px #00000066, 0 28px 56px -22px #000000f2;
+  --shadow-3: 0 40px 90px -20px #000000f2, 0 0 0 1px #ffffff12;
+  --glass: #0e1420d1;
+  --panel-bg: #0b101bb8;
+  --spot: #6e8fff1c;
+  --grid-line: #94a3b80f;
+  --aura-1: #6e8fff2e;
+  --aura-2: #62d6ff1a;
+  --feixe-halo: 0.55;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: 0.84375rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition:
+      background-color 300ms ease,
+      color 300ms ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Traço mais fino nos ícones: lê mais preciso, menos "padrão". */
+  svg.lucide {
+    stroke-width: 1.75;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 25%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--muted-foreground) 30%, transparent);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+    background-clip: content-box;
+  }
+
+  /* Troca de tema: a nova pintura entra num círculo que cresce a partir do
+     botão (o círculo é animado em lib/theme.ts). */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  html.sem-transicao *,
+  html.sem-transicao *::before,
+  html.sem-transicao *::after {
+    transition: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/*
+ * Bloco de conteúdo: cartão de borda fina e sombra em camadas; no escuro,
+ * vidro sobre o fundo. Sob o mouse acende uma luz suave na posição do
+ * ponteiro — --mx e --my vêm do AppShell.
+ */
+@utility panel {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-1);
+  transition:
+    background-color 300ms ease,
+    border-color 200ms ease,
+    box-shadow 250ms ease,
+    transform 250ms var(--ease-out-soft);
+
+  .dark & {
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, -40%),
+      var(--spot),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 450ms ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Cartão clicável: sobe um pouco e ganha sombra. */
+@utility panel-interactive {
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+    border-color: color-mix(in oklab, var(--primary) 22%, var(--border));
+  }
+}
+
+/* Cabeçalho de bloco. */
+@utility panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding: 0.75rem 1.125rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+/* Etiqueta de status: fundo suave da cor, texto na cor. */
+@utility pill {
+  --pill-hue: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.375rem;
+  border-radius: 0.375rem;
+  padding: 0 0.5625rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  background-color: color-mix(in oklab, var(--pill-hue) 11%, transparent);
+  color: color-mix(in oklab, var(--pill-hue) 88%, var(--foreground));
+  transition: background-color 160ms ease;
+
+  .dark & {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--pill-hue) 24%, transparent);
+  }
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--pill-hue) 17%, transparent);
+  }
+}
+
+@utility pill-info {
+  --pill-hue: var(--info);
+}
+@utility pill-primary {
+  --pill-hue: var(--primary);
+}
+@utility pill-purple {
+  --pill-hue: var(--plan);
+}
+@utility pill-warning {
+  --pill-hue: var(--warning);
+}
+@utility pill-success {
+  --pill-hue: var(--success);
+}
+@utility pill-danger {
+  --pill-hue: var(--destructive);
+}
+@utility pill-muted {
+  --pill-hue: var(--muted-foreground);
+}
+
+/* Entrada suave dos blocos, com atraso encadeado via --d. */
+@utility rise-in {
+  animation: rise-in 560ms var(--ease-out-soft) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Filhos diretos entram em cascata; o atraso vem de --i em cada filho. */
+@utility reveal {
+  & > * {
+    animation: rise-in 560ms var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 65ms);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Barra que cresce da esquerda ao aparecer. */
+@utility bar-grow {
+  transform-origin: left;
+  animation: bar-grow 1s var(--ease-out-soft) both;
+  animation-delay: var(--d, 200ms);
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Traço SVG que se desenha (use pathLength="1"). */
+@utility line-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: line-draw 1.6s var(--ease-out-soft) forwards;
+  animation-delay: var(--d, 300ms);
+}
+
+@keyframes line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@utility fade-late {
+  animation: fade-in 1.2s ease both;
+  animation-delay: var(--d, 900ms);
+}
+
+/* Traço do gráfico de anel desenhando-se ao carregar. */
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: var(--ring-circumference, 100);
+  }
+}
+
+@utility ring-animated {
+  animation: ring-draw 1.1s var(--ease-out-soft) both;
+}
+
+/* Arco da rosca crescendo a partir do zero. */
+@keyframes arc-grow {
+  from {
+    stroke-dasharray: 0 400;
+  }
+}
+
+@utility arc-grow {
+  animation: arc-grow 1.2s var(--ease-out-soft) both;
+  animation-delay: var(--d, 200ms);
+}
+
+/* Troca do cartão "Você está atendendo" ao chamar o próximo. */
+@utility slide-in-right {
+  animation: slide-in-right 500ms var(--ease-out-soft) both;
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+/* Ponto "ao vivo" com uma onda que se expande. */
+@utility live-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  flex: none;
+  border-radius: 999px;
+  background: var(--dot, var(--success));
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: live-wave 2s ease-out infinite;
+  }
+}
+
+@keyframes live-wave {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/*
+ * Atmosfera do topo da página: uma grade fina que some para baixo e duas
+ * luzes (cobalto e gelo) que derivam devagar. Fica atrás do conteúdo.
+ */
+@utility aura {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 30rem;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: -1px -1px;
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 0%, #000 25%, transparent 78%);
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    width: 48rem;
+    height: 26rem;
+    border-radius: 50%;
+    filter: blur(80px);
+  }
+  &::before {
+    left: -6rem;
+    top: -13rem;
+    background: var(--aura-1);
+    animation: aura-drift 18s ease-in-out infinite alternate;
+  }
+  &::after {
+    right: -8rem;
+    top: -14rem;
+    background: var(--aura-2);
+    animation: aura-drift 23s ease-in-out infinite alternate-reverse;
+  }
+}
+
+@keyframes aura-drift {
+  to {
+    transform: translate(140px, 40px) scale(1.12);
+  }
+}
+
+/* Brilho que atravessa o botão principal no hover. */
+@utility btn-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform: translateX(-110%);
+    background: linear-gradient(105deg, transparent 35%, #ffffff3d 50%, transparent 65%);
+  }
+  &:hover::after {
+    transform: translateX(110%);
+    transition: transform 800ms var(--ease-out-soft);
+  }
+}
+
+/*
+ * O feixe: uma luz que percorre a borda do que está vivo — o chamado em
+ * atendimento, a busca aberta, o login. Vai num invólucro com 1px de folga;
+ * o cartão de dentro cobre o miolo e a luz aparece só na borda, com um halo
+ * difuso por fora. A cor segue o prazo pelo atributo data-estado.
+ *
+ * Não junte com rise-in no mesmo elemento: as duas usam animation e a de
+ * entrada vence, deixando o feixe parado. A entrada vai num invólucro de fora.
+ */
+@property --feixe-angulo {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@utility feixe {
+  --feixe: var(--primary);
+  --feixe-2: var(--ice);
+  --feixe-vel: 6s;
+  position: relative;
+  isolation: isolate;
+  padding: 1px;
+  border-radius: var(--radius-xl);
+  background:
+    conic-gradient(
+      from var(--feixe-angulo),
+      transparent 0turn,
+      transparent 0.5turn,
+      color-mix(in oklab, var(--feixe) 60%, transparent) 0.78turn,
+      var(--feixe-2) 0.93turn,
+      color-mix(in oklab, var(--feixe-2) 35%, white) 0.97turn,
+      transparent 1turn
+    ),
+    var(--border);
+  animation: feixe-gira var(--feixe-vel) linear infinite;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--feixe-angulo),
+      transparent 0turn,
+      transparent 0.66turn,
+      var(--feixe) 0.93turn,
+      transparent 1turn
+    );
+    filter: blur(18px);
+    opacity: var(--feixe-halo);
+  }
+
+  & > .panel {
+    border-width: 0;
+    background-color: var(--surface);
+  }
+
+  &[data-estado="warn"] {
+    --feixe: var(--warning);
+    --feixe-2: #ffc46b;
+  }
+  &[data-estado="late"] {
+    --feixe: var(--destructive);
+    --feixe-2: #ff8fa0;
+    --feixe-vel: 3.2s;
+  }
+  &[data-estado="paused"],
+  &[data-estado="none"] {
+    animation: none;
+    background: var(--border);
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+@keyframes feixe-gira {
+  to {
+    --feixe-angulo: 360deg;
+  }
+}
+
+/*
+ * O palco: o fundo azul-noite com luz própria do que está em atendimento.
+ * Vale nos dois temas; quem usa põe a classe .dark no invólucro, para os
+ * tokens de dentro (texto, botões, etiquetas) virarem os do escuro.
+ */
+@utility palco {
+  background:
+    radial-gradient(
+      120% 150% at 0% 0%,
+      color-mix(in oklab, var(--primary) 30%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 130% at 100% 100%,
+      color-mix(in oklab, var(--ice) 16%, transparent),
+      transparent 60%
+    ),
+    linear-gradient(160deg, #0b1328, #060a15 72%);
+  color: var(--foreground);
+}
+
+/* Linha de luz na base de uma barra: some nas pontas, acende no meio. */
+@utility hairline-b {
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--primary) 45%, transparent) 28%,
+      color-mix(in oklab, var(--ice) 50%, transparent) 72%,
+      transparent
+    );
+    opacity: 0.75;
+  }
+}
+
+/* Vidro para menus, janelas e barras flutuantes. */
+@utility glass {
+  background-color: var(--glass);
+  backdrop-filter: blur(18px) saturate(160%);
+}
+
+/* Lugar de conteúdo carregando: um brilho que passa da esquerda à direita. */
+@utility shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--surface) 70%, transparent),
+      transparent
+    );
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Pulso de luz que corre por uma linha até a central (tela de entrada). */
+@keyframes pulso-linha {
+  from {
+    stroke-dashoffset: 1060;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes nucleo {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+/* Tabela de listagem: cabeçalho discreto, linhas com folga e hover suave. */
+@utility glpi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+
+  & thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+  }
+
+  & tbody td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.6875rem 0.875rem;
+    vertical-align: middle;
+  }
+
+  & tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  & tbody tr {
+    transition: background-color 150ms ease;
+  }
+
+  & tbody tr:hover {
+    background-image: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--primary) 7%, transparent),
+      color-mix(in oklab, var(--primary) 2%, transparent) 60%,
+      transparent
+    );
+    background-color: var(--hover);
+  }
+
+  & tbody tr[data-selected="true"] {
+    background-color: var(--accent);
+  }
+}
+
+/* Cartão de indicador: número grande, rótulo e ícone na cor do assunto. */
+@utility tile {
+  --tile-hue: var(--primary);
+
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background-color: var(--panel-bg);
+  color: var(--foreground);
+  padding: 1rem 1.125rem 0.875rem;
+  box-shadow: var(--shadow-1);
+  transition:
+    transform 250ms var(--ease-out-soft),
+    box-shadow 250ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+  }
+
+  & .tile-number {
+    display: block;
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  & .tile-label {
+    display: block;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--muted-foreground);
+  }
+
+  & .tile-icon {
+    position: absolute;
+    top: 0.875rem;
+    right: 0.875rem;
+    color: var(--tile-hue);
+  }
+}
+
+@utility tile-info {
+  --tile-hue: var(--info);
+}
+@utility tile-primary {
+  --tile-hue: var(--primary);
+}
+@utility tile-purple {
+  --tile-hue: var(--plan);
+}
+@utility tile-warning {
+  --tile-hue: var(--warning);
+}
+@utility tile-success {
+  --tile-hue: var(--success);
+}
+@utility tile-muted {
+  --tile-hue: var(--muted-foreground);
+}
+@utility tile-danger {
+  --tile-hue: var(--destructive);
+}
+
+/**
+ * Página do chamado no formato do GLPI
+ * (css/includes/components/itilobject/_layout.scss).
+ * Dois lados que rolam de forma independente: à esquerda a linha do tempo,
+ * à direita o acordeão com os campos. No original a altura é
+ * calc(100vh - 187px) e o lado direito recolhe para 90px.
+ */
+@utility itil-object {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+
+  @media (width >= 64rem) {
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+    height: calc(100vh - 12.5rem);
+    gap: 0;
+  }
+}
+
+@utility itil-left-side {
+  min-width: 0;
+
+  @media (width >= 64rem) {
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 0.75rem;
+  }
+}
+
+@utility itil-right-side {
+  min-width: 0;
+
+  @media (width >= 64rem) {
+    height: 100%;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+    padding-left: 0.75rem;
+  }
+}
+
+/** Entrada da linha do tempo: traço vertical e marcador redondo à esquerda. */
+@utility timeline-entry {
+  position: relative;
+  padding-left: 1.5rem;
+  padding-bottom: 0.75rem;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0.3125rem;
+    top: 1.15rem;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  &:last-child::before {
+    display: none;
+  }
+
+  & > .timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 0.45rem;
+    width: 0.6875rem;
+    height: 0.6875rem;
+    border-radius: 999px;
+    border: 2px solid var(--card);
+    background: var(--muted-foreground);
+  }
+}

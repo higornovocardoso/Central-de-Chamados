@@ -1,0 +1,13 @@
+-- Fase 24: um estado para mensagem que não será enviada e não falhou.
+--
+-- notification_queue só tinha pendente, enviado e erro. Para descartar o
+-- acúmulo de antes do envio existir, marcar como 'erro' seria mentira, e
+-- apagar perderia o histórico que a fase 16 fez questão de preservar.
+--
+-- A função send-notifications busca apenas state = 'pendente', então nada no
+-- código precisa mudar: o novo estado já sai de fora da seleção.
+--
+-- Vai numa migration separada da que usa o valor, de propósito: o Postgres não
+-- permite usar um valor de enum recém-adicionado na mesma transação que o
+-- adicionou.
+alter type public.queue_state add value if not exists 'descartada';

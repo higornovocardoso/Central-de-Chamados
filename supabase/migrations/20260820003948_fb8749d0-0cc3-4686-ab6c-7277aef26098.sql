@@ -1,0 +1,1 @@
+DELETE FROM public.tickets WHERE requester_id IS NULL AND reporter_email IN ('joao@empresa.com','maria@empresa.com');

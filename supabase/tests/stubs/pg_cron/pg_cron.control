@@ -1,0 +1,3 @@
+comment = 'stub local do pg_cron para testes'
+default_version = '1.0'
+relocatable = false
