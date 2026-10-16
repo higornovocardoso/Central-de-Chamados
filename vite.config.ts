@@ -65,12 +65,16 @@ export default defineConfig(({ mode, command }) => {
           client: { files: ["**/server/**"], specifiers: ["server-only"] },
         },
       }),
-      // NITRO_PRESET permite compilar para outro alvo sem editar o config —
-      // usado para reproduzir erro de SSR localmente com "node-server".
+      // O alvo é a Vercel. Enquanto o site antigo no Netlify existir, o build
+      // feito lá (NETLIFY=true) sai no formato dele, para a troca de
+      // hospedagem não derrubar o site. NITRO_PRESET força outro alvo, por
+      // exemplo "node-server" para reproduzir erro de SSR localmente.
       ...(command === "build"
         ? [
             nitro({
-              preset: process.env["NITRO_PRESET"] || "vercel",
+              preset:
+                process.env["NITRO_PRESET"] ||
+                (process.env["NETLIFY"] === "true" ? "netlify" : "vercel"),
               routeRules: {
                 ...redirecionamentos,
                 // Os cabeçalhos de segurança das telas saem de src/server.ts;

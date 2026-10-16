@@ -1,0 +1,11 @@
+# Provisório: mantém o site antigo no Netlify de pé enquanto a hospedagem
+# passa para a Vercel. Lá o build sai no formato do Netlify (ver o preset em
+# vite.config.ts), com o estático em dist/ e a função de SSR em
+# .netlify/functions-internal/server. Os redirecionamentos dos endereços
+# antigos vêm do próprio build. Apagar junto com o site no Netlify.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
