@@ -8,12 +8,12 @@
 
 Sistema de gestão de chamados que uso para atender os escritórios de contabilidade que recebem meus serviços de T.I. Cada pedido entra com prazo, responsável e histórico, e a fila mostra primeiro o que está mais perto de estourar. Quem não tem conta abre chamado por um formulário público, mas só com o e-mail de uma empresa atendida.
 
-[![Site no ar](https://img.shields.io/badge/site-centraldechamados--alpha.vercel.app-5B6BFF?style=for-the-badge)](https://centraldechamados-alpha.vercel.app)
+[![Site no ar](https://img.shields.io/badge/site-centraldechamadosdeti.vercel.app-5B6BFF?style=for-the-badge)](https://centraldechamadosdeti.vercel.app)
 [![Testes](https://img.shields.io/github/actions/workflow/status/higornovocardoso/Central-de-Chamados/verificar.yml?branch=main&label=testes&style=for-the-badge)](https://github.com/higornovocardoso/Central-de-Chamados/actions/workflows/verificar.yml)
 [![TanStack Start + Supabase](https://img.shields.io/badge/TanStack_Start_+_Supabase-0A0F1F?style=for-the-badge)](#tecnologias)
 [![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-2F855A?style=for-the-badge)](LICENSE)
 
-[**Ver o site**](https://centraldechamados-alpha.vercel.app) · [LinkedIn](https://www.linkedin.com/in/higornovocardoso) · [GitHub](https://github.com/higornovocardoso)
+[**Ver o site**](https://centraldechamadosdeti.vercel.app) · [LinkedIn](https://www.linkedin.com/in/higornovocardoso) · [GitHub](https://github.com/higornovocardoso)
 
 </div>
 
