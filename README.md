@@ -1,17 +1,19 @@
 <div align="center">
 
-<img src="docs/painel.png" alt="Painel da Central de Chamados no tema escuro: indicadores de chamados em aberto, prazo estourado e sem técnico, o chamado em atendimento com o relógio do prazo e a fila ordenada por prazo" width="100%">
+<img src="docs/telas/painel.png" alt="Painel no tema escuro: chamados em aberto, prazo estourado e sem técnico, o chamado em atendimento com o relógio do prazo, a fila ordenada por prazo e os gráficos por técnico e por categoria" width="100%">
 
-# Central de Chamados
+# Central de Chamados · Atendimento de T.I.
 
-**Atendimento de T.I.** · inspirado no [GLPI](https://glpi-project.org)
+**Suporte de T.I. para escritórios de contabilidade** · inspirado no GLPI
 
-Central de chamados para equipes de suporte: fila ordenada por prazo, atribuição automática, quadro de atendimento e um formulário público em que só e-mails das empresas atendidas abrem chamado. Várias empresas no mesmo sistema, cada uma isolada das outras pelo próprio banco de dados.
+Sistema de gestão de chamados que uso para atender os escritórios de contabilidade que recebem meus serviços de T.I. Cada pedido entra com prazo, responsável e histórico, e a fila mostra primeiro o que está mais perto de estourar. Quem não tem conta abre chamado por um formulário público, mas só com o e-mail de uma empresa atendida.
 
-[![Verificar](https://img.shields.io/github/actions/workflow/status/higornovocardoso/Central-de-Chamados/verificar.yml?branch=main&label=verifica%C3%A7%C3%A3o&style=for-the-badge)](https://github.com/higornovocardoso/Central-de-Chamados/actions/workflows/verificar.yml)
-[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-0A0B10?style=for-the-badge)](LICENSE)
+[![Site no ar](https://img.shields.io/badge/site-centraldechamados--alpha.vercel.app-5B6BFF?style=for-the-badge)](https://centraldechamados-alpha.vercel.app)
+[![Testes](https://img.shields.io/github/actions/workflow/status/higornovocardoso/Central-de-Chamados/verificar.yml?branch=main&label=testes&style=for-the-badge)](https://github.com/higornovocardoso/Central-de-Chamados/actions/workflows/verificar.yml)
+[![TanStack Start + Supabase](https://img.shields.io/badge/TanStack_Start_+_Supabase-0A0F1F?style=for-the-badge)](#tecnologias)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-2F855A?style=for-the-badge)](LICENSE)
 
-[Portfólio](https://higornovocardoso.com) · [LinkedIn](https://www.linkedin.com/in/higornovocardoso) · [GitHub](https://github.com/higornovocardoso)
+[**Ver o site**](https://centraldechamados-alpha.vercel.app) · [LinkedIn](https://www.linkedin.com/in/higornovocardoso) · [GitHub](https://github.com/higornovocardoso)
 
 </div>
 
@@ -24,92 +26,112 @@ Central de chamados para equipes de suporte: fila ordenada por prazo, atribuiç�
 - [Tecnologias](#tecnologias)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Como funciona](#como-funciona)
-- [Segurança](#segurança)
 - [Rodando localmente](#rodando-localmente)
 - [Qualidade e automação](#qualidade-e-automação)
-- [Publicação](#publicação)
+- [Segurança](#segurança)
+- [Acessibilidade e desempenho](#acessibilidade-e-desempenho)
 - [Licença](#licença)
 
 ## Destaques
 
-- **Fila por prazo de verdade.** Cada prioridade tem um prazo para responder e outro para resolver, contados no horário comercial do calendário escolhido. O relógio para enquanto o chamado aguarda o solicitante, e a primeira resposta fica registrada.
+- **Fila por prazo.** Cada prioridade tem um prazo para responder e outro para resolver, contados no horário comercial do calendário da empresa. O relógio para enquanto o chamado está _Pendente_ (esperando o solicitante), e a primeira resposta fica registrada.
 - **Chamar próximo.** O painel mostra o chamado que você está atendendo, com o tempo que falta, e um botão que pega o próximo da fila pelo prazo mais apertado.
-- **Formulário público fechado por domínio.** Quem não tem conta abre chamado sem login, mas só com o e-mail de uma empresa cadastrada. O domínio do e-mail decide de qual empresa é o chamado.
-- **Várias empresas, cada uma no seu quadrado.** O isolamento é feito no banco (Row Level Security), não na tela: uma empresa não lê nem grava dado de outra, mesmo chamando a API direto.
-- **Perfis e direitos no estilo do GLPI.** Super-Admin, Técnico, Self-Service e outros, com direito por objeto (ler, criar, editar, excluir). Ninguém concede um perfil maior que o próprio.
-- **Atendimento completo.** Acompanhamentos públicos e privados, tarefas, solução com aprovação do solicitante, pedido de aprovação, anexos e histórico de tudo o que mudou.
-- **Automação.** Regras de atribuição por critério, chamados recorrentes e fechamento automático, rodando no próprio banco com pg_cron.
-- **Quadro de atendimento.** Os chamados em colunas por status, arrastando de uma para outra.
-- **Feito para o dia a dia.** Busca rápida com `Ctrl K`, tema escuro e claro (a escolha fica salva), endereços com o nome de cada tela e layout que funciona no celular.
+- **Formulário público fechado por domínio.** Quem não tem conta abre chamado sem login, mas só com o e-mail de uma empresa cadastrada. O domínio do e-mail decide de qual empresa é o chamado; domínio desconhecido é recusado com o motivo.
+- **Várias empresas, cada uma isolada.** Um escritório nunca vê nem altera chamado, pessoa ou anexo de outro, e isso é garantido pelo banco, não só pela tela.
+- **Atendimento completo.** Acompanhamentos públicos e privados, tarefas, solução com aprovação do solicitante, pedidos de aprovação, anexos e histórico de tudo o que mudou em cada chamado.
+- **Quadro e agenda.** Chamados em colunas por status, arrastando de uma para outra, e as tarefas planejadas numa agenda.
+- **Automação.** Regras de atribuição por critério (técnico, grupo, categoria), chamados recorrentes e fechamento automático dos solucionados, rodando no próprio banco.
+- **Feito para o dia a dia.** Busca rápida com <kbd>Ctrl</kbd> <kbd>K</kbd>, tema escuro e claro (a escolha fica salva) e endereços com o nome de cada tela.
 
 ## Capturas de tela
 
-| Entrar                                                                                                                                 | Abrir chamado sem login                                                                                                               |
-| -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| <img src="docs/entrar.png" alt="Tela de entrada com o título Central de Chamados sobre um fundo escuro com linhas de luz convergindo"> | <img src="docs/abrir-chamado.png" alt="Formulário público para abrir chamado com nome, e-mail, setor, assunto, categoria e urgência"> |
+| Chamados                                                                                    | Quadro                                                                           |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| <img src="docs/telas/chamados.png" alt="Lista de chamados com a barra de prazo de cada um"> | <img src="docs/telas/quadro.png" alt="Quadro de chamados em colunas por status"> |
 
-| Chamados                                                                               | Quadro                                                                     |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| <img src="docs/chamados.png" alt="Lista de chamados com barra de prazo em cada linha"> | <img src="docs/quadro.png" alt="Quadro de chamados em colunas por status"> |
+| Chamado                                                                                                                | Abrir chamado sem login                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| <img src="docs/telas/chamado.png" alt="Detalhe de um chamado com o andamento, os acompanhamentos e os campos ao lado"> | <img src="docs/telas/abrir-chamado.png" alt="Formulário público com nome, e-mail, setor, assunto, categoria e urgência"> |
 
-| Chamado                                                                                      | Prazos                                                                                            |
-| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| <img src="docs/chamado.png" alt="Detalhe de um chamado com o andamento e os campos ao lado"> | <img src="docs/prazos.png" alt="Tabela de prazos por prioridade, para responder e para resolver"> |
+| Tema claro                                                         | Entrar                                                                                                                   |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| <img src="docs/telas/painel-claro.png" alt="Painel no tema claro"> | <img src="docs/telas/entrar.png" alt="Tela de entrada com o título Central de Chamados sobre linhas de luz convergindo"> |
 
 <p align="center">
-  <img src="docs/celular.png" alt="Painel no celular" width="300">
+  <img src="docs/telas/celular.png" alt="Painel no celular" width="300">
 </p>
 
 ## Tecnologias
 
-| Camada             | Escolha                                                                       | Por quê                                                                                    |
-| ------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Framework          | [TanStack Start](https://tanstack.com/start) com TanStack Router              | Renderização no servidor, rotas tipadas por arquivo e funções de servidor sem API separada |
-| Interface          | React 19, Tailwind CSS v4 e componentes do [shadcn/ui](https://ui.shadcn.com) | Componentes acessíveis do Radix, com o visual inteiro em tokens CSS                        |
-| Dados no navegador | TanStack Query                                                                | Cache, recarga em segundo plano e estado de carregamento sem código repetido               |
-| Banco e login      | [Supabase](https://supabase.com) (Postgres, Auth, RLS, pg_cron)               | As regras de acesso vivem no banco, então valem para a tela e para a API                   |
-| Validação          | [Zod](https://zod.dev)                                                        | O mesmo esquema valida o formulário no navegador e a entrada no servidor                   |
-| Build              | Vite e [Nitro](https://nitro.build)                                           | Um build só gera o estático e a função de servidor para a hospedagem                       |
-| Hospedagem         | [Vercel](https://vercel.com)                                                  | Publica sozinha a cada push na `main`, com prévia a cada pull request                      |
-| CI                 | GitHub Actions                                                                | Lint, tipos, formatação, auditoria de dependências, build e testes do banco a cada push    |
+| Camada             | Escolha                                                                                                                     | Por quê                                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Interface          | React 19 + TypeScript (`strict`) com [TanStack Start](https://tanstack.com/start) e TanStack Router                         | Telas renderizadas no servidor, rotas tipadas por arquivo e funções de servidor sem uma API à parte |
+| Visual             | Tailwind CSS v4 com tokens próprios, componentes do [shadcn/ui](https://ui.shadcn.com) (Radix), fontes Geist e Lucide Icons | Tema claro e escuro a partir das mesmas variáveis; componentes acessíveis por teclado               |
+| Dados no navegador | TanStack Query                                                                                                              | Cache, recarga em segundo plano e estados de carregamento sem código repetido                       |
+| Banco e login      | [Supabase](https://supabase.com): PostgreSQL, Auth, RLS e pg_cron                                                           | As regras de acesso, os prazos e as automações ficam no próprio banco                               |
+| Validação          | Zod                                                                                                                         | O mesmo esquema valida o formulário no navegador e a entrada no servidor                            |
+| Build              | Vite e Nitro                                                                                                                | Um build gera o estático e a função de servidor da hospedagem                                       |
+| Hospedagem         | [Vercel](https://vercel.com)                                                                                                | Publica sozinha a cada push na `main`, com prévia a cada pull request                               |
+| Qualidade          | ESLint, Prettier, testes em SQL e GitHub Actions                                                                            | Lint, tipos, formatação, auditoria, build e testes do banco a cada push e pull request              |
 
 ## Estrutura do projeto
 
 ```text
 .
 ├── src/
-│   ├── routes/                     # uma tela por arquivo (TanStack Router)
-│   │   ├── __root.tsx              # documento, tema antes da primeira pintura, 404
+│   ├── routes/
+│   │   ├── __root.tsx              # documento, tema antes da primeira pintura, 404 e tela de erro
 │   │   ├── entrar.tsx              # login
 │   │   ├── abrir-chamado.tsx       # formulário público, sem login
-│   │   └── _authenticated/         # tudo o que exige sessão: painel, chamados, quadro…
-│   ├── components/                 # AppShell (menu e topo), tabelas, diálogos, busca rápida
+│   │   └── _authenticated/         # telas que exigem sessão
+│   │       ├── painel.tsx          # indicadores, chamado em atendimento e "Chamar próximo"
+│   │       ├── chamados.*.tsx      # lista, quadro, novo chamado e detalhe
+│   │       ├── empresas.tsx        # empresas e domínios de e-mail do formulário público
+│   │       ├── pessoas.*.tsx       # usuários e grupos
+│   │       ├── prazos.*.tsx        # prazos por prioridade e calendários
+│   │       └── …                   # categorias, perfis, regras, agenda, recorrentes, logs
+│   ├── components/
+│   │   ├── AppShell.tsx            # menu lateral, topo, menu do perfil e troca de tema
+│   │   ├── CommandPalette.tsx      # busca rápida (Ctrl K)
 │   │   └── ui/                     # componentes base do shadcn/ui
 │   ├── lib/
-│   │   ├── prazo.ts                # cálculo do tempo restante e da ordem da fila
+│   │   ├── prazo.ts                # tempo restante e ordem da fila
 │   │   ├── public-tickets.functions.ts  # função de servidor do formulário público
 │   │   ├── users.functions.ts      # criar, editar e excluir contas (servidor)
-│   │   ├── permissions.ts          # direitos do usuário logado
+│   │   ├── permissions.ts          # direitos de quem está logado
 │   │   ├── theme.ts                # tema escuro e claro, com a transição em círculo
 │   │   └── enderecos-antigos.ts    # endereços antigos que redirecionam para os novos
-│   ├── integrations/supabase/      # clientes do navegador e do servidor, tipos do banco
+│   ├── integrations/supabase/      # clientes do navegador e do servidor e tipos do banco
 │   └── server.ts                   # entrada do servidor: cabeçalhos de segurança e erros
 ├── supabase/
-│   ├── migrations/                 # o esquema inteiro, fase a fase, com as políticas de acesso
+│   ├── migrations/                 # o banco inteiro, fase a fase: tabelas, gatilhos e RLS
 │   └── tests/                      # testes de isolamento e de segurança, em SQL
 ├── scripts/testar-banco.sh         # recria o banco do zero e roda os testes
-├── docs/                           # capturas usadas neste README
-├── .github/workflows/              # verificação automática (GitHub Actions)
-└── vite.config.ts                  # build, redirecionamentos e cache do estático
+├── docs/telas/                     # capturas usadas neste README
+├── .github/workflows/verificar.yml # lint, tipos, auditoria, build e banco a cada push
+├── vite.config.ts                  # build, redirecionamentos e cache do estático
+└── LICENSE                         # licença MIT
 ```
 
 ## Como funciona
+
+### Do navegador ao banco
+
+```mermaid
+flowchart LR
+    T[Telas] --> Q[TanStack Query]
+    Q --> SB[(Supabase<br/>PostgreSQL + RLS)]
+    T --> FS[Funções de servidor<br/>formulário público e contas]
+    FS --> SB
+```
+
+As telas leem e gravam direto no Supabase, com a sessão de quem está logado, e o RLS decide o que cada um vê. Duas coisas passam pelo servidor: o formulário público, que roda sem login, e criar, editar ou excluir contas, que exige a chave de serviço. Antes de mexer numa conta, o servidor pergunta ao banco se quem pediu pode mexer naquela conta.
 
 ### O caminho de um chamado
 
 ```mermaid
 flowchart LR
-    A[Formulário público<br/>ou tela Novo chamado] --> B[Novo]
+    A[Formulário público<br/>ou Novo chamado] --> B[Novo]
     B -->|alguém assume| C[Em atendimento]
     C -->|espera o solicitante| D[Pendente]
     D -->|resposta| C
@@ -119,116 +141,103 @@ flowchart LR
     E -->|sem resposta em N dias| F
 ```
 
-Ao nascer, o chamado passa por uma sequência de gatilhos no banco, sempre na mesma ordem:
+Ao nascer, o chamado passa por gatilhos no banco, sempre na mesma ordem: a proteção da abertura (quem não é da equipe não escolhe data, técnico nem fechamento), as regras de atribuição, a prioridade (urgência de quem abre cruzada com o impacto que a equipe ajusta), os prazos e, depois, a pausa em _Pendente_ e o registro da primeira resposta.
 
-1. **Proteção da abertura.** Para quem não é da equipe, o banco zera o que é do sistema (data, técnico, fechamento) e limita o tamanho dos textos.
-2. **Regras de atribuição.** Definem técnico, grupo ou categoria conforme os critérios cadastrados.
-3. **Prioridade.** Sai do cruzamento entre a urgência (quem abriu informa) e o impacto (quem atende ajusta).
-4. **Prazos.** Calculados a partir da abertura, no calendário da empresa, e recalculados se a prioridade mudar.
-5. **Pausa e primeira resposta.** O relógio para em "Pendente", e a primeira resposta é registrada quando o chamado sai de Novo ou recebe um acompanhamento público da equipe.
+### Quem pode o quê
 
-### Formulário público
+| Ação                                                             | Solicitante | Técnico | Supervisor | Administrador |
+| ---------------------------------------------------------------- | :---------: | :-----: | :--------: | :-----------: |
+| Abrir chamado e acompanhar os próprios                           |      ✓      |    ✓    |     ✓      |       ✓       |
+| Aprovar ou recusar a solução do próprio chamado                  |      ✓      |    ✓    |     ✓      |       ✓       |
+| Ver e atender os chamados das suas empresas                      |             |    ✓    |     ✓      |       ✓       |
+| Registrar solução e tarefas                                      |             |    ✓    |     ✓      |       ✓       |
+| Excluir chamados                                                 |             |         |     ✓      |       ✓       |
+| Cadastrar pessoas, empresas, perfis, categorias, prazos e regras |             |         |            |       ✓       |
 
-```mermaid
-sequenceDiagram
-    participant P as Pessoa sem login
-    participant S as Função do servidor
-    participant B as Banco (Supabase)
-    P->>S: nome, e-mail, assunto, categoria, urgência
-    S->>S: valida com Zod e descarta robôs (campo-armadilha)
-    S->>B: de qual empresa é este domínio?
-    B-->>S: empresa, ou nada se o domínio não for cadastrado
-    S->>B: grava o chamado como visitante
-    B->>B: confere o domínio de novo (RLS) e o limite de envios
-    B-->>P: chamado aberto, ou o motivo da recusa
-```
-
-A conferência do domínio acontece duas vezes de propósito. A chave pública do Supabase vai no navegador, então qualquer pessoa pode tentar gravar direto na API. A segunda conferência, feita pelo banco, é a que vale.
-
-## Segurança
-
-O sistema parte do princípio de que a API é pública: tudo o que a tela impede, o banco também impede.
-
-- **Isolamento entre empresas** por Row Level Security em todas as tabelas, inclusive nas que pendem do chamado (acompanhamentos, soluções, aprovações, anexos).
-- **Campos do sistema protegidos.** Quem não é da equipe não escolhe data de abertura, técnico, prioridade travada nem fechamento.
-- **Limite de envios** no formulário público: 5 chamados por e-mail e 60 no total a cada 10 minutos.
-- **Sem escalada de privilégio.** Um perfil só pode ser concedido por quem já tem todos os direitos dele. Senha, e-mail e exclusão de conta passam por uma checagem no banco: quem cuida das pessoas de uma empresa não mexe na conta de um administrador nem de outra empresa.
-- **Chave administrativa só no servidor.** A `SUPABASE_SERVICE_ROLE_KEY` nunca vai para o navegador e é usada só nas funções de conta, depois da checagem de direito.
-- **Cabeçalhos de segurança** em toda resposta: Content-Security-Policy, HSTS, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` e `Permissions-Policy`.
-- **Testado a cada push.** `supabase/tests/` tem 26 cenários que tentam pela API o que a tela não oferece (ler outra empresa, forjar campos, promover a si mesmo) e exigem que o banco recuse.
-
-Encontrou uma falha? Abra uma [issue](https://github.com/higornovocardoso/Central-de-Chamados/issues) sem detalhes de exploração e eu entro em contato.
+Os perfis seguem o GLPI (Self-Service, Técnico, Supervisor, Admin e Super-Admin) e cada direito é configurável na tela Perfis de acesso. Cada linha vale também no banco: esconder um botão nunca é a única proteção.
 
 ## Rodando localmente
 
 Pré-requisitos: [Node.js](https://nodejs.org) 22 e um projeto no [Supabase](https://supabase.com).
 
-```bash
-git clone https://github.com/higornovocardoso/Central-de-Chamados.git
-cd Central-de-Chamados
-npm install
-cp .env.example .env    # preencha com os dados do seu projeto Supabase
-npm run dev             # abre em http://localhost:8080
-```
+1. Aplique as migrações de [`supabase/migrations/`](supabase/migrations) na ordem dos nomes, pelo [Supabase CLI](https://supabase.com/docs/guides/cli) (`supabase db push`) ou colando cada arquivo no SQL Editor.
+2. Em **Authentication › Users**, crie o primeiro usuário. Ele vira Super-Admin automaticamente.
+3. Em **Authentication › Sign In / Providers**, desative _Allow new users to sign up_: as contas são criadas pelo próprio sistema, na tela Pessoas.
+4. Clone o projeto, configure o `.env` e rode:
+   ```bash
+   git clone https://github.com/higornovocardoso/Central-de-Chamados.git
+   cd Central-de-Chamados
+   cp .env.example .env    # preencha com a URL e as chaves do seu projeto Supabase
+   npm install
+   npm run dev             # abre em http://localhost:8080
+   ```
+5. Entre com o primeiro usuário. Em _Empresas_, cadastre cada escritório atendido e os domínios de e-mail que podem abrir chamado pelo formulário público.
 
-As migrações de `supabase/migrations/` criam o banco inteiro. Aplique na ordem dos nomes, pelo [Supabase CLI](https://supabase.com/docs/guides/cli) (`supabase db push`) ou colando cada arquivo no SQL Editor do painel. O primeiro usuário cadastrado vira administrador e cadastra o resto pela tela Pessoas.
+O `.env` não é versionado. Ao publicar na Vercel, cadastre as mesmas variáveis no painel do projeto:
 
-### Variáveis de ambiente
+| Variável                        | Onde é lida | O que é                                                  |
+| ------------------------------- | ----------- | -------------------------------------------------------- |
+| `SUPABASE_URL`                  | Servidor    | URL do projeto                                           |
+| `SUPABASE_PUBLISHABLE_KEY`      | Servidor    | Chave pública (publishable ou anon)                      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Servidor    | Chave de serviço, só para criar, editar e excluir contas |
+| `VITE_SUPABASE_URL`             | Navegador   | A mesma URL, embutida no código enviado ao navegador     |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Navegador   | A mesma chave pública, embutida no código                |
 
-Os valores saem do painel do Supabase, em Project Settings > API.
-
-| Variável                        | Onde é lida | O que é                                                      |
-| ------------------------------- | ----------- | ------------------------------------------------------------ |
-| `SUPABASE_URL`                  | Servidor    | URL do projeto                                               |
-| `SUPABASE_PUBLISHABLE_KEY`      | Servidor    | Chave pública (publishable ou anon)                          |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Servidor    | Chave administrativa. Só para criar, editar e excluir contas |
-| `VITE_SUPABASE_URL`             | Navegador   | A mesma URL, embutida no código enviado ao navegador         |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Navegador   | A mesma chave pública, embutida no código                    |
-
-Tudo o que começa com `VITE_` fica visível para qualquer visitante. Só a chave pública pode ir ali; a `SUPABASE_SERVICE_ROLE_KEY` nunca.
-
-### Comandos
+Tudo o que começa com `VITE_` fica visível para qualquer visitante. Só a chave pública pode ir ali; a chave de serviço nunca.
 
 | Comando             | O que faz                                            |
 | ------------------- | ---------------------------------------------------- |
-| `npm run dev`       | Servidor de desenvolvimento com recarga automática   |
+| `npm run dev`       | Servidor de desenvolvimento                          |
 | `npm run build`     | Build de produção para a Vercel                      |
-| `npm run lint`      | ESLint com as regras do Prettier                     |
-| `npm run typecheck` | Verificação de tipos do TypeScript                   |
-| `npm run format`    | Formata o projeto inteiro com o Prettier             |
+| `npm run typecheck` | Verificação de tipos                                 |
+| `npm run lint`      | Análise estática (ESLint)                            |
 | `npm run test:db`   | Recria o banco do zero e roda os testes de segurança |
 
 ## Qualidade e automação
 
 ```mermaid
 flowchart LR
-    A[push ou pull request] --> B[GitHub Actions]
-    A --> V[Vercel publica<br/>prévia ou produção]
-    B --> C[Código]
-    B --> D[Banco]
-    C --> C1[lint · tipos · formatação]
-    C --> C2[auditoria de dependências]
-    C --> C3[build de produção]
-    D --> D1[Postgres limpo]
-    D1 --> D2[todas as migrações]
-    D2 --> D3[26 cenários de segurança]
+    A[push na main] --> B[Vercel publica o site]
+    A --> C[GitHub Actions]
+    P[pull request] --> C
+    P --> V[Vercel publica uma prévia]
+    C --> D[ESLint, tipos e formatação]
+    C --> E[Auditoria de dependências e build]
+    C --> F[Banco do zero + testes de segurança]
 ```
 
-O teste do banco roda num Postgres comum, com um modelo mínimo do Supabase (`supabase/tests/stubs/`). Para rodar na sua máquina, com um Postgres 16 e o stub do pg_cron copiado para a pasta de extensões do servidor:
+O teste do banco aplica todas as migrações num Postgres limpo e roda 26 cenários que tentam pela API o que a tela não oferece. Eles conferem, entre outras coisas, que:
 
-```bash
-PGHOST=127.0.0.1 PGUSER=postgres npm run test:db
-```
+- um usuário de uma empresa não lê nem grava chamado, local ou solução de outra, nem lendo a tabela inteira sem filtro;
+- o formulário público só aceita domínios cadastrados, e mandar o id de outra empresa na requisição não adianta;
+- quem abre chamado não consegue forjar data, técnico, prioridade travada ou fechamento, nem mandar textos gigantes;
+- o sexto chamado do mesmo e-mail em 10 minutos é barrado;
+- o solicitante aprova ou recusa a solução, mas não a reescreve nem registra uma solução no lugar do técnico;
+- quem cuida das pessoas de uma empresa não mexe na conta do administrador, nem de outra empresa, nem se promove a Super-Admin.
 
-## Publicação
+## Segurança
 
-A Vercel publica sozinha: cada push na `main` vai para produção e cada pull request ganha um endereço de prévia. As variáveis de ambiente ficam no projeto da Vercel, em Settings > Environment Variables, e só passam a valer no build seguinte.
+O sistema passou por uma revisão de segurança que testou pela API tudo o que a tela impede. O que ficou valendo:
 
-Mudança no banco não sobe com o código. Cada migração nova é aplicada no Supabase (CLI ou SQL Editor) antes de o código que depende dela ir para a `main`.
+- **Regras no banco.** RLS em todas as tabelas, com isolamento por empresa, inclusive nas tabelas que pendem do chamado (acompanhamentos, soluções, aprovações, anexos). Gatilhos zeram os campos do sistema quando quem abre o chamado não é da equipe.
+- **Contas.** Ninguém concede um perfil com mais direitos que o seu. Senha, e-mail e exclusão de conta só passam depois de o banco confirmar que quem pediu pode mexer naquela conta.
+- **Formulário público.** Só domínios cadastrados, conferidos no servidor e de novo no banco; limite de 5 chamados por e-mail e 60 no total a cada 10 minutos; campo-armadilha contra robôs.
+- **Segredos.** A chave de serviço existe só no servidor. O `.env` não é versionado, e só a chave pública vai para o navegador.
+- **Site.** Toda resposta sai com `Content-Security-Policy`, HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` e `Permissions-Policy`. As dependências passam por auditoria a cada push.
+
+## Acessibilidade e desempenho
+
+- **Carregamento.** As telas são renderizadas no servidor e cada rota baixa só o próprio código. Os arquivos estáticos ficam em cache por um ano.
+- **Tema sem piscar.** A escolha entre escuro e claro é aplicada antes da primeira pintura e continua valendo ao recarregar.
+- **Menos movimento.** Com "reduzir movimento" ativado no sistema, animações e transições são desligadas.
+- **Teclado.** Foco visível em tudo que é clicável, busca rápida com <kbd>Ctrl</kbd> <kbd>K</kbd> e janelas que fecham com <kbd>Esc</kbd>.
+- **Celular.** Todas as telas funcionam no celular, com menu lateral recolhível.
 
 ## Licença
 
-O código está sob a licença [MIT](LICENSE). Pode estudar, copiar e adaptar para a sua equipe.
+Distribuído sob a licença MIT. Veja [`LICENSE`](LICENSE) para mais detalhes.
+
+O nome GLPI pertence ao seu projeto, e o conteúdo pessoal (textos, nomes e imagens) não está coberto pela licença.
 
 ---
 
