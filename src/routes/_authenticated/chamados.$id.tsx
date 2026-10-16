@@ -1334,7 +1334,7 @@ function ActorsPanel({
                   <Input
                     value={reqEmail}
                     onChange={(e) => setReqEmail(e.target.value)}
-                    placeholder="nome@compliancecontabil.com"
+                    placeholder="nome@empresa.com"
                     className="h-8 text-xs"
                   />
                 </div>

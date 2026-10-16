@@ -51,11 +51,8 @@ create policy entity_email_domains_write on public.entity_email_domains
   using (public.has_right_in_entity(auth.uid(), 'entity', 'update', entity_id))
   with check (public.has_right_in_entity(auth.uid(), 'entity', 'update', entity_id));
 
--- Preserva o comportamento atual: os 13 chamados existentes vêm todos deste
--- domínio, e continuam entrando pela mesma porta.
-insert into public.entity_email_domains (entity_id, domain)
-values ('6a8327c7-a229-4168-ac46-77f58aac2c2b', 'compliancecontabil.com')
-on conflict (domain) do nothing;
+-- Os domínios de cada empresa são cadastrados na tela Empresas. O domínio
+-- que já recebia chamado foi gravado direto no banco quando esta fase subiu.
 
 -- SECURITY DEFINER porque a política roda com as permissões de quem chama, e
 -- o papel anon não enxerga entity_email_domains nem entities.

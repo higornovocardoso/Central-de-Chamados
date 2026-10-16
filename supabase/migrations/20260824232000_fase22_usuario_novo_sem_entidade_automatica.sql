@@ -3,7 +3,7 @@
 -- handle_new_user concedia a todo usuário recém-criado uma autorização na
 -- primeira entidade raiz, com is_recursive = true. Com uma empresa só isso era
 -- conveniente. Com várias, significa que ao cadastrar o técnico da Empresa B
--- ele ganharia acesso à Compliance de brinde — um furo no cadastro, não nas
+-- ele ganharia acesso à empresa principal de brinde — um furo no cadastro, não nas
 -- políticas, e portanto invisível para o guarda de entidade da fase 20.
 --
 -- O vínculo automático continua valendo apenas para o primeiro usuário do

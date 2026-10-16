@@ -1,0 +1,62 @@
+name: Verificar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codigo:
+    name: Código (lint, tipos e build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npx prettier --check .
+      - run: npm audit --omit=dev --audit-level=high
+      # Valores de mentira: o build só precisa que existam. Os de verdade ficam
+      # nas variáveis de ambiente do projeto na Vercel.
+      - run: npm run build
+        env:
+          SUPABASE_URL: https://exemplo.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_exemplo
+          VITE_SUPABASE_URL: https://exemplo.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_exemplo
+
+  banco:
+    name: Banco (migrações e testes de segurança)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instala o pg_cron de teste no servidor
+        run: docker cp supabase/tests/stubs/pg_cron/. ${{ job.services.postgres.id }}:/usr/share/postgresql/16/extension/
+      - run: scripts/testar-banco.sh

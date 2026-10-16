@@ -16,12 +16,9 @@ dist-ssr
 .nitro
 *.local
 
-# Netlify (saida do build do nitro)
+# Saída do build do nitro (Vercel) e de alvos antigos
+.vercel/
 .netlify/
-
-# Wrangler / Cloudflare (sobra do alvo antigo)
-.wrangler/
-.dev.vars
 
 # Editor directories and files
 .vscode/*
@@ -34,7 +31,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Variáveis de ambiente: ficam no painel da Netlify, não no repositório.
+# Variáveis de ambiente: ficam no painel da Vercel, nunca no repositório.
+# Só o modelo, sem valores, é versionado.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
