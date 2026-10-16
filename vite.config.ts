@@ -4,6 +4,15 @@ import { nitro } from "nitro/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
+import { ENDERECOS_ANTIGOS } from "./src/lib/enderecos-antigos";
+
+/** Endereço antigo responde 301 na própria hospedagem, antes do app. */
+const redirecionamentos = Object.fromEntries(
+  Object.entries(ENDERECOS_ANTIGOS).map(([de, para]) => [
+    de,
+    { redirect: { to: para, status: 301 as const } },
+  ]),
+);
 
 /**
  * A ordem dos plugins importa: tailwind, caminhos do tsconfig, TanStack Start,
@@ -56,9 +65,30 @@ export default defineConfig(({ mode, command }) => {
           client: { files: ["**/server/**"], specifiers: ["server-only"] },
         },
       }),
-      // NITRO_PRESET permite compilar para outro alvo sem editar o config —
-      // usado para reproduzir erro de SSR localmente com "node-server".
-      ...(command === "build" ? [nitro({ preset: process.env["NITRO_PRESET"] || "netlify" })] : []),
+      // O alvo é a Vercel. Enquanto o site antigo no Netlify existir, o build
+      // feito lá (NETLIFY=true) sai no formato dele, para a troca de
+      // hospedagem não derrubar o site. NITRO_PRESET força outro alvo, por
+      // exemplo "node-server" para reproduzir erro de SSR localmente.
+      ...(command === "build"
+        ? [
+            nitro({
+              preset:
+                process.env["NITRO_PRESET"] ||
+                (process.env["NETLIFY"] === "true" ? "netlify" : "vercel"),
+              routeRules: {
+                ...redirecionamentos,
+                // Os cabeçalhos de segurança das telas saem de src/server.ts;
+                // estes cobrem os arquivos estáticos, que não passam por lá.
+                "/assets/**": {
+                  headers: {
+                    "cache-control": "public, max-age=31536000, immutable",
+                    "x-content-type-options": "nosniff",
+                  },
+                },
+              },
+            }),
+          ]
+        : []),
       viteReact(),
     ],
   };

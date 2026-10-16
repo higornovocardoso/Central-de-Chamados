@@ -18,18 +18,23 @@ const updateSchema = z.object({
   password: z.string().min(8).max(72).optional(),
 });
 
-async function assertCanManageUsers(
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> },
-  userId: string,
-  action: "create" | "update" | "delete",
-) {
-  const { data } = await supabase.rpc("has_right", {
-    _user_id: userId,
-    _object: "user",
-    _action: action,
+type ClienteRpc = {
+  rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+};
+
+/**
+ * O banco decide se quem está logado pode mexer naquela conta: precisa ter o
+ * direito em todas as empresas da pessoa, e todos os perfis dela têm que caber
+ * nos seus. Assim quem cuida das pessoas de uma empresa não troca a senha de
+ * um administrador nem de alguém de outra empresa.
+ */
+async function assertPodeGerenciar(supabase: ClienteRpc, alvo: string, acao: "update" | "delete") {
+  const { data, error } = await supabase.rpc("pode_gerenciar_usuario", {
+    _alvo: alvo,
+    _acao: acao,
   });
-  if (data !== true) {
-    throw new Error("Você não tem permissão para gerenciar usuários.");
+  if (error || data !== true) {
+    throw new Error("Você não tem permissão para alterar esta conta.");
   }
 }
 
@@ -38,7 +43,26 @@ export const createSystemUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => createSchema.parse(data))
   .handler(async ({ data, context }) => {
-    await assertCanManageUsers(context.supabase as never, context.userId, "create");
+    const supabase = context.supabase as unknown as ClienteRpc;
+    const { data: podeCriar } = await supabase.rpc("has_right", {
+      _user_id: context.userId,
+      _object: "user",
+      _action: "create",
+    });
+    if (podeCriar !== true) {
+      throw new Error("Você não tem permissão para criar contas.");
+    }
+    // Confere antes de criar a conta, para não sobrar conta sem acesso quando
+    // o perfil pedido for maior que o de quem está criando.
+    if (data.profile_id && data.entity_id) {
+      const { data: podeConceder } = await supabase.rpc("pode_conceder_perfil", {
+        _profile_id: data.profile_id,
+        _entity_id: data.entity_id,
+      });
+      if (podeConceder !== true) {
+        throw new Error("Você não pode conceder este perfil nesta empresa.");
+      }
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
@@ -74,7 +98,7 @@ export const updateSystemUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => updateSchema.parse(data))
   .handler(async ({ data, context }) => {
-    await assertCanManageUsers(context.supabase as never, context.userId, "update");
+    await assertPodeGerenciar(context.supabase as unknown as ClienteRpc, data.user_id, "update");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const attrs: Record<string, unknown> = {};
@@ -102,10 +126,10 @@ export const deleteSystemUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ user_id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    await assertCanManageUsers(context.supabase as never, context.userId, "delete");
     if (data.user_id === context.userId) {
       throw new Error("Você não pode excluir a própria conta.");
     }
+    await assertPodeGerenciar(context.supabase as unknown as ClienteRpc, data.user_id, "delete");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.user_id);
     if (error) throw new Error(error.message);

@@ -45,17 +45,65 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+/**
+ * Política de conteúdo. O 'unsafe-inline' em scripts existe porque o SSR do
+ * TanStack Start e o script do tema (antes da primeira pintura) são inline;
+ * o resto fecha o que um XSS precisaria: nada de plugin, nada de outro site
+ * embutindo a central num quadro, formulários só para o próprio endereço e
+ * conexões só com o próprio site e o Supabase.
+ */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https://*.supabase.co",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "upgrade-insecure-requests",
+].join("; ");
+
+const CABECALHOS_DE_SEGURANCA: Record<string, string> = {
+  "Content-Security-Policy": CSP,
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  "Cross-Origin-Opener-Policy": "same-origin",
+};
+
+function comCabecalhosDeSeguranca(response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [nome, valor] of Object.entries(CABECALHOS_DE_SEGURANCA)) {
+    headers.set(nome, valor);
+  }
+  // Telas e funções do servidor nunca podem ser guardadas por proxy: mostram
+  // dado de quem está logado. Os arquivos de /assets/ têm o próprio cache.
+  if (!headers.has("cache-control")) headers.set("Cache-Control", "no-store");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const response = await serverEntry.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return comCabecalhosDeSeguranca(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      return comCabecalhosDeSeguranca(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+      );
     }
   },
 };

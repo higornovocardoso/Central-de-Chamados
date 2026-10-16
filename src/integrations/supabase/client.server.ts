@@ -40,7 +40,7 @@ function createSupabaseAdminClient() {
       ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
       ...(!SUPABASE_SERVICE_ROLE_KEY ? ["SUPABASE_SERVICE_ROLE_KEY"] : []),
     ];
-    const message = `Variável de ambiente do Supabase ausente: ${missing.join(", ")}. Defina no .env local ou nas variáveis do painel da Netlify.`;
+    const message = `Variável de ambiente do Supabase ausente: ${missing.join(", ")}. Defina no .env local ou nas variáveis de ambiente do projeto na Vercel.`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }

@@ -3,11 +3,11 @@
 --
 -- A política tickets_insert_public valida nome, e-mail, título e status, mas
 -- não olha entity_id. Como a coluna tem default fixo apontando para a
--- Compliance, todo chamado de fora caía lá. Com uma empresa só isso passava
+-- empresa principal, todo chamado de fora caía lá. Com uma empresa só isso passava
 -- despercebido; com duas, qualquer pessoa na internet poderia inserir chamado
 -- na fila de qualquer cliente, bastando informar o entity_id na requisição.
 --
--- Em vez de fixar a Compliance no código, que apenas adiaria o problema, cada
+-- Em vez de fixar uma empresa no código, que apenas adiaria o problema, cada
 -- entidade passa a declarar se aceita chamado de fora. Uma empresa que atenda
 -- só internamente fica com a porta fechada.
 --
@@ -21,7 +21,9 @@ alter table public.entities
 comment on column public.entities.accepts_public_tickets is
   'Se verdadeiro, o formulário público pode abrir chamado nesta entidade.';
 
--- A Compliance já recebe chamado de fora hoje; manter o comportamento atual.
+-- A empresa principal já recebia chamado de fora; mantém o comportamento.
+-- Numa instalação nova esta linha não acha nada, e cada empresa liga o
+-- formulário público na tela Empresas.
 update public.entities
    set accepts_public_tickets = true
  where id = '6a8327c7-a229-4168-ac46-77f58aac2c2b';

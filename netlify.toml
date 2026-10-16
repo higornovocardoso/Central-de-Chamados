@@ -1,102 +1,11 @@
-# O build do nitro (preset netlify) coloca o estático em dist/ e a função de
-# SSR em .netlify/functions-internal/server, que o Netlify detecta sozinho.
-# O roteamento das telas não usa _redirects: a própria função declara path = "/*" com
-# preferStatic, então arquivo estático ganha e o resto cai no SSR.
+# Provisório: mantém o site antigo no Netlify de pé enquanto a hospedagem
+# passa para a Vercel. Lá o build sai no formato do Netlify (ver o preset em
+# vite.config.ts), com o estático em dist/ e a função de SSR em
+# .netlify/functions-internal/server. Os redirecionamentos dos endereços
+# antigos vêm do próprio build. Apagar junto com o site no Netlify.
 [build]
   command = "npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "22"
-
-# Endereços antigos das telas, para favoritos e links salvos continuarem
-# funcionando depois que as URLs passaram a ter o nome de cada tela.
-[[redirects]]
-  from = "/auth"
-  to = "/entrar"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/administracao/entidades"
-  to = "/empresas"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/administracao/usuarios"
-  to = "/pessoas"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/administracao/grupos"
-  to = "/pessoas/grupos"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/administracao/perfis"
-  to = "/perfis-de-acesso"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/administracao/regras"
-  to = "/regras-de-atribuicao"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/administracao/logs"
-  to = "/configuracoes/logs"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/configuracao/geral"
-  to = "/configuracoes"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/configuracao/slas"
-  to = "/prazos"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/configuracao/calendarios"
-  to = "/prazos/calendarios"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/configuracao/categorias"
-  to = "/categorias"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/assistencia/kanban"
-  to = "/chamados/quadro"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/assistencia/planejamento"
-  to = "/agenda"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/chamados/recorrentes"
-  to = "/recorrentes"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/base-conhecimento"
-  to = "/base-de-conhecimento"
-  status = 301
-  force = true

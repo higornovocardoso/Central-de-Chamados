@@ -11,6 +11,24 @@ type ViewTransitionDoc = Document & {
 };
 
 /**
+ * Põe na página o tema salvo; escuro, a menos que a pessoa tenha escolhido o
+ * claro. O script em __root.tsx faz o mesmo antes da primeira pintura, e a
+ * raiz chama esta depois de montar: se o React precisar refazer a página do
+ * zero (o HTML que chegou do servidor foi mexido antes de ele assumir, por uma
+ * extensão do navegador, por exemplo), ele limpa os atributos do <html> e a
+ * classe do tema iria junto.
+ */
+export function aplicaTemaSalvo() {
+  let claro = false;
+  try {
+    claro = localStorage.getItem(KEY) === "claro";
+  } catch {
+    // Sem armazenamento: fica no padrão, escuro.
+  }
+  document.documentElement.classList.toggle("dark", !claro);
+}
+
+/**
  * Tema claro ou escuro, guardado no navegador. O script em __root.tsx aplica
  * a classe antes da primeira pintura; aqui só lemos e trocamos.
  *

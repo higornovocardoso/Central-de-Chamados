@@ -8,10 +8,13 @@ import {
   Navigate,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { aplicaTemaSalvo } from "@/lib/theme";
+import { ENDERECOS_ANTIGOS } from "@/lib/enderecos-antigos";
 import { Toaster } from "@/components/ui/sonner";
 import { buttonVariants } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,25 +29,6 @@ function TelaSolta({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-/** Endereços antigos das telas, de antes de as URLs levarem o nome de cada uma. */
-const ENDERECOS_ANTIGOS: Record<string, string> = {
-  "/auth": "/entrar",
-  "/administracao/entidades": "/empresas",
-  "/administracao/usuarios": "/pessoas",
-  "/administracao/grupos": "/pessoas/grupos",
-  "/administracao/perfis": "/perfis-de-acesso",
-  "/administracao/regras": "/regras-de-atribuicao",
-  "/administracao/logs": "/configuracoes/logs",
-  "/configuracao/geral": "/configuracoes",
-  "/configuracao/slas": "/prazos",
-  "/configuracao/calendarios": "/prazos/calendarios",
-  "/configuracao/categorias": "/categorias",
-  "/assistencia/kanban": "/chamados/quadro",
-  "/assistencia/planejamento": "/agenda",
-  "/chamados/recorrentes": "/recorrentes",
-  "/base-conhecimento": "/base-de-conhecimento",
-};
 
 function NotFoundComponent() {
   const { pathname } = useLocation();
@@ -69,7 +53,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   return (
@@ -144,6 +128,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 const THEME_BOOT = `try{if(localStorage.getItem("central.tema")!=="claro")document.documentElement.classList.add("dark")}catch(e){document.documentElement.classList.add("dark")}`;
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Antes da pintura, para não piscar claro se o React tiver refeito o <html>.
+  useLayoutEffect(aplicaTemaSalvo, []);
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
